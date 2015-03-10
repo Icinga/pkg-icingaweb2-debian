@@ -1,0 +1,357 @@
+/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+
+/** Default layout **/
+html {
+  font-family: 'default-layout';
+}
+
+#layout {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#sidebar {
+  width: 12em;
+  position: fixed;
+  left: 0;
+  top: 3.6em;
+  bottom: 0;
+}
+
+#main {
+  position: fixed;
+  left: 12em;
+  top: 3.6em;
+  right: 0;
+  bottom: 0;
+}
+
+.iframe {
+  #header, #sidebar {
+    display: none;
+  }
+
+  #main {
+    left: 0;
+    top: 0;
+  }
+}
+
+#responsive-debug {
+  font-size: 0.9em;
+  font-family: Courier new, monospace;
+  padding: 0.5em;
+  width: 25em;
+  color: white;
+  height: 10em;
+  display: none;
+  position: fixed;
+  bottom: 0.5em;
+  right: 2em;
+  overflow: hidden;
+  z-index: 1000;
+  background: #333;
+  border-radius: 0.5em;
+  opacity: 0.9;
+}
+
+#layout.minimal-layout #responsive-debug {
+  font-size: 0.6em;
+}
+#layout.poor-layout #responsive-debug {
+  font-size: 0.7em;
+}
+#layout.compact-layout #responsive-debug {
+  font-size: 0.8em;
+}
+
+#layout.wide-layout #responsive-debug {
+  font-size: 1em;
+}
+
+/** Fullscreen layout **/
+#layout.fullscreen-layout {
+  #header, #sidebar, .controls > .tabs {
+    display: none;
+  }
+
+  #main {
+    left: 0;
+    top: 0;
+  }
+}
+
+/* tmp */
+#main > .container {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  float: left;
+}
+
+#layout.twocols #main > .container {
+  width: 50%;
+}
+
+
+/* #layout.twocols #main > .container > .controls {*/
+/*#layout.twocols #main .container > .controls {
+  width: 100%;
+}
+
+.container > div {
+  padding: 0;
+}
+*/
+.container .controls {
+  top: 0;
+  background-color: white;
+  padding: 0;
+  z-index: 100;
+}
+
+.container .fake-controls {
+  padding: 0;
+}
+
+.container .controls .pagination {
+  display: inline;
+}
+
+#main .dashboard {
+  padding: 0;
+}
+
+.dashboard > div.container {
+  font-size: 0.9em;
+  vertical-align: top;
+  width: 48.5%;
+  display: inline-block;
+  padding: 0;
+  margin-top: 0em;
+  margin-left: 1%;
+}
+
+.content h3 {
+  font-size: 0.9em;
+}
+
+.container .controls > * {
+  margin-left: 1em;
+}
+
+.container .controls .pagination {
+  margin-left: 1.2em;
+}
+
+.content {
+  padding: 1em;
+}
+
+.dashboard .content {
+  padding: 0;
+}
+
+/* Not growing larger than 3840px at 1em=16px right now */
+@media screen and (min-width: 240em) {
+  #main {
+    width: 227em;
+  }
+  #header {
+    width: 240em;
+  }
+}
+
+/** More than 100em, that's usually 1600px **/
+@media screen and (min-width: 100em) {
+  html {
+    font-family: 'wide-layout';
+  }
+}
+
+/** Up to 72em, that's usually 1152px on desktops **/
+@media screen and (max-width:72em) {
+  html {
+    font-family: 'compact-layout';
+  }
+}
+
+/** Up to 752px, poor boy **/
+@media screen and (max-width: 47em) {
+  html {
+    font-family: 'poor-layout';
+  }
+}
+
+/* Up to 576px for 1em=16px, should fit 320px devices */
+@media screen and (max-width: 36em) {
+  html {
+    font-family: 'minimal-layout';
+  }
+}
+
+/* 100em */
+#layout.wide-layout {
+  .dashboard > div.container {
+    width: 32%;
+    margin-left: 1%;
+    margin-right: 0;
+  }
+}
+
+/* 72em */
+#layout.compact-layout {
+  font-size: 0.8em;
+}
+
+#layout.poor-layout {
+  font-size: 0.8em;
+
+  .dashboard > div.container {
+    width: 98%;
+    margin-left: 1%;
+    margin-right: 1%;
+  }
+
+  #layout.twocols {
+    #main > .container {
+      width: 99%;
+    }
+    #col1 {
+      display: none;
+    }
+  }
+}
+
+#layout.minimal-layout {
+  #sidebar {
+    display: none;
+  }
+
+  .dashboard > div.container {
+    width: 98%;
+    margin-left: 1%;
+    margin-right: 1%;
+  }
+
+  #logo img {
+    /* TODO: Quickfix, this needs improvement */
+    width: 0 !important;
+    top: -100px;
+    position: absolute;
+  }
+  #main {
+    left: 0;
+  }
+
+  #login {
+    .logo .image img {
+      width: 70%;
+    }
+    .form {
+      width: 100%;
+      margin: auto;
+    }
+    .form label {
+      width: 100%;
+      margin: 0;
+      text-align: center;
+      display: inline-block;
+    }
+    .footer {
+      margin-left: 0;
+    }
+    h1 {
+      margin-left: 0px;
+      text-align: center;
+    }
+    form {
+      width: 100%;
+      margin: 0;
+    }
+    form input {
+      margin: auto;
+      display: block;
+    }
+    form input[type=submit] {
+      margin-top: 1.5em;
+    }
+  }
+}
+
+
+#layout.twocols .dashboard > div.container {
+  width: 96%;
+  margin-left: 2%;
+  margin-right: 2%;
+}
+
+#layout.twocols.wide-layout #col1 {
+  width: 33.333%;
+}
+
+#layout.twocols.wide-layout #col2 {
+  width: 66.667%;
+}
+
+#layout.threecols.wide-layout #main > .container {
+  width: 33.333%;
+}
+
+#layout #col2, #layout #col3 {
+  display: none;
+}
+
+#layout.twocols #col2 {
+  border-left: 1px solid #d9d9d9;
+  display: block;
+}
+
+#layout.threecols #col3 {
+  border-left: 1px solid #d9d9d9;
+  display: block;
+}
+
+.audible {
+  left: -999em;
+  position: absolute;
+}
+
+/* TODO: replace this with .error */
+.fileNotReadable {
+  padding: 0.5em;
+  background-color: @colorCritical;
+  font-weight: bold;
+  color: white;
+}
+
+.hbox {
+  display: inline-block;
+}
+
+.hbox-item {
+  display: inline-block;
+  vertical-align: top;
+  margin-bottom: 0.25em;
+  margin-left: 1em;
+  margin-right: 1em;
+}
+
+.hbox-spacer {
+  display: inline-block;
+  vertical-align: top;
+  width: 2em;
+}

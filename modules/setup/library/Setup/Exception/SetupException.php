@@ -1,0 +1,15 @@
+<?php
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+
+namespace Icinga\Module\Setup\Exception;
+
+use Icinga\Exception\IcingaException;
+
+/**
+ * Class SetupException
+ *
+ * Used to indicate that a setup should be aborted.
+ */
+class SetupException extends IcingaException
+{
+}

@@ -1,0 +1,47 @@
+<div class="box problem_hosts <?php
+    echo $this->statusSummary->hosts_down ? 'state_down' : 'state_unreachable';
+    if (!$this->statusSummary->hosts_down_unhandled && !$this->statusSummary->hosts_unreachable_unhandled) {
+        echo ' handled';
+    }
+?>">
+<?php if ($this->statusSummary->hosts_down): ?>
+    <h2>
+        <a href="<?= $this->href('monitoring/list/hosts', array('host_state' => 1)); ?>">
+            <?= sprintf($this->translatePlural('%d Host DOWN', '%d Hosts DOWN', $this->statusSummary->hosts_down), $this->statusSummary->hosts_down); ?>
+        </a>
+    </h2>
+<?php endif ?>
+<?php if ($this->statusSummary->hosts_unreachable): ?>
+    <h2>
+        <a href="<?= $this->href('monitoring/list/hosts', array('host_state' => 2)); ?>">
+            <?= sprintf($this->translatePlural('%d Host UNREACHABLE', '%d Hosts UNREACHABLE', $this->statusSummary->hosts_unreachable), $this->statusSummary->hosts_unreachable); ?>
+        </a>
+    </h2>
+<?php endif ?>
+    <div class="box contents">
+        <strong><?= $this->translate('Services'); ?></strong>
+        <?= $this->partial(
+            'tactical/components/parts/servicestatesummarybyhoststate.phtml',
+            array(
+                'translationDomain'             => $this->translationDomain,
+                'host_problem'                  => 1,
+                'services_ok'                   => $this->statusSummary->services_ok_on_problem_hosts,
+                'services_ok_not_checked'       => $this->statusSummary->services_ok_not_checked_on_problem_hosts,
+                'services_pending'              => $this->statusSummary->services_pending_on_problem_hosts,
+                'services_pending_not_checked'  => $this->statusSummary->services_pending_not_checked_on_problem_hosts,
+                'services_warning_handled'      => $this->statusSummary->services_warning_handled_on_problem_hosts,
+                'services_warning_unhandled'    => $this->statusSummary->services_warning_unhandled_on_problem_hosts,
+                'services_warning_passive'      => $this->statusSummary->services_warning_passive_on_problem_hosts,
+                'services_warning_not_checked'  => $this->statusSummary->services_warning_not_checked_on_problem_hosts,
+                'services_critical_handled'     => $this->statusSummary->services_critical_handled_on_problem_hosts,
+                'services_critical_unhandled'   => $this->statusSummary->services_critical_unhandled_on_problem_hosts,
+                'services_critical_passive'     => $this->statusSummary->services_critical_passive_on_problem_hosts,
+                'services_critical_not_checked' => $this->statusSummary->services_critical_not_checked_on_problem_hosts,
+                'services_unknown_handled'      => $this->statusSummary->services_unknown_handled_on_problem_hosts,
+                'services_unknown_unhandled'    => $this->statusSummary->services_unknown_unhandled_on_problem_hosts,
+                'services_unknown_passive'      => $this->statusSummary->services_unknown_passive_on_problem_hosts,
+                'services_unknown_not_checked'  => $this->statusSummary->services_unknown_not_checked_on_problem_hosts
+            )
+        ); ?>
+    </div>
+</div>

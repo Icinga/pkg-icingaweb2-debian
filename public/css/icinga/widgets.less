@@ -1,0 +1,305 @@
+/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+
+table.historycolorgrid {
+  font-size: 1.5em;
+}
+
+table.historycolorgrid th {
+  width: 1em;
+  height: 1em;
+  margin: 0.5em;
+  font-size: 0.55em;
+  font-weight: normal;
+}
+
+table.historycolorgrid td {
+  width: 1em;
+  height: 1em;
+  margin: 1em;
+}
+
+table.historycolorgrid td:hover {
+  opacity: 0.5;
+}
+
+table.historycolorgrid td.weekday {
+  font-size: 0.55em;
+  font-weight: normal;
+  width: 2.5em;
+  opacity: 1.0;
+}
+
+table.historycolorgrid a {
+  margin: 0;
+  text-decoration: none;
+  display: block;
+  width: 1em;
+  height: 1em;
+}
+
+table.historycolorgrid a:hover {
+  text-decoration: none;
+}
+
+table.multiselect tr[href] td {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+#main form.filterEditor input[type=text], #main form.filterEditor select {
+    width: 12em;
+}
+
+ul.datafilter li {
+  list-style-type: none;
+  margin: 0;
+}
+
+ul.tree select { /* ?? */
+  margin-bottom: 0.3em;
+  margin-left: 1em;
+}
+ul.datafilter li input, ul.datafilter li select:first-child {
+    margin-left: 1em;
+}
+
+ul.tree {
+  font-size: 0.8em;
+  padding: 0;
+  margin: 0;
+}
+
+ul.tree, ul.tree ul {
+  padding-left: 1.5em;
+}
+
+ul.tree ul {
+  padding-left: 1.5em;
+}
+
+ul.tree li {
+  margin: 0;
+  list-style-type: none;
+  position: relative;
+  padding: 0;
+}
+
+ul.tree li .handle {
+  background-image: url('../img/tree/tree-minus.gif');
+  background-repeat: no-repeat;
+  display: inline-block;
+  position: absolute;
+  width: 1em;
+  height: 2em;
+  left: -0.6em;
+  background-position: -3px 3px;
+  z-index: 1;
+  cursor: pointer;
+}
+
+ul.tree li.collapsed > .handle {
+  background-image: url('../img/tree/tree-plus.gif');
+}
+
+ul.tree li.collapsed > ul {
+  display: none;
+}
+
+ul.tree li::before, ul.tree li::after {
+  content: '';
+  position: absolute;
+  right: auto;
+  left: -0.2em;
+  border-color: #aaa;
+  border-style: dotted;
+  border-width: 0;
+}
+
+/* This is the left vertical line */
+ul.tree li::before {
+  border-left-width: 1px;
+  top: 0;
+  width: 1em;
+  height: 100%;
+  bottom: 1em;
+}
+
+/* This is the horizontal dash in front of each item */
+ul.tree li::after {
+  border-top-width: 1px;
+  top: 1em;
+  width: 1em;
+  height: 1em;
+}
+
+/* Stop left vertical line at "mid-height" after last nodes (at each level) */
+ul.tree li:last-child::before {
+  height: 1em;
+}
+
+/* No border for the root element - there must be only ONE root */
+ul.tree > li::before, ul.tree > li::after {
+  display: none;
+}
+
+/* No connector before (each) root element */
+ul.tree > ul > li::before, ul.tree > ul > li::after {
+	border: 0;
+}
+
+ul.tree li a {
+  display: inline-block;
+/* TODO -> find something better  padding-left: 2.4em; */
+  line-height: 2em;
+  text-decoration: none;
+  color: #777;
+  outline: 0;
+  background-repeat: no-repeat;
+  background-position: 0.8em 0.4em;
+}
+
+ul.tree li a.error {
+  color: @colorCriticalHandled;
+}
+
+ul.tree li a:hover {
+	color: #000;
+  text-decoration: underline;
+}
+
+ul.tree li a.error:hover {
+  color: @colorCritical;
+}
+
+/* Add hover effect to chart data */
+.chart-data:hover {
+  opacity: 0.85;
+}
+
+.pie-data:hover {
+  opacity: 0.6;
+}
+
+/* charts should grow as much as possible but never beyond the current viewport's size */
+.svg-container-responsive {
+  padding: 1.5em;
+  height: 80vh;
+}
+
+.badge-container {
+  font-size: 1em;
+  display: inline-block;
+  float: right;
+  margin-right: 0.6em;
+}
+
+li li .badge-container {
+  /*
+   fix margin for smaller font-size of list elements
+   1 = 0,8em / 0.8em
+  */
+  margin-right: 0.75em;
+}
+
+/*
+#layout.hoveredmenu .active > .badge-container {
+  display: none;
+}
+
+#layout.hoveredmenu .hover > .badge-container {
+  //margin-right: 14.15em;
+  display: none;
+}
+*/
+
+.badge {
+  position: relative;
+  top: 0.3em;
+  display: inline-block;
+  min-width: 1em;
+  padding: 3px 7px;
+  font-size: 0.8em;
+  font-weight: 700;
+  line-height: 1.1em;
+  color: white;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  background-color: @colorInvalid;
+}
+
+#menu > ul > li.active > .badge-container {
+  display: none;
+}
+
+#menu > ul > li.hover > .badge-container {
+  display: none;
+}
+
+#menu > ul > li.active > ul > li .badge-container {
+  position: relative;
+  top: -0.5em;
+}
+
+#menu > ul > li.hover > ul > li > a {
+  width: 12.5em;
+}
+
+#menu > ul > li.hover > ul > li .badge-container {
+  position: relative;
+  top: -0.5em;
+}
+
+#menu > ul > li.hover > ul > li  {
+  // prevent floating badges from resizing list items in webkit
+  //max-height: 2em;
+}
+
+li li .badge {
+  font-size: 0.975em;
+}
+
+.badge-critical {
+  background-color: @colorCritical;
+}
+
+.badge-warning {
+  background-color: @colorWarning;
+}
+
+.badge-ok {
+  background-color: @colorOk;
+}
+
+.badge-pending {
+  background-color: @colorPending;
+}
+
+.badge-pending {
+  background-color: @colorUnknown;
+}
+
+.widgetFilter li.active {
+    background-color: #eee;
+}
+
+.sparkline-box {
+  position: relative;
+  top: -3px;
+  float: right;
+}
+
+.dashboard .sparkline-box {
+  top: -3px;
+}
+
+.sparkline {
+  width: 12px;
+  height: 12px;
+  position: relative;
+  top: 4px;
+
+  margin: 0em 0em 0em 0.1em;
+}

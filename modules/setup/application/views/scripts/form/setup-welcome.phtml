@@ -1,0 +1,63 @@
+<?php
+
+use Icinga\Application\Icinga;
+use Icinga\Application\Config;
+use Icinga\Application\Platform;
+use Icinga\Web\Wizard;
+
+$configDir = Icinga::app()->getConfigDir();
+$setupTokenPath = rtrim($configDir, '/') . '/setup.token';
+$cliPath = realpath(Icinga::app()->getApplicationDir() . '/../bin/icingacli');
+
+?>
+<div class="welcome-page">
+  <h2><?= $this->translate('Welcome to the configuration of Icinga Web 2!') ?></h2>
+ <?php if (false === file_exists($setupTokenPath) && file_exists(Config::resolvePath('config.ini'))): ?>
+  <p class="restart-warning"><?= $this->translate(
+    'You\'ve already completed the configuration of Icinga Web 2. Note that most of your configuration'
+      . ' files will be overwritten in case you\'ll re-configure Icinga Web 2 using this wizard!'
+  ); ?></p>
+ <?php else: ?>
+  <p><?= $this->translate(
+    'This wizard will guide you through the configuration of Icinga Web 2. Once completed and successfully'
+    . ' finished you are able to log in and to explore all the new and stunning features!'
+  ); ?></p>
+ <?php endif ?>
+  <form id="<?= $form->getName(); ?>" name="<?= $form->getName(); ?>" enctype="<?= $form->getEncType(); ?>" method="<?= $form->getMethod(); ?>" action="<?= $form->getAction(); ?>">
+    <?= $form->getElement('token'); ?>
+    <?= $form->getElement($form->getTokenElementName()); ?>
+    <?= $form->getElement($form->getUidElementName()); ?>
+    <div class="buttons">
+      <?= $form->getElement(Wizard::BTN_NEXT); ?>
+    </div>
+  </form>
+  <div class="note">
+    <div class="title">
+      <strong>Generating a New Setup Token</strong>
+    </div>
+    <div>
+      <p><?=
+        $this->translate(
+          'To run this wizard a user needs to authenticate using a token which is usually'
+          . ' provided to him by an administrator who\'d followed the instructions below.'
+      ); ?></p>
+      <p><?= $this->translate('In any case, make sure that a group called "icingaweb2" exists:'); ?></p>
+      <div class="code">
+        <span>groupadd icingaweb2;</span>
+      </div>
+      <p><?= $this->translate('If you\'ve got the IcingaCLI installed you can do the following:'); ?></p>
+      <div class="code">
+        <span><?= $cliPath ? $cliPath : 'icingacli'; ?> setup config directory --group icingaweb2<?= $configDir !== '/etc/icingaweb2' ? ' --config ' . $configDir : ''; ?>;</span>
+        <span><?= $cliPath ? $cliPath : 'icingacli'; ?> setup token create;</span>
+      </div>
+      <p><?= $this->translate('In case the IcingaCLI is missing you can create the token manually:'); ?></p>
+      <div class="code">
+        <span>su <?= ($user = Platform::getPhpUser()) !== null ? $user : 'your_webserver_user'; ?> -c "mkdir -m 2770 <?= dirname($setupTokenPath); ?>; chgrp icingaweb2 <?= dirname($setupTokenPath); ?>; head -c 12 /dev/urandom | base64 | tee <?= $setupTokenPath; ?>; chmod 0660 <?= $setupTokenPath; ?>;";</span>
+      </div>
+      <p><?= sprintf(
+        $this->translate('Please see the %s for an extensive description on how to access and use this wizard.'),
+        '<a href="http://docs.icinga.org/">' . $this->translate('Icinga Web 2 documentation') . '</a>' // TODO: Add link to iw2 docs which points to the installation topic
+      ); ?></p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,19 @@
+<?php
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+
+namespace Icinga\Module\Monitoring\Backend\Livestatus\Query;
+
+use Icinga\Protocol\Livestatus\Query;
+
+class HostgroupQuery extends Query
+{
+    protected $table = 'hostgroups';
+
+    protected $available_columns = array(
+        'hostgroups'      => 'name',
+        'hostgroup_name'  => 'name',
+        'hostgroup_alias' => 'alias',
+        'host'            => 'members',
+        'host_name'       => 'members',
+    );
+}
