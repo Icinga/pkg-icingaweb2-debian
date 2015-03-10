@@ -1,0 +1,26 @@
+<div id="setup-finish">
+  <div class="report">
+  <?php $firstLine = true; ?>
+  <?php foreach ($report as $entry): ?>
+    <?php if ($entry): ?>
+      <?php if (false === $firstLine): ?>
+        <div class="line-separator"></div>
+      <?php endif ?>
+      <?= $entry; ?>
+      <?php $firstLine = false; ?>
+    <?php endif ?>
+  <?php endforeach ?>
+  <?php if ($success): ?>
+    <p class="success"><?= $this->translate('Congratulations! Icinga Web 2 has been successfully set up.'); ?></p>
+  <?php else: ?>
+    <p class="failure"><?= $this->translate('Sorry! Failed to set up Icinga Web 2 successfully.'); ?></p>
+  <?php endif ?>
+  </div>
+  <div class="buttons">
+  <?php if ($success): ?>
+    <a href="<?= $this->href('authentication/login'); ?>" class="button-like login"><?= $this->translate('Login to Icinga Web 2'); ?></a>
+  <?php else: ?>
+    <a href="<?= $this->href(); ?>" class="button-like"><?= $this->translate('Back'); ?></a>
+  <?php endif ?>
+  </div>
+</div>

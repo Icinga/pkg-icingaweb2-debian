@@ -1,0 +1,48 @@
+<?php
+
+use Icinga\Web\Url;
+
+if ($xAxisPaginator->count() <= 1 && $yAxisPaginator->count() <= 1) {
+    return; // Display this pagination only if there are multiple pages
+}
+
+$fromTo = t('%s: %d to %d of %d (on the %s-axis)');
+$xAxisPages = $xAxisPaginator->getPages('all');
+$yAxisPages = $yAxisPaginator->getPages('all');
+
+?>
+
+<div class="pivot-pagination">
+    <span><?= t('Navigation'); ?></span>
+    <table>
+        <tbody>
+<?php foreach ($yAxisPages->pagesInRange as $yAxisPage): ?>
+            <tr>
+<?php foreach ($xAxisPages->pagesInRange as $xAxisPage): ?>
+                <td<?= $xAxisPage === $xAxisPages->current && $yAxisPage === $yAxisPages->current ? ' class="active"' : ''; ?>>
+<?php if ($xAxisPage !== $xAxisPages->current || $yAxisPage !== $yAxisPages->current): ?>
+                    <a href="<?= Url::fromRequest()->overwriteParams(
+                        array('page' => $xAxisPage . ',' . $yAxisPage)
+                    )->getAbsoluteUrl(); ?>" title="<?= sprintf(
+                        $fromTo,
+                        t('Hosts'),
+                        ($yAxisPage - 1) * $yAxisPages->itemCountPerPage + 1,
+                        $yAxisPage === $yAxisPages->last ? $yAxisPages->totalItemCount : $yAxisPage * $yAxisPages->itemCountPerPage,
+                        $yAxisPages->totalItemCount,
+                        'y'
+                    ) . '; ' . sprintf(
+                        $fromTo,
+                        t('Services'),
+                        ($xAxisPage - 1) * $xAxisPages->itemCountPerPage + 1,
+                        $xAxisPage === $xAxisPages->last ? $xAxisPages->totalItemCount : $xAxisPage * $xAxisPages->itemCountPerPage,
+                        $xAxisPages->totalItemCount,
+                        'x'
+                    ); ?>"></a>
+<?php endif ?>
+                </td>
+<?php endforeach ?>
+            </tr>
+<?php endforeach ?>
+        </tbody>
+    </table>
+</div>

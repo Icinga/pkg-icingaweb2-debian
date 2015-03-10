@@ -1,0 +1,93 @@
+<?php
+
+use Icinga\Web\Url;
+
+// Please note that there is a reason for the strange way of writing ><.
+// It was the best compromise that came to my mind to get rid of whitespaces
+// between inline-block elements. Found no better hack - and table-cell seems
+// to be less supported.
+
+if ($this->pageCount <= 1) return;
+
+?><p id="paginationlabel" class="audible"><?= t('Pagination') ?></p>
+<ul class="pagination" aria-labelledby="paginationlabel" role="navigation"
+<?php
+
+$fromto = t('Show rows %d to %d of %d');
+$total = $this->totalItemCount;
+$limit = $this->itemCountPerPage;
+$title_prev = sprintf(
+    $fromto,
+    ($this->current - 2) * $limit + 1,
+    ($this->current - 1) * $limit,
+    $total
+);
+
+$title_next = sprintf(
+    $fromto,
+    ($this->current) * $limit + 1,
+    ($this->current + 1) * $limit,
+    $total
+);
+$li = '  ><li%s><span class="audible">'
+    . t('Page')
+    . ' </span><a href="%s" title="%s">%s</a></li
+';
+
+?>
+<?php
+
+if (isset($this->previous)) {
+    printf(
+        $li,
+        '',
+        Url::fromRequest()->overwriteParams(
+            array('page' => $this->previous)
+        )->getAbsoluteUrl(),
+        $title_prev,
+        '« ' . t('Prev')
+    );
+} else {
+    echo '  ><li class="disabled"><span>« ' . t('Prev') . '</span></li';
+}
+
+foreach ($this->pagesInRange as $page) {
+    $start = ($page - 1) * $limit + 1;
+    $end = $page * $limit;
+    if ($end > $total) {
+        $end = $total;
+    }
+    $title = sprintf($fromto, $start, $end, $total);
+    $class = $page === $this->current ? ' class="active"' : '';
+
+    if ($page === '...') {
+      echo '  ><li class="disabled"><span>...</span></li';
+    } else {
+      printf(
+          $li,
+          $class,
+          Url::fromRequest()->overwriteParams(
+              array('page' => $page)
+          ),
+          $title,
+          $page
+      );
+    }
+}
+
+if (isset($this->next)) {
+    printf(
+        $li,
+        '',
+        Url::fromRequest()->overwriteParams(
+            array('page' => $this->next)
+        )->getAbsoluteUrl(),
+        $title_next,
+        t('Next') . ' »'
+    );
+} else {
+    echo '  ><li class="disabled"><span>' . t('Next') . ' »</span></li';
+}
+
+?>
+></ul>

@@ -1,0 +1,45 @@
+<?php if (!$this->compact): ?>
+<div class="controls">
+    <?= $this->tabs ?>
+</div>
+<?php endif ?>
+<div class="content">
+    <div class="boxview" data-base-target="_next">
+
+<?php
+if (count($groupData) === 0) {
+    echo mt('monitoring', 'No contacts matching the filter');
+}
+
+foreach ($groupData as $groupName => $groupInfo): ?>
+        <div class="box contactgroup">
+            <h2><?= $groupInfo['alias']; ?></h2>
+<?php if ($groupInfo['alias'] !== $groupName): ?>
+            <h2><?= $groupName; ?></h2>
+<?php endif ?>
+            <div class="box contents">
+<?php foreach ($groupInfo['contacts'] as $c): ?>
+                <div class="box entry">
+                    <img src="<?= $this->href('/static/gravatar', array('email' => $c->contact_email )) ?>" />
+                    <a href="<?= $this->href(
+                        'monitoring/show/contact',
+                        array('contact' => $c->contact_name)
+                    ); ?>">
+                        <?= $this->escape($c->contact_alias) ?>
+                    </a>
+                    <p>
+<?php if ($c->contact_email): ?>
+                        <?= $c->contact_email; ?>
+<?php endif;
+if ($c->contact_pager): ?>
+                        <br />
+                        <?= $c->contact_pager; ?>
+<?php endif ?>
+                    </p>
+                </div>
+<?php endforeach ?>
+            </div>
+        </div>
+<?php endforeach ?>
+    </div>
+</div>

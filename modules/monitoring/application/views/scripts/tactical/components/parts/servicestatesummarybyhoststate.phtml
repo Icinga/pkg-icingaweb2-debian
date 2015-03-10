@@ -1,0 +1,280 @@
+<?php if ($services_critical_handled || $services_critical_unhandled): ?>
+<div class="box entry state_critical <?= $services_critical_unhandled ? '' : 'handled'; ?>">
+<?php if ($services_critical_unhandled): ?>
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array('host_problem' => $host_problem, 'service_state' => 2, 'service_acknowledged' => 0, 'service_in_downtime' => 0)
+    ); ?>">
+        <?= sprintf($this->translatePlural('%d CRITICAL', '%d CRITICAL', $services_critical_unhandled, 'icinga.state'), $services_critical_unhandled); ?>
+    </a>
+<?php endif ?>
+<?php if ($services_critical_handled): ?>
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array('host_problem' => $host_problem, 'service_state' => 2, 'service_handled' => 1)
+    ); ?>">
+        <?= $services_critical_handled . ' ' . ($services_critical_unhandled ? $this->translate('Acknowledged') : $this->translate('CRITICAL', 'icinga.state')); ?>
+    </a>
+<?php endif ?>
+<?php if ($services_critical_passive): ?>
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array(
+            'service_state'                     => 2,
+            'host_problem'                      => $host_problem,
+            'service_active_checks_enabled'     => 0,
+            'service_passive_checks_enabled'    => 1
+        )
+    ); ?>">
+        <?php
+            if ($services_critical_passive > 1) {
+                printf(
+                    $this->translate('%d are passively checked'),
+                    $services_critical_passive
+                );
+            } else {
+                printf(
+                    $this->translate('%d is passively checked'),
+                    $services_critical_passive
+                );
+            }
+        ?>
+    </a>
+<?php endif ?>
+<?php if ($services_critical_not_checked): ?>
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array(
+            'service_state'                     => 2,
+            'host_problem'                      => $host_problem,
+            'service_active_checks_enabled'     => 0,
+            'service_passive_checks_enabled'    => 0
+        )
+    ); ?>">
+        <?php
+            if ($services_critical_not_checked > 1) {
+                printf(
+                    $this->translate('%d are not checked at all'),
+                    $services_critical_not_checked
+                );
+            } else {
+                printf(
+                    $this->translate('%d is not checked at all'),
+                    $services_critical_not_checked
+                );
+            }
+        ?>
+    </a>
+<?php endif ?>
+</div>
+<?php endif ?>
+<?php if ($services_warning_handled || $services_warning_unhandled): ?>
+<div class="box entry state_warning <?= $services_warning_unhandled ? '' : 'handled'; ?>">
+<?php if ($services_warning_unhandled): ?>
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array('host_problem' => $host_problem, 'service_state' => 1, 'service_acknowledged' => 0, 'service_in_downtime' => 0)
+    ); ?>">
+        <?= $services_warning_unhandled; ?> <?= $this->translate('WARNING', 'icinga.state') ?>
+    </a>
+<?php endif ?>
+<?php if ($services_warning_handled): ?>
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array('host_problem' => $host_problem, 'service_state' => 1, 'service_handled' => 1)
+    ); ?>">
+        <?= $services_warning_handled . ' ' . ($services_warning_unhandled ? $this->translate('Acknowledged') : $this->translate('WARNING', 'icinga.state')); ?>
+    </a>
+<?php endif ?>
+<?php if ($services_warning_passive): ?>
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array(
+            'service_state'                     => 1,
+            'host_problem'                      => $host_problem,
+            'service_active_checks_enabled'     => 0,
+            'service_passive_checks_enabled'    => 1
+        )
+    ); ?>">
+        <?php
+            if ($services_warning_passive > 1) {
+                printf(
+                    $this->translate('%d are passively checked'),
+                    $services_warning_passive
+                );
+            } else {
+                printf(
+                    $this->translate('%d is passively checked'),
+                    $services_warning_passive
+                );
+            }
+        ?>
+    </a>
+<?php endif ?>
+<?php if ($services_warning_not_checked): ?>
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array(
+            'service_state'                     => 1,
+            'host_problem'                      => $host_problem,
+            'service_active_checks_enabled'     => 0,
+            'service_passive_checks_enabled'    => 0
+        )
+    ); ?>">
+        <?php
+            if ($services_warning_not_checked > 1) {
+                printf(
+                    $this->translate('%d are not checked at all'),
+                    $services_warning_not_checked
+                );
+            } else {
+                printf(
+                    $this->translate('%d is not checked at all'),
+                    $services_warning_not_checked
+                );
+            }
+        ?>
+    </a>
+<?php endif ?>
+</div>
+<?php endif ?>
+<?php if ($services_unknown_handled || $services_unknown_unhandled): ?>
+<div class="box entry state_unknown <?= $services_unknown_unhandled ? '' : 'handled'; ?>">
+<?php if ($services_unknown_unhandled): ?>
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array('host_problem' => $host_problem, 'service_state' => 3, 'service_acknowledged' => 0, 'service_in_downtime' => 0)
+    ); ?>">
+        <?= sprintf($this->translatePlural('%d UNKNOWN', '%d UNKNOWN', $services_unknown_unhandled, 'icinga.state'), $services_unknown_unhandled) ?>
+    </a>
+<?php endif ?>
+<?php if ($services_unknown_handled): ?>
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array('host_problem' => $host_problem, 'service_state' => 3, 'service_handled' => 1)
+    ); ?>">
+        <?= $services_unknown_handled . ' ' . ($services_unknown_unhandled ? $this->translate('Acknowledged') : $this->translate('UNKNOWN', 'icinga.state')); ?>
+    </a>
+<?php endif ?>
+<?php if ($services_unknown_passive): ?>
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array(
+            'service_state'                     => 3,
+            'host_problem'                      => $host_problem,
+            'service_active_checks_enabled'     => 0,
+            'service_passive_checks_enabled'    => 1
+        )
+    ); ?>">
+        <?php
+            if ($services_unknown_passive > 1) {
+                printf(
+                    $this->translate('%d are passively checked'),
+                    $services_unknown_passive
+                );
+            } else {
+                printf(
+                    $this->translate('%d is passively checked'),
+                    $services_unknown_passive
+                );
+            }
+        ?>
+    </a>
+<?php endif ?>
+<?php if ($services_unknown_not_checked): ?>
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array(
+            'service_state'                     => 3,
+            'host_problem'                      => $host_problem,
+            'service_active_checks_enabled'     => 0,
+            'service_passive_checks_enabled'    => 0
+        )
+    ); ?>">
+        <?php
+            if ($services_unknown_not_checked > 1) {
+                printf(
+                    $this->translate('%d are not checked at all'),
+                    $services_unknown_not_checked
+                );
+            } else {
+                printf(
+                    $this->translate('%d is not checked at all'),
+                    $services_unknown_not_checked
+                );
+            }
+        ?>
+    </a>
+<?php endif ?>
+</div>
+<?php endif ?>
+<?php if ($services_ok): ?>
+<div class="box entry state_ok">
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array('host_problem' => $host_problem, 'service_state' => 0)
+    ); ?>">
+        <?= $services_ok; ?> <?= $this->translate('OK', 'icinga.state') ?>
+    </a>
+<?php if ($services_ok_not_checked): ?>
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array(
+            'service_state'                     => 0,
+            'host_problem'                      => $host_problem,
+            'service_active_checks_enabled'     => 0,
+            'service_passive_checks_enabled'    => 0
+        )
+    ); ?>">
+        <?php
+            if ($services_ok_not_checked > 1) {
+                printf(
+                    $this->translate('%d are not checked at all'),
+                    $services_ok_not_checked
+                );
+            } else {
+                printf(
+                    $this->translate('%d is not checked at all'),
+                    $services_ok_not_checked
+                );
+            }
+        ?>
+    </a>
+<?php endif ?>
+</div>
+<?php endif ?>
+<?php if ($services_pending): ?>
+<div class="box entry state_pending">
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array('host_problem' => $host_problem, 'service_state' => 99)
+    ); ?>">
+        <?= sprintf($this->translatePlural('%d PENDING', '%d PENDING', $services_pending, 'icinga.state'), $services_pending); ?>
+    </a>
+<?php if ($services_pending_not_checked): ?>
+    <a href="<?= $this->href(
+        'monitoring/list/services',
+        array(
+            'service_state'                     => 99,
+            'host_problem'                      => $host_problem,
+            'service_active_checks_enabled'     => 0,
+            'service_passive_checks_enabled'    => 0
+        )
+    ); ?>">
+        <?php
+            if ($services_pending_not_checked > 1) {
+                printf(
+                    $this->translate('%d are not checked at all'),
+                    $services_pending_not_checked
+                );
+            } else {
+                printf(
+                    $this->translate('%d is not checked at all'),
+                    $services_pending_not_checked
+                );
+            }
+        ?>
+    </a>
+<?php endif ?>
+</div>
+<?php endif ?>

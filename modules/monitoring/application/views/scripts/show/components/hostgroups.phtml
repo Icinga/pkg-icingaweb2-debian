@@ -1,0 +1,17 @@
+<?php
+
+if (empty($object->hostgroups)) return;
+
+$list = array();
+foreach ($object->hostgroups as $name => $alias) {
+    $list[] = $this->qlink($alias, 'monitoring/list/hosts', array(
+        'hostgroup' => $name
+    ));
+}
+printf(
+    "<tr><th>%s</th><td>%s %s</td></tr>\n",
+    $this->translate('Hostgroups'),
+    $this->icon('host'),
+    implode(', ', $list)
+);
+

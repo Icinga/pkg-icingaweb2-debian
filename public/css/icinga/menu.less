@@ -1,0 +1,269 @@
+/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+
+#menu {
+  max-height: 100%;
+  overflow: auto;
+}
+
+#layout.hoveredmenu #menu {
+  overflow: visible;
+}
+
+#menu, #menu ul {
+  margin: 0;
+  padding: 0;
+}
+
+#menu a {
+  outline: 0;
+  color: black;
+}
+
+#menu .separator {
+  background-color: #888;
+}
+
+#menu li {
+  margin-left: 0.0em;
+}
+
+#menu > ul > li > ul {
+  display: none;
+  padding-left: 6px;
+}
+
+.no-js #menu > ul > li > ul {
+  display: block;
+}
+
+#menu > ul > li.active > ul {
+  display: block;
+}
+
+#menu > ul > li.active {
+  background-color: white;
+  padding-left: 0.0em;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+#menu > ul > li > a {
+  font-size: 0.9em;
+  text-shadow: none;
+}
+
+#menu > ul > li.active > a {
+  color: @colorTextDefault;
+  text-shadow: none;
+}
+
+#menu > ul > li.active li.active a {
+  color: @colorPetrol;
+}
+
+#menu > ul > li.active li a:hover {
+  text-decoration: underline;
+}
+
+#menu > ul > li {
+  border-bottom: 1px solid #d9d9d9;
+}
+
+#menu > ul > li li {
+  font-size: 0.8em;
+  padding-left: 1.6em;
+}
+
+/* Collapsed menu item color */
+#menu > ul > li > a {
+  color: @colorTextDefault;
+}
+
+/* Sub item color */
+#menu .active ul li a {
+  color: @colorTextDefault;
+}
+
+#menu ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+#menu ul li a {
+  display: block;
+  line-height: 2.2em;
+  padding-left: 0.7em;
+  text-decoration: none;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+#menu img.icon {
+  margin-right: 0.5em;
+  width: 1em;
+  height: 1em;
+}
+
+#menu ul ul li a {
+  line-height: 1.2em;
+  padding-bottom: 1em;
+}
+
+#menu > ul > li {
+  margin-left: 5px;
+}
+
+#menu > ul > li.active {
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  border-left: solid 5px @colorPetrol;
+}
+
+/* BEGIN OF Hoverable menu */
+
+#menu li.hover {
+  width: 26em;
+  padding-left: 0.0em;
+  margin-left: 5px;
+  margin-right: 5;
+  position: relative;
+}
+
+#menu li.hover > ul {
+  position: absolute;
+  display: block;
+  left: 11.5em;
+  right: 0;
+  top: -0.5em;
+  padding-top: 1em;
+  padding-left: 1em;
+  padding-bottom: 0.5em;
+  height: auto;
+  background-color: #222222;
+}
+
+#menu li.hover > a {
+  color: black;
+  overflow: visible;
+}
+
+#menu li.hover > ul a {
+  width: 95%;
+  display: block;
+  color: white;
+}
+
+#menu li.hover > ul a:hover {
+  text-decoration: underline;
+}
+
+#menu li.hover > ul a:focus {
+  text-shadow: none;
+}
+
+#menu li.hover > ul > li.active > a {
+  font-weight: bold;
+  color: white;
+}
+
+#menu li.hover li {
+  padding: 0;
+}
+
+#menu li.hover > a:after {
+  border: 0.5em solid rgba(0, 0, 0, 0);
+  border-right-color: #333;
+  content: " ";
+  margin-top: 0.8em;
+  pointer-events: none;
+  position: absolute;
+  left: 12em;
+  height: 0;
+  width: 0;
+}
+
+#layout.hoveredmenu {
+  #main {
+    z-index: 2;
+  }
+  #sidebar {
+    z-index: 3;
+  }
+}
+
+/* END of Hoverable menu */
+
+#menu form {
+  width: 100%;
+}
+
+#menu input.search {
+  font-size: 0.9em;
+  margin: 0;
+  padding: 0 0.5em 0 2.8em;
+  border: none;
+  width: 100%;
+  border-radius: 0;
+  height: 2.2em;
+  display: block;
+  outline: none;
+  background-color: transparent;
+  background-image: url('../img/icons/search.png');
+  background-repeat: no-repeat;
+  background-position: 1.2em center;
+  color: @colorTextDefault;
+  border-bottom: 1px solid #d9d9d9;
+}
+
+html.ie8 #menu input.search {
+  line-height: 2.5em;
+}
+
+#menu input.search:-ms-input-placeholder {
+  color: @colorTextDefault;
+}
+
+#menu input.search::-webkit-input-placeholder {
+  color: @colorTextDefault;
+}
+
+#menu input.search::-moz-placeholder {
+  color: @colorTextDefault;
+  opacity: 1;
+}
+
+#menu input.search.active {
+  background-color: white;
+  color: #121212;
+  text-shadow: none;
+}
+
+#menu input.search.active::-moz-placeholder {
+  color: #999;
+}
+
+#menu input.search.active::-webkit-input-placeholder {
+  color: #999;
+}
+
+#menu input.search.active:-ms-input-placeholder {
+  color: #999;
+}
+
+input:focus { outline: none; }
+
+/* Make focus outline properly visible */
+a:focus {
+  outline: dotted black 1px;
+}
+
+/* Displaying the outline in the navigation is not possible because of the messed up link borders,
+   color those links instead. */
+#menu a:focus,
+#menu > ul > li > a:focus,
+#menu .active ul li a:focus {
+  color: #21b5ad;
+  outline: none;
+}

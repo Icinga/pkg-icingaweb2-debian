@@ -1,0 +1,81 @@
+<div class="box hostservicechecks">
+    <h2><?= $this->translate('Host and Service Checks'); ?></h2>
+    <div class="box contents">
+        <table>
+            <thead>
+                <tr>
+                    <th><?= $this->translate('Hosts'); ?></th>
+                    <th><?= $this->translate('Services'); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+<?php if ($this->statusSummary->hosts_active): ?>
+                        <div class="box entry">
+                            <a href="<?= $this->href(
+                                'monitoring/list/hosts',
+                                array('host_active_checks_enabled' => 1)
+                            ); ?>">
+                                <?= sprintf($this->translatePlural('%d Active', '%d Active', $this->statusSummary->hosts_active), $this->statusSummary->hosts_active); ?>
+                            </a>
+                        </div>
+<?php endif ?>
+<?php if ($this->statusSummary->hosts_passive): ?>
+                        <div class="box entry">
+                            <a href="<?= $this->href(
+                                'monitoring/list/hosts',
+                                array('host_active_checks_enabled' => 0, 'host_passive_checks_enabled' => 1)
+                            ); ?>">
+                                <?= sprintf($this->translatePlural('%d Passive', '%d Passive', $this->statusSummary->hosts_passive), $this->statusSummary->hosts_passive); ?>
+                            </a>
+                        </div>
+<?php endif ?>
+<?php if ($this->statusSummary->hosts_not_checked): ?>
+                        <div class="box entry">
+                            <a href="<?= $this->href(
+                                'monitoring/list/hosts',
+                                array('host_active_checks_enabled' => 0, 'host_passive_checks_enabled' => 0)
+                            ); ?>" style="color: red;">
+                                <?= sprintf($this->translatePlural('%d Disabled', '%d Disabled', $this->statusSummary->hosts_not_checked), $this->statusSummary->hosts_not_checked); ?>
+                            </a>
+                        </div>
+<?php endif ?>
+                    </td>
+                    <td>
+<?php if ($this->statusSummary->services_active): ?>
+                        <div class="box entry">
+                            <a href="<?= $this->href(
+                                'monitoring/list/services',
+                                array('service_active_checks_enabled' => 1)
+                            ); ?>">
+                                <?= sprintf($this->translatePlural('%d Active', '%d Active', $this->statusSummary->services_active), $this->statusSummary->services_active); ?>
+                            </a>
+                        </div>
+<?php endif ?>
+<?php if ($this->statusSummary->services_passive): ?>
+                        <div class="box entry">
+                            <a href="<?= $this->href(
+                                'monitoring/list/services',
+                                array('service_active_checks_enabled' => 0, 'service_passive_checks_enabled' => 1)
+                            ); ?>">
+                                <?=  sprintf($this->translatePlural('%d Passive', '%d Passive', $this->statusSummary->services_passive), $this->statusSummary->services_passive); ?>
+                            </a>
+                        </div>
+<?php endif ?>
+<?php if ($this->statusSummary->services_not_checked): ?>
+                        <div class="box entry">
+                            <a href="<?= $this->href(
+                                'monitoring/list/services',
+                                array('service_active_checks_enabled' => 0, 'service_passive_checks_enabled' => 0)
+                            ); ?>" style="color: red;">
+                                <?= sprintf($this->translatePlural('%d Disabled', '%d Disabled', $this->statusSummary->services_not_checked), $this->statusSummary->services_not_checked); ?>
+                            </a>
+                        </div>
+<?php endif ?>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

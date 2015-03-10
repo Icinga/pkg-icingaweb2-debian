@@ -1,0 +1,138 @@
+/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+
+ul.tabs {
+  padding: 1em 0 0 0;
+  list-style-type: inside;
+}
+
+.controls ul.tabs {
+  margin-left: 0em;
+  margin-top: -3.54em;
+  height: 2.6em;
+  overflow: hidden;
+}
+
+.impact ul.tabs {
+  border-bottom-color: white;
+}
+
+ul.tabs li {
+  display: inline-block;
+}
+
+ul.tabs li a {
+  text-decoration: none;
+  display: block;
+  padding: 0 1em;
+  line-height: 2.6em;
+  white-space: nowrap;
+  color: #ddd;
+  outline: 0;
+  margin-right: 0.5em;
+}
+
+ul.tabs > li > a {
+  color: white;
+}
+
+ul.tabs > li > a:focus {
+  color: @colorTextDefault;
+  text-shadow: none;
+}
+
+ul.tabs > li.active > a:focus {
+  text-shadow: none;
+  color: @colorTextDefault;
+}
+
+ul.tabs li.dropdown > a{
+  padding: 0 0.4em;
+}
+
+ul.tabs li.active a, ul.tabs li.dropdown:hover a, ul.tabs li.dropdown.hover a {
+  background-color: white;
+  color: black;
+}
+
+.impact ul.tabs li.active a, .impact ul.tabs li.dropdown:hover, .impact ul.tabs li.dropdown.hover a {
+  background-color: #ddd;
+  transition: background-color 2s 1s linear;
+  -moz-transition: background-color 2s 1s linear;
+  -o-transition: background-color 2s 1s linear;
+  -webkit-transition: background-color 2s 1s linear;
+}
+
+ul.tabs li a:hover {
+  text-decoration: underline;
+}
+
+ul.dropdown-menu {
+  margin: 0;
+  padding: 0;
+  background-color: #eee;
+  position: absolute;
+  overflow: hidden;
+  z-index: 1000;
+  border: 1px solid #d9d9d9;
+  border-top: none;
+  margin-left: -1px;
+}
+
+/* Dropdown tabs after the fourth title should be right-aligned */
+ul.tabs li:nth-child(n+5) ul.dropdown-menu {
+  width: 13em;
+  margin-left: -11em;
+}
+
+ul.dropdown-menu {
+  box-shadow: 0.2em 0.2em 0.3em -0.2em #555;
+  -moz-box-shadow: 0.2em 0.2em 0.3em -0.2em #555;
+  -webkit-box-shadow: 0.2em 0.2em 0.3em -0.2em #555;
+  border-radius: 0 0 3px 3px;
+  -moz-border-radius: 0 0 3px 3px;
+  -webkit-border-radius: 0 0 3px 3px;
+}
+
+ul.dropdown-menu li {
+  background-color: white;
+}
+
+ul.dropdown-menu li {
+  display: block;
+}
+
+ul.tabs ul.dropdown-menu {
+  display: none;
+}
+
+ul.tabs ul.dropdown-menu li a {
+  color: @colorTextDarkDefault;
+  margin: 0em;
+}
+
+ul.tabs ul.dropdown-menu li a:focus {
+  color: #333;
+}
+
+ul.tabs ul.dropdown-menu li a:hover, ul.tabs ul.dropdown-menu li a:focus {
+  background-color: #ccc;
+  color: #333;
+}
+
+ul.tabs li.dropdown:hover a {
+  text-decoration: none;
+  color: @colorTextDarkDefault;
+}
+
+li.dropdown:hover ul.dropdown-menu, li.dropdown.hover ul.dropdown-menu {
+  display: block;
+}
+
+ul.tabs img.icon {
+    margin-right: 4px;
+    margin-top: -4px;
+}
+
+a.close-tab {
+  display: none;
+}

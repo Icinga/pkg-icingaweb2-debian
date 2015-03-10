@@ -1,0 +1,18 @@
+<?php
+
+if (empty($object->servicegroups)) return;
+
+$list = array();
+foreach ($object->servicegroups as $name => $alias) {
+    $list[] = $this->qlink($alias, 'monitoring/list/services', array(
+        'servicegroup' => $name
+    ));
+}
+
+printf(
+    "<tr><th>%s</th><td>%s %s</td></tr>\n",
+    $this->translate('Servicegroups'),
+    $this->icon('services'),
+    implode(', ', $list)
+);
+

@@ -1,0 +1,25 @@
+<?php
+
+use Icinga\Web\Url;
+use Icinga\Web\Menu;
+use Icinga\Web\MenuRenderer;
+
+// Don't render a menu for unauthenticated users unless menu is auth aware
+if (! $this->auth()->isAuthenticated()) {
+    return;
+}
+
+?>
+<div  id="menu" data-last-update="<?= (time() - 14) ?>000" data-base-target="_main" class="container"
+      data-icinga-url="<?= $this->href('layout/menu') ?>"  data-icinga-refresh="15">
+    <?= $this->partial(
+        'layout/menu.phtml',
+        'default',
+        array(
+            'menuRenderer' => new MenuRenderer(
+                Menu::load(),
+                Url::fromRequest()->without('renderLayout')->getRelativeUrl()
+            )
+        )
+    ) ?>
+</div>
