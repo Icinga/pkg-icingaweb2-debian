@@ -15,13 +15,13 @@ override_dh_install:
 override_dh_auto_build:
 	dh_auto_build
 	mkdir debian/minify
-	python -m jsmin public/js/vendor/jquery-1.11.0.js \
-	                 > debian/minify/jquery-1.11.0.min.js
-	python -m jsmin public/js/vendor/jquery-2.1.0.js \
-	                 > debian/minify/jquery-2.1.0.min.js
-	python -m jsmin public/js/vendor/jquery.sparkline.js \
-	                 > debian/minify/jquery.sparkline.min.js
-	python -m jsmin public/js/vendor/jquery.tipsy.js \
-	                 > debian/minify/jquery.tipsy.min.js
+	yui-compressor public/js/vendor/jquery-1.11.0.js \
+	                > debian/minify/jquery-1.11.0.min.js
+	yui-compressor public/js/vendor/jquery-2.1.0.js \
+	                > debian/minify/jquery-2.1.0.min.js
+	yui-compressor public/js/vendor/jquery.sparkline.js \
+	                > debian/minify/jquery.sparkline.min.js
+	yui-compressor public/js/vendor/jquery.tipsy.js \
+	                > debian/minify/jquery.tipsy.min.js
 
 # vi: ts=4 sw=4 noexpandtab :

@@ -6,8 +6,7 @@ Uploaders:
  Markus Frosch <lazyfrosch@debian.org>
 Build-Depends:
  debhelper (>= 9),
- python,
- python-jsmin
+ yui-compressor
 Standards-Version: 3.9.6
 Homepage: https://www.icinga.org
 Vcs-Browser: http://anonscm.debian.org/cgit/pkg-nagios/pkg-icingaweb2.git
