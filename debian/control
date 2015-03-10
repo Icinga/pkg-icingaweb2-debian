@@ -30,10 +30,14 @@ Recommends:
  icingaweb2-module-doc,
  icingaweb2-module-setup
 Description: simple and responsive web interface for Icinga
- Icingaweb2 is a very modular, fast and simple web interface for your Icinga
+ Icinga Web 2 is a very modular, fast and simple web interface for your Icinga
  monitoring environment.
  .
- TODO: better description
+ The software will give you a web frontend for your monitoring solution, and
+ can run additional modules, extending monitoring data, or even supplying
+ something new to the webinterface.
+ .
+ Backends can be IDO and Livestatus, while supporting Icinga 1 and 2.
  .
  This package installs the web interface with all needed dependencies.
 
@@ -44,10 +48,8 @@ Depends:
  php-icinga,
  ${misc:Depends}
 Description: simple and responsive web interface for Icinga - common files
- Icingaweb2 is a very modular, fast and simple web interface for your Icinga
+ Icinga Web 2 is a very modular, fast and simple web interface for your Icinga
  monitoring environment.
- .
- TODO: better description
  .
  This package provides common files and paths.
 
@@ -57,59 +59,44 @@ Depends:
  icingaweb2-common,
  php5-cli (>= 5.3.2),
  ${misc:Depends}
-Description: CLI tool based on the Icingaweb2 framework
- Icingaweb2 is a very modular, fast and simple web interface for your Icinga
+Description: CLI tool for the Icinga Web 2 framework
+ Icinga Web 2 is a very modular, fast and simple web interface for your Icinga
  monitoring environment.
  .
- TODO: better description
- .
- This package provides the CLI tool.
+ Icinga CLI is a command line utility, allowing the admin to configure Icinga
+ Web 2 and provides the possibility to query Icinga data from your shell.
 
 Package: icingaweb2-module-monitoring
 Architecture: all
 Depends: icingaweb2-common, ${misc:Depends}
 Description: simple and responsive web interface for Icinga - monitoring module
- Icingaweb2 is a very modular, fast and simple web interface for your Icinga
+ Icinga Web 2 is a very modular, fast and simple web interface for your Icinga
  monitoring environment.
  .
- TODO: better description
- .
- This module adds the Icinga monitoring frontend.
+ This module adds the Icinga monitoring frontend to the web interface.
 
 Package: icingaweb2-module-doc
 Section: doc
 Architecture: all
 Depends: icingaweb2-common, ${misc:Depends}
 Description: simple and responsive web interface for Icinga - documentation module
- Icingaweb2 is a very modular, fast and simple web interface for your Icinga
+ Icinga Web 2 is a very modular, fast and simple web interface for your Icinga
  monitoring environment.
  .
- TODO: better description
- .
- This module adds the documentation viewer to Icingaweb2.
+ This module adds the documentation viewer of Icinga Web 2, which can also
+ display the documentation of other modules.
 
 Package: icingaweb2-module-setup
 Architecture: all
 Depends: icingaweb2-common, ${misc:Depends}
 Description: simple and responsive web interface for Icinga - setup module
- Icingaweb2 is a very modular, fast and simple web interface for your Icinga
+ Icinga Web 2 is a very modular, fast and simple web interface for your Icinga
  monitoring environment.
  .
- TODO: better description
+ This module provides the setup wizard to bootstrap your Icinga Web 2
+ configuration.
  .
- This module provides the setup wizard.
-
-#Package: icingaweb2-module-test
-#Architecture: all
-#Depends: icingacli, ${misc:Depends}
-#Description: Icingaweb test module
-# Use this module to run unit tests against Icingaweb or any of it's modules
-
-#Package: icingaweb2-module-translation
-#Architecture: all
-#Depends: icingaweb2-common, ${misc:Depends}
-#Description: Icingaweb translation module
-# This module helps translators to get Icingaweb translations done
+ It will be disabled after setup, and can be removed later.
 
 Package: php-icinga
 Section: php
@@ -123,6 +110,8 @@ Recommends:
  php5-mysql | php5-mysqlnd | php5-pgsql,
  php5-json
 Description: PHP library to communicate with and use Icinga
- TODO: better description
+ Icinga is a PHP library providing a PHP API to interact with Icinga's data.
  .
- This module provides the Icinga PHP library for Icingaweb2.
+ The main dependency here is the Zend Framework.
+ .
+ This library is mainly used by Icinga Web 2 to get its data.
