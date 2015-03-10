@@ -4,7 +4,10 @@ Priority: extra
 Maintainer: Icinga Development Team <info@icinga.org>
 Uploaders:
  Markus Frosch <lazyfrosch@debian.org>
-Build-Depends: debhelper (>=9)
+Build-Depends:
+ debhelper (>= 9),
+ python,
+ python-jsmin
 Standards-Version: 3.9.6
 Homepage: https://www.icinga.org
 Vcs-Browser: http://anonscm.debian.org/cgit/pkg-nagios/pkg-icingaweb2.git

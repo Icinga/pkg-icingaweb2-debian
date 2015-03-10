@@ -9,3 +9,4 @@ icingaweb2-module-setup/
 icingaweb2/
 php-icinga/
 .*.sw[op]
+minify/
