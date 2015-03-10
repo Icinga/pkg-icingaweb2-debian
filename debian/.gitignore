@@ -8,3 +8,4 @@ icingaweb2-module-monitoring/
 icingaweb2-module-setup/
 icingaweb2/
 php-icinga/
+.*.sw[op]

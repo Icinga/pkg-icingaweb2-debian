@@ -7,8 +7,8 @@ Uploaders:
 Build-Depends: debhelper (>=9)
 Standards-Version: 3.9.6
 Homepage: https://www.icinga.org
-Vcs-Git: git://git.icinga.org/icingaweb2.git
-Vcs-Browser: https://git.icinga.org/?p=icingaweb2.git;a=summary
+Vcs-Browser: http://anonscm.debian.org/cgit/pkg-nagios/pkg-icingaweb2.git
+Vcs-Git: git://anonscm.debian.org/pkg-nagios/pkg-icingaweb2.git
 
 Package: icingaweb2
 Architecture: all
