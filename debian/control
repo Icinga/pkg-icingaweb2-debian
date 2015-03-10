@@ -13,6 +13,7 @@ Vcs-Browser: https://git.icinga.org/?p=icingaweb2.git;a=summary
 Package: icingaweb2
 Architecture: all
 Depends:
+ adduser,
  icingaweb2-common,
 # 4.4 in wheezy - TODO: test
  php-htmlpurifier (>= 4.4),
@@ -39,6 +40,7 @@ Description: simple and responsive web interface for Icinga
 Package: icingaweb2-common
 Architecture: all
 Depends:
+ adduser,
  php-icinga,
  ${misc:Depends}
 Description: simple and responsive web interface for Icinga - common files
