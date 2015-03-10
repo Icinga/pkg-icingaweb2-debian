@@ -14,12 +14,13 @@ Package: icingaweb2
 Architecture: all
 Depends:
  icingaweb2-common,
+# 4.4 in wheezy - TODO: test
+ php-htmlpurifier (>= 4.4),
+ php-dompdf (>= 0.6.1),
+# php-parsedown,
+# php-lessphp,
+# php-jshrink,
  ${misc:Depends}
-# icingaweb-vendor-parsedown,
-# icingaweb-vendor-lessphp,
-# icingaweb-vendor-jshrink,
-# icingaweb-vendor-htmlpurifier
-#Conflicts: vendor packages
 Recommends:
  apache2 | httpd,
  php5 (>= 5.3.2),
