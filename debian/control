@@ -1,7 +1,7 @@
 Source: icingaweb2
 Section: admin
 Priority: extra
-Maintainer: Icinga Development Team <info@icinga.org>
+Maintainer: Debian Nagios Maintainer Group <pkg-nagios-devel@lists.alioth.debian.org>
 Uploaders:
  Markus Frosch <lazyfrosch@debian.org>
 Build-Depends:
@@ -16,7 +16,7 @@ Package: icingaweb2
 Architecture: all
 Depends:
  adduser,
- icingaweb2-common,
+ php-icinga (= ${source:Version}),
 # 4.4 in wheezy - TODO: test
 # legacy: php-htmlpurifier (>= 4.4),
 # legacy: php-dompdf (>= 0.6.1),
@@ -27,6 +27,7 @@ Depends:
 Recommends:
  apache2 | httpd,
  php5 (>= 5.3.2),
+ php5-cli (>= 5.3.2),
  php5-ldap,
  icingaweb2-module-monitoring,
  icingaweb2-module-doc,
@@ -41,36 +42,14 @@ Description: simple and responsive web interface for Icinga
  .
  Backends can be IDO and Livestatus, while supporting Icinga 1 and 2.
  .
- This package installs the web interface with all needed dependencies.
-
-Package: icingaweb2-common
-Architecture: all
-Depends:
- adduser,
- php-icinga,
- ${misc:Depends}
-Description: simple and responsive web interface for Icinga - common files
- Icinga Web 2 is a very modular, fast and simple web interface for your Icinga
- monitoring environment.
- .
- This package provides common files and paths.
-
-Package: icingacli
-Architecture: all
-Depends:
- icingaweb2-common,
- php5-cli (>= 5.3.2),
- ${misc:Depends}
-Description: CLI tool for the Icinga Web 2 framework
- Icinga Web 2 is a very modular, fast and simple web interface for your Icinga
- monitoring environment.
- .
- Icinga CLI is a command line utility, allowing the admin to configure Icinga
+ `icingacli` is a command line utility, allowing the admin to configure Icinga
  Web 2 and provides the possibility to query Icinga data from your shell.
+ .
+ This package installs the web interface with all needed dependencies.
 
 Package: icingaweb2-module-monitoring
 Architecture: all
-Depends: icingaweb2-common, ${misc:Depends}
+Depends: icingaweb2 (= ${source:Version}), ${misc:Depends}
 Description: simple and responsive web interface for Icinga - monitoring module
  Icinga Web 2 is a very modular, fast and simple web interface for your Icinga
  monitoring environment.
@@ -80,7 +59,7 @@ Description: simple and responsive web interface for Icinga - monitoring module
 Package: icingaweb2-module-doc
 Section: doc
 Architecture: all
-Depends: icingaweb2-common, ${misc:Depends}
+Depends: icingaweb2 (= ${source:Version}), ${misc:Depends}
 Description: simple and responsive web interface for Icinga - documentation module
  Icinga Web 2 is a very modular, fast and simple web interface for your Icinga
  monitoring environment.
@@ -90,7 +69,7 @@ Description: simple and responsive web interface for Icinga - documentation modu
 
 Package: icingaweb2-module-setup
 Architecture: all
-Depends: icingaweb2-common, ${misc:Depends}
+Depends: icingaweb2 (= ${source:Version}), ${misc:Depends}
 Description: simple and responsive web interface for Icinga - setup module
  Icinga Web 2 is a very modular, fast and simple web interface for your Icinga
  monitoring environment.
@@ -98,7 +77,7 @@ Description: simple and responsive web interface for Icinga - setup module
  This module provides the setup wizard to bootstrap your Icinga Web 2
  configuration.
  .
- It will be disabled after setup, and can be removed later.
+ It will be disabled after the initial setup, and may be removed later.
 
 Package: php-icinga
 Section: php
@@ -107,7 +86,6 @@ Depends:
  php5 (>= 5.3.2),
 # legacy: zendframework,
  ${misc:Depends}
-# | icingaweb-vendor-zend
 Recommends:
  php5-mysql | php5-mysqlnd | php5-pgsql,
  php5-json
