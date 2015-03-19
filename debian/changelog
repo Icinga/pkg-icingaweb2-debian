@@ -1,5 +1,12 @@
-icingaweb2 (2.0.0~beta2-1) UNRELEASED; urgency=low
+icingaweb2 (2.0.0~beta3-1) unstable; urgency=low
 
+  [ Markus Frosch ]
   * Initial Debian packaging
+  * [d8df5df] Take care about minification of vendor javascripts
+  * [458cd2e] Use the yui-compressor for backwards compatibility
+  * [6cb0061] Merge icingaweb2-common and icingacli in icingaweb2
 
- -- Markus Frosch <lazyfrosch@debian.org>  Fri, 12 Dec 2014 12:05:21 +0100
+  [ Alexander Wirt ]
+  * [fa8e336] Imported Upstream version 2.0.0~beta3
+
+ -- Alexander Wirt <formorer@debian.org>  Thu, 19 Mar 2015 20:22:16 +0100
