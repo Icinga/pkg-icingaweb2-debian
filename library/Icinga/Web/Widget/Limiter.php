@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web\Widget;
 
@@ -80,7 +80,7 @@ class Limiter extends AbstractWidget
                     $this->url->setParam('limit', $limit),
                     null,
                     array(
-                        'title' => sprintf(t('Show %s rows on one page'), $caption)
+                        'title' => sprintf($view->translate('Limit each page to a maximum of %u rows'), $caption)
                     )
                 );
             }

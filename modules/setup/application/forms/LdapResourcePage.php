@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Setup\Forms;
 
@@ -17,6 +17,11 @@ class LdapResourcePage extends Form
     public function init()
     {
         $this->setName('setup_ldap_resource');
+        $this->setTitle($this->translate('LDAP Resource', 'setup.page.title'));
+        $this->addDescription($this->translate(
+            'Now please configure your AD/LDAP resource. This will later '
+            . 'be used to authenticate users logging in to Icinga Web 2.'
+        ));
     }
 
     /**
@@ -30,27 +35,6 @@ class LdapResourcePage extends Form
             array(
                 'required'  => true,
                 'value'     => 'ldap'
-            )
-        );
-        $this->addElement(
-            'note',
-            'title',
-            array(
-                'value'         => $this->translate('LDAP Resource', 'setup.page.title'),
-                'decorators'    => array(
-                    'ViewHelper',
-                    array('HtmlTag', array('tag' => 'h2'))
-                )
-            )
-        );
-        $this->addElement(
-            'note',
-            'description',
-            array(
-                'value' => $this->translate(
-                    'Now please configure your AD/LDAP resource. This will later '
-                    . 'be used to authenticate users logging in to Icinga Web 2.'
-                )
             )
         );
 

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web;
 
@@ -612,10 +612,11 @@ class Wizard
                 'button',
                 static::BTN_PREV,
                 array(
-                    'type'          => 'submit',
-                    'value'         => $pages[$index - 1]->getName(),
-                    'label'         => t('Back'),
-                    'decorators'    => array('ViewHelper')
+                    'type'              => 'submit',
+                    'value'             => $pages[$index - 1]->getName(),
+                    'label'             => t('Back'),
+                    'decorators'        => array('ViewHelper'),
+                    'formnovalidate'    => 'formnovalidate'
                 )
             );
             $page->addElement(
@@ -633,10 +634,11 @@ class Wizard
                 'button',
                 static::BTN_PREV,
                 array(
-                    'type'          => 'submit',
-                    'value'         => $pages[$index - 1]->getName(),
-                    'label'         => t('Back'),
-                    'decorators'    => array('ViewHelper')
+                    'type'              => 'submit',
+                    'value'             => $pages[$index - 1]->getName(),
+                    'label'             => t('Back'),
+                    'decorators'        => array('ViewHelper'),
+                    'formnovalidate'    => 'formnovalidate'
                 )
             );
             $page->addElement(

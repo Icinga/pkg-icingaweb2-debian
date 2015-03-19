@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Authentication;
 
@@ -84,7 +84,7 @@ class Manager
             $preferences = new Preferences();
         }
         $user->setPreferences($preferences);
-        $groups = array();
+        $groups = $user->getGroups();
         foreach (Config::app('groups') as $name => $config) {
             try {
                 $groupBackend = UserGroupBackend::create($name, $config);

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Forms\Command\Instance;
 
@@ -20,18 +20,11 @@ class DisableNotificationsExpireCommandForm extends CommandForm
      */
     public function init()
     {
+        $this->setRequiredCue(null);
         $this->setSubmitLabel($this->translate('Disable Notifications'));
-    }
-
-    /**
-     * (non-PHPDoc)
-     * @see \Icinga\Module\Monitoring\Forms\Command\CommandForm::getHelp() For the method documentation.
-     */
-    public function getHelp()
-    {
-        return $this->translate(
+        $this->addDescription($this->translate(
             'This command is used to disable host and service notifications for a specific time.'
-        );
+        ));
     }
 
     /**

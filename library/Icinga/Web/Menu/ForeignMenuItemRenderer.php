@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web\Menu;
 
@@ -16,7 +16,7 @@ class ForeignMenuItemRenderer implements MenuItemRenderer {
         return sprintf(
             '<a href="%s" target="_self">%s%s<span></span></a>',
             $menu->getUrl() ?: '#',
-            $menu->getIcon() ? '<img src="' . Url::fromPath($menu->getIcon()) . '" class="icon" /> ' : '',
+            $menu->getIcon() ? '<img aria-hidden="true" src="' . Url::fromPath($menu->getIcon()) . '" class="icon" /> ' : '',
             htmlspecialchars($menu->getTitle())
         );
     }

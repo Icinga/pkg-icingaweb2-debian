@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Forms\Command\Instance;
 
@@ -25,7 +25,10 @@ class ToggleInstanceFeaturesCommandForm extends CommandForm
      */
     public function init()
     {
+        $this->setUseFormAutosubmit();
+        $this->setTitle($this->translate('Feature Commands'));
         $this->setAttrib('class', 'inline instance-features');
+        $this->loadDefaultDecorators()->getDecorator('description')->setTag('h2');
     }
 
     /**
@@ -60,7 +63,7 @@ class ToggleInstanceFeaturesCommandForm extends CommandForm
         if ((bool) $this->status->notifications_enabled) {
             if ($this->hasPermission('monitoring/command/feature/instance')) {
                 $notificationDescription = sprintf(
-                    '<a title="%s" href="%s" data-base-target="_next">%s</a>',
+                    '<a aria-label="%1$s" title="%1$s" href="%2$s" data-base-target="_next">%3$s</a>',
                     $this->translate('Disable notifications for a specific time on a program-wide basis'),
                     $this->getView()->href('monitoring/process/disable-notifications'),
                     $this->translate('Disable temporarily')

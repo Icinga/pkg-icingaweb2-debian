@@ -55,6 +55,14 @@ nginx:
 ./bin/icingacli setup config webserver nginx --document-root /usr/share/icingaweb2/public
 ````
 
+Save the output as new file in your webserver's configuration directory.
+
+Example for Apache on RHEL/CentOS:
+````
+./bin/icingacli setup config webserver apache --document-root /usr/share/icingaweb2/public > /etc/httpd/conf.d/icingaweb2.conf
+````
+
+
 **Step 4: Preparing Web Setup**
 
 Because both web and CLI must have access to configuration and logs, permissions will be managed using a special
@@ -81,12 +89,12 @@ usermod -a -G icingaweb2 apache
 
 SLES and OpenSUSE:
 ````
-usermod -G icingaweb2 wwwrun
+usermod -A icingaweb2 wwwrun
 ````
 
 Debian and Ubuntu:
 ````
-usermod -a -G icingaweb2 wwwrun
+usermod -a -G icingaweb2 www-data
 ````
 
 Use `icingacli` to create the configuration directory which defaults to **/etc/icingaweb2**:
@@ -125,3 +133,8 @@ After please log out from Icinga Web 2 and log in again for having all permissio
 If you delegated authentication to your web server using the `autologin` backend, you have to switch to the `external`
 authentication backend to be able to log in again. The new name better reflects what’s going on. A similar change
 affects environments that opted for not storing preferences, your new backend is `none`.
+
+## Upgrading to Icinga Web 2 Beta 3
+
+Because Icinga Web 2 Beta 3 does not introduce any backward incompatible change you don't have to change your
+configuration files after upgrading to Icinga Web 2 Beta 3.

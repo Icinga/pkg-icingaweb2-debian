@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Application\Modules;
 
@@ -114,6 +114,13 @@ class Module
     private $triedToLaunchConfigScript = false;
 
     /**
+     * Whether this module has been registered
+     *
+     * @var bool
+     */
+    private $registered = false;
+
+    /**
      * Provided permissions
      *
      * @var array
@@ -177,14 +184,18 @@ class Module
     protected $searchUrls = array();
 
     /**
-     * @param string $title
-     * @param string $url
+     * Provide a search URL
+     *
+     * @param string    $title
+     * @param string    $url
+     * @param int       $priority
      */
-    public function provideSearchUrl($title, $url)
+    public function provideSearchUrl($title, $url, $priority = 0)
     {
         $searchUrl = (object) array(
-            'title' => $title,
-            'url'   => $url
+            'title'     => (string) $title,
+            'url'       => (string) $url,
+            'priority'  => (int) $priority
         );
 
         $this->searchUrls[] = $searchUrl;
@@ -279,6 +290,10 @@ class Module
      */
     public function register()
     {
+        if ($this->registered) {
+            return true;
+        }
+
         $this->registerAutoloader();
         try {
             $this->launchRunScript();
@@ -291,8 +306,20 @@ class Module
             );
             return false;
         }
+
         $this->registerWebIntegration();
+        $this->registered = true;
         return true;
+    }
+
+    /**
+     * Return whether this module has been registered
+     *
+     * @return  bool
+     */
+    public function isRegistered()
+    {
+        return $this->registered;
     }
 
     /**
@@ -641,7 +668,7 @@ class Module
         $tabs->add('info', array(
             'url'       => 'config/module',
             'urlParams' => array('name' => $this->getName()),
-            'title'     => 'Module: ' . $this->getName()
+            'label'     => 'Module: ' . $this->getName()
         ));
         foreach ($this->configTabs as $name => $config) {
             $tabs->add($name, $config);
@@ -913,7 +940,7 @@ class Module
      */
     protected function launchConfigScript()
     {
-        if ($this->triedToLaunchConfigScript) {
+        if ($this->triedToLaunchConfigScript || !$this->registered) {
             return;
         }
         $this->triedToLaunchConfigScript = true;

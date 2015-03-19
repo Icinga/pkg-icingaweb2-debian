@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Protocol\Ldap;
 
@@ -27,8 +27,8 @@ class Query
     protected $connection;
     protected $filters = array();
     protected $fields = array();
-    protected $limit_count;
-    protected $limit_offset;
+    protected $limit_count = 0;
+    protected $limit_offset = 0;
     protected $sort_columns = array();
     protected $count;
     protected $base;
@@ -111,7 +111,7 @@ class Query
      */
     public function hasLimit()
     {
-        return $this->limit_count !== null;
+        return $this->limit_count > 0;
     }
 
     /**
@@ -307,6 +307,19 @@ class Query
     }
 
     /**
+     * Add a filter expression to this query
+     *
+     * @param   Expression  $expression
+     *
+     * @return  Query
+     */
+    public function addFilter(Expression $expression)
+    {
+        $this->filters[] = $expression;
+        return $this;
+    }
+
+    /**
      * Returns the LDAP filter that will be applied
      *
      * @string
@@ -318,17 +331,26 @@ class Query
             throw new Exception('Object class is mandatory');
         }
         foreach ($this->filters as $key => $value) {
-            $parts[] = sprintf(
-                '%s=%s',
-                LdapUtils::quoteForSearch($key),
-                LdapUtils::quoteForSearch($value, true)
-            );
+            if ($value instanceof Expression) {
+                $parts[] = (string) $value;
+            } else {
+                $parts[] = sprintf(
+                    '%s=%s',
+                    LdapUtils::quoteForSearch($key),
+                    LdapUtils::quoteForSearch($value, true)
+                );
+            }
         }
         if (count($parts) > 1) {
             return '(&(' . implode(')(', $parts) . '))';
         } else {
             return '(' . $parts[0] . ')';
         }
+    }
+
+    public function __toString()
+    {
+        return $this->create();
     }
 
     /**

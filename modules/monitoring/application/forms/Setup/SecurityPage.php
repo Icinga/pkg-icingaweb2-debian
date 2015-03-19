@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Forms\Setup;
 
@@ -11,31 +11,14 @@ class SecurityPage extends Form
     public function init()
     {
         $this->setName('setup_monitoring_security');
+        $this->setTitle($this->translate('Monitoring Security', 'setup.page.title'));
+        $this->addDescription($this->translate(
+            'To protect your monitoring environment against prying eyes please fill out the settings below.'
+        ));
     }
 
     public function createElements(array $formData)
     {
-        $this->addElement(
-            'note',
-            'title',
-            array(
-                'value'         => $this->translate('Monitoring Security', 'setup.page.title'),
-                'decorators'    => array(
-                    'ViewHelper',
-                    array('HtmlTag', array('tag' => 'h2'))
-                )
-            )
-        );
-        $this->addElement(
-            'note',
-            'description',
-            array(
-                'value' => $this->translate(
-                    'To protect your monitoring environment against prying eyes please fill out the settings below.'
-                )
-            )
-        );
-
         $securityConfigForm = new SecurityConfigForm();
         $securityConfigForm->createElements($formData);
         $this->addElements($securityConfigForm->getElements());

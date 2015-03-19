@@ -1,4 +1,4 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 h1 {
     font-size: 1em;
@@ -91,19 +91,19 @@ div.contacts div.notification-periods {
   margin-top: 0.5em;
 }
 
-h1.tinystatesummary .badges {
+div.tinystatesummary {
+  .page-header();
+  font-size: 1em;
+  .badges {
     display: inline-block;
     margin-bottom: 4px;
     margin-left: 1em;
-}
-
-h1.tinystatesummary .state > a {
+  }
+  .state > a {
     color: white;
     font-size: 0.8em;
     padding: 2px 5px;
-}
-
-h1.tinystatesummary .state.handled a {
+  }
 }
 
 /* State badges */
@@ -160,6 +160,20 @@ form.instance-features span.description, form.object-features span.description {
   display: inline;
 }
 
+.boxview div.box form.instance-features div.header {
+  border-bottom: 1px solid #d9d9d9;
+  margin-bottom: 0.5em;
+
+  h2 {
+    border: 0;
+    padding-bottom: 0;
+  }
+}
+
+table.avp form.object-features div.header h4 {
+  margin: 0;
+}
+
 table.avp .customvar ul {
     list-style-type: none;
     margin: 0;
@@ -190,7 +204,7 @@ div.selection-info {
   vertical-align: middle;
 }
 
-h1.command-title {
+.object-command form h1, .objects-command form h1 {
   border: none;
 }
 

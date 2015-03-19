@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web\Controller;
 
@@ -10,6 +10,7 @@ use Icinga\Authentication\Manager;
 use Icinga\Exception\IcingaException;
 use Icinga\Exception\ProgrammingError;
 use Icinga\File\Pdf;
+use Icinga\Forms\AutoRefreshForm;
 use Icinga\Security\SecurityException;
 use Icinga\Util\Translator;
 use Icinga\Web\Notification;
@@ -50,7 +51,7 @@ class ActionController extends Zend_Controller_Action
     /**
      * Authentication manager
      *
-     * @type Manager|null
+     * @var Manager|null
      */
     private $auth;
 
@@ -292,34 +293,31 @@ class ActionController extends Zend_Controller_Action
     }
 
     /**
-     * Redirect to the login path
+     * Redirect to login
      *
-     * @param   Url         $afterLogin   The action to call when the login was successful. Defaults to '/index/welcome'
+     * XHR will always redirect to __SELF__ if an URL to redirect to after successful login is set. __SELF__ instructs
+     * JavaScript to redirect to the current window's URL if it's an auto-refresh request or to redirect to the URL
+     * which required login if it's not an auto-refreshing one.
      *
-     * @throws  \Exception
+     * XHR will respond with HTTP status code 403 Forbidden.
+     *
+     * @param   Url|string  $redirect   URL to redirect to after successful login
      */
-    protected function redirectToLogin($afterLogin = null)
+    protected function redirectToLogin($redirect = null)
     {
-        $redir = null;
-        if ($afterLogin !== null) {
-            if (! $afterLogin instanceof Url) {
-                $afterLogin = Url::fromPath($afterLogin);
+        $login = Url::fromPath('authentication/login');
+        if ($this->isXhr()) {
+            if ($redirect !== null) {
+                $login->setParam('redirect', '__SELF__');
             }
-            if ($this->isXhr()) {
-                $redir = '__SELF__';
-            } else {
-                // TODO: Ignore /?
-                $redir = $afterLogin->getRelativeUrl();
+            $this->_response->setHttpResponseCode(403);
+        } elseif ($redirect !== null) {
+            if (! $redirect instanceof Url) {
+                $redirect = Url::fromPath($redirect);
             }
+            $login->setParam('redirect', $redirect->getRelativeUrl());
         }
-
-        $url = Url::fromPath('authentication/login');
-
-        if ($redir) {
-            $url->setParam('redirect', $redir);
-        }
-
-        $this->rerenderLayout()->redirectNow($url);
+        $this->rerenderLayout()->redirectNow($login);
     }
 
     protected function rerenderLayout()
@@ -380,6 +378,16 @@ class ActionController extends Zend_Controller_Action
     }
 
     /**
+     * @see Zend_Controller_Action::preDispatch()
+     */
+    public function preDispatch()
+    {
+        $form = new AutoRefreshForm();
+        $form->handleRequest();
+        $this->_helper->layout()->autoRefreshForm = $form;
+    }
+
+    /**
      * Detect whether the current request requires changes in the layout and apply them before rendering
      *
      * @see Zend_Controller_Action::postDispatch()
@@ -399,10 +407,13 @@ class ActionController extends Zend_Controller_Action
                     $layout->benchmark = $this->renderBenchmark();
                 }
             }
+
+            if ((bool) $user->getPreferences()->getValue('icingaweb', 'auto_refresh', true) === false) {
+                $this->disableAutoRefresh();
+            }
         }
 
         if ($req->getParam('format') === 'pdf') {
-            $layout->setLayout('pdf');
             $this->shutdownSession();
             $this->sendAsPdf();
             exit;

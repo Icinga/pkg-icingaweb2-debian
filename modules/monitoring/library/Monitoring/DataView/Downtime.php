@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\DataView;
 
@@ -33,7 +33,10 @@ class Downtime extends DataView
             'downtime_host_state',
             'downtime_service_state',
             'host_display_name',
-            'service_display_name'
+            'service_display_name',
+            'host_name',
+            'service_host_name',
+            'service_description'
         );
     }
 

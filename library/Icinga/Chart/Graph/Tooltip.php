@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Chart\Graph;
 
@@ -66,7 +66,7 @@ class Tooltip
      */
     public function __construct (
         $data = array(),
-        $format = '<b>{title}</b></b><br/> {value} of {sum} {label}'
+        $format = '<b>{title}</b>: {value} {label}'
     ) {
         $this->data = array_merge($this->data, $data);
         $this->defaultFormat = $format;

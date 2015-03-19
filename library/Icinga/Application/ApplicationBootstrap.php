@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Application;
 
@@ -115,7 +115,7 @@ abstract class ApplicationBootstrap
     /**
      * Whether Icinga Web 2 requires setup
      *
-     * @type bool
+     * @var bool
      */
     protected $requiresSetup = false;
 

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 use Icinga\Web\Controller\BasePreferenceController;
 use Icinga\Web\Url;
@@ -25,8 +25,9 @@ class PreferenceController extends BasePreferenceController
         return array(
             'preferences' => new Tab(
                 array(
-                    'title'     => t('Preferences'),
-                    'url'       => Url::fromPath('/preference')
+                    'title' => t('Adjust the preferences of Icinga Web 2 according to your needs'),
+                    'label' => t('Preferences'),
+                    'url'   => Url::fromPath('/preference')
                 )
             )
         );

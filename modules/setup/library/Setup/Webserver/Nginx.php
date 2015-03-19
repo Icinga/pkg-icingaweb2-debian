@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Setup\Webserver;
 
@@ -25,6 +25,7 @@ location ~ ^{urlPath}/index\.php(.*)$ {
   include fastcgi_params;
   fastcgi_param SCRIPT_FILENAME {documentRoot}/index.php;
   fastcgi_param ICINGAWEB_CONFIGDIR {configDir};
+  fastcgi_param REMOTE_USER $remote_user;
 }
 
 location ~ ^{urlPath}(.+)? {

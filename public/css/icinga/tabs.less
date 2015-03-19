@@ -1,4 +1,4 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 ul.tabs {
   padding: 1em 0 0 0;
@@ -135,4 +135,16 @@ ul.tabs img.icon {
 
 a.close-tab {
   display: none;
+}
+
+.spinner > i {
+  line-height: 1;
+}
+
+.spinner.active > i  {
+  .animate(spin 2s infinite linear);
+  &:before {
+    // icon-spin6
+    content: '\e874';
+  }
 }

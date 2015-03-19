@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 use Icinga\Data\Filter\Filter;
 use Icinga\Module\Monitoring\Controller;
@@ -10,6 +10,7 @@ use Icinga\Module\Monitoring\Forms\Command\Object\ProcessCheckResultCommandForm;
 use Icinga\Module\Monitoring\Forms\Command\Object\RemoveAcknowledgementCommandForm;
 use Icinga\Module\Monitoring\Forms\Command\Object\ScheduleServiceCheckCommandForm;
 use Icinga\Module\Monitoring\Forms\Command\Object\ScheduleServiceDowntimeCommandForm;
+use Icinga\Module\Monitoring\Forms\Command\Object\SendCustomNotificationCommandForm;
 use Icinga\Module\Monitoring\Object\Host;
 use Icinga\Module\Monitoring\Object\Service;
 use Icinga\Module\Monitoring\Object\ServiceList;
@@ -93,8 +94,12 @@ class Monitoring_ServicesController extends Controller
         $this->getTabs()->add(
             'show',
             array(
-                'title' => mt('monitoring', 'Services'),
-                'url' => Url::fromRequest()
+                'title' => sprintf(
+                    $this->translate('Show summarized information for %u services'),
+                    count($this->serviceList)
+                ),
+                'label' => $this->translate('Services'),
+                'url'   => Url::fromRequest()
             )
         )->activate('show');
         $this->setAutorefreshInterval(15);
@@ -202,6 +207,10 @@ class Monitoring_ServicesController extends Controller
             $this->translate('Host State'),
             array('#44bb77', '#FF5566', '#E066FF', '#77AAFF')
         );
+        $this->view->sendCustomNotificationLink =
+            Url::fromRequest()->setPath(
+                'monitoring/services/send-custom-notification'
+            );
     }
 
     protected function createPieChart(array $states, $title, array $colors)
@@ -220,8 +229,9 @@ class Monitoring_ServicesController extends Controller
     {
         $this->assertPermission('monitoring/command/acknowledge-problem');
 
-        $this->view->title = $this->translate('Acknowledge Service Problems');
-        $this->handleCommandForm(new AcknowledgeProblemCommandForm());
+        $form = new AcknowledgeProblemCommandForm();
+        $form->setTitle($this->translate('Acknowledge Service Problems'));
+        $this->handleCommandForm($form);
     }
 
     /**
@@ -231,8 +241,9 @@ class Monitoring_ServicesController extends Controller
     {
         $this->assertPermission('monitoring/command/schedule-check');
 
-        $this->view->title = $this->translate('Reschedule Service Checks');
-        $this->handleCommandForm(new ScheduleServiceCheckCommandForm());
+        $form = new ScheduleServiceCheckCommandForm();
+        $form->setTitle($this->translate('Reschedule Service Checks'));
+        $this->handleCommandForm($form);
     }
 
     /**
@@ -242,8 +253,9 @@ class Monitoring_ServicesController extends Controller
     {
         $this->assertPermission('monitoring/command/downtime/schedule');
 
-        $this->view->title = $this->translate('Schedule Service Downtimes');
-        $this->handleCommandForm(new ScheduleServiceDowntimeCommandForm());
+        $form = new ScheduleServiceDowntimeCommandForm();
+        $form->setTitle($this->translate('Schedule Service Downtimes'));
+        $this->handleCommandForm($form);
     }
 
     /**
@@ -253,7 +265,20 @@ class Monitoring_ServicesController extends Controller
     {
         $this->assertPermission('monitoring/command/process-check-result');
 
-        $this->view->title = $this->translate('Submit Passive Service Check Results');
-        $this->handleCommandForm(new ProcessCheckResultCommandForm());
+        $form = new ProcessCheckResultCommandForm();
+        $form->setTitle($this->translate('Submit Passive Service Check Results'));
+        $this->handleCommandForm($form);
+    }
+
+    /**
+     * Send a custom notification for services
+     */
+    public function sendCustomNotificationAction()
+    {
+        $this->assertPermission('monitoring/command/send-custom-notification');
+
+        $form = new SendCustomNotificationCommandForm();
+        $form->setTitle($this->translate('Send Custom Service Notification'));
+        $this->handleCommandForm($form);
     }
 }

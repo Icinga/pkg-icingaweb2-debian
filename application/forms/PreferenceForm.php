@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Forms;
 
@@ -40,6 +40,7 @@ class PreferenceForm extends Form
     public function init()
     {
         $this->setName('form_config_preferences');
+        $this->setTitle($this->translate('Preferences'));
     }
 
     /**
@@ -182,6 +183,17 @@ class PreferenceForm extends Form
             array(
                 'required'  => true,
                 'label'     => $this->translate('Use benchmark')
+            )
+        );
+
+        $this->addElement(
+            'checkbox',
+            'auto_refresh',
+            array(
+                'required'      => false,
+                'label'         => $this->translate('Enable auto refresh'),
+                'description'   => $this->translate('This option allows you to enable or to disable the global page content auto refresh'),
+                'value'         => 1
             )
         );
 

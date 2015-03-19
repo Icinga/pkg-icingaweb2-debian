@@ -1,4 +1,4 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 /**
  * Icinga.UI
@@ -140,7 +140,7 @@
 
         cutContainer: function ($col) {
             var props = {
-              'elements': $('#' + $col.attr('id') + ' > div').detach(),
+              'elements': $('#' + $col.attr('id') + ' > *').detach(),
               'data': {
                 'data-icinga-url': $col.data('icingaUrl'),
                 'data-icinga-refresh': $col.data('icingaRefresh'),
@@ -718,6 +718,9 @@
         initializeControls: function (parent) {
 
             var self = this;
+            if ($(parent).closest('.dashboard').length) {
+                return;
+            }
 
             $('.controls', parent).each(function (idx, el) {
                 var $el = $(el);
@@ -758,6 +761,10 @@
                     self.fixControls($(container));
                 });
 
+                return;
+            }
+
+            if ($parent.closest('.dashboard').length) {
                 return;
             }
 

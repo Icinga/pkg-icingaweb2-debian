@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 use Icinga\Chart\GridChart;
 use Icinga\Chart\Unit\LinearUnit;
@@ -10,11 +10,6 @@ use Icinga\Web\Url;
 
 class Monitoring_AlertsummaryController extends Controller
 {
-    /**
-     * @var string
-     */
-    protected $url;
-
     /**
      * @var array
      */
@@ -30,40 +25,28 @@ class Monitoring_AlertsummaryController extends Controller
      */
     public function init()
     {
-        $tabs = $this->getTabs();
-        if (in_array($this->_request->getActionName(), array('alertsummary'))) {
-            $tabs->extend(new OutputFormat())->extend(new DashboardAction());
-        }
-
-        $this->url = Url::fromRequest();
-
         $this->notificationData = $this->createNotificationData();
         $this->problemData = $this->createProblemData();
     }
 
     /**
-     * @param string $action
-     * @param bool $title
-     */
-    protected function addTitleTab($action, $title = false)
-    {
-        $title = $title ?: ucfirst($action);
-        $this->getTabs()->add(
-            $action,
-            array(
-                'title' => $title,
-                'url'   => $this->url
-            )
-        )->activate($action);
-        $this->view->title = $title;
-    }
-
-    /**
-     * Creat full report
+     * Create full report
      */
     public function indexAction()
     {
-        $this->addTitleTab('alertsummary', $this->translate('Alert Summary'));
+        $this->getTabs()->add(
+            'alertsummary',
+            array(
+                'title' => $this->translate(
+                    'Show recent alerts and visualize notifications and problems'
+                    . ' based on their amount and chronological distribution'
+                ),
+                'label' => $this->translate('Alert Summary'),
+                'url'   => Url::fromRequest()
+            )
+        )->activate('alertsummary');
+        $this->view->title = $this->translate('Alert Summary');
+
         $this->view->intervalBox = $this->createIntervalBox();
         $this->view->recentAlerts = $this->createRecentAlerts();
         $this->view->interval = $this->getInterval();
@@ -341,6 +324,8 @@ class Monitoring_AlertsummaryController extends Controller
     public function createHealingChart()
     {
         $gridChart = new GridChart();
+        $gridChart->title = t('Healing Chart');
+        $gridChart->description = t('Notifications and average reaction time per hour.');
 
         $gridChart->alignTopLeft();
         $gridChart->setAxisLabel($this->createPeriodDescription(), mt('monitoring', 'Notifications'))
@@ -400,6 +385,15 @@ class Monitoring_AlertsummaryController extends Controller
                 $recover = 0;
                 if ($item->acknowledgement_entry_time) {
                     $recover = $item->acknowledgement_entry_time - $item->notification_start_time;
+
+                    /*
+                     * Acknowledgements may happen before the actual notification starts, since notifications
+                     * can be configured to start a certain time after the problem. In that case we assume
+                     * a reaction time of 0s.
+                     */
+                    if ($recover < 0) {
+                        $recover = 0;
+                    }
                 }
                 $rData[$item->notification_object_id] = array(
                     'id'        => $id,
@@ -435,7 +429,8 @@ class Monitoring_AlertsummaryController extends Controller
                 'label' => $this->translate('Notifications'),
                 'color' => '#07C0D9',
                 'data'  =>  $notifications,
-                'showPoints' => true
+                'showPoints' => true,
+                'tooltip' => '<b>{title}:</b> {value} {label}'
             )
         );
 
@@ -444,7 +439,8 @@ class Monitoring_AlertsummaryController extends Controller
                 'label' => $this->translate('Avg (min)'),
                 'color' => '#ffaa44',
                 'data'  =>  $dAvg,
-                'showPoints' => true
+                'showPoints' => true,
+                'tooltip' => t('<b>{title}:</b> {value}m min. reaction time')
             )
         );
 
@@ -453,7 +449,8 @@ class Monitoring_AlertsummaryController extends Controller
                 'label' => $this->translate('Max (min)'),
                 'color' => '#ff5566',
                 'data'  =>  $dMax,
-                'showPoints' => true
+                'showPoints' => true,
+                'tooltip' => t('<b>{title}:</b> {value}m max. reaction time')
             )
         );
 
@@ -468,6 +465,8 @@ class Monitoring_AlertsummaryController extends Controller
     public function createDefectImage()
     {
         $gridChart = new GridChart();
+        $gridChart->title = t('Defect Chart');
+        $gridChart->description = t('Notifications and defects per hour');
 
         $gridChart->alignTopLeft();
         $gridChart->setAxisLabel($this->createPeriodDescription(), mt('monitoring', 'Notifications'))
@@ -480,7 +479,8 @@ class Monitoring_AlertsummaryController extends Controller
                 'label' => $this->translate('Notifications'),
                 'color' => '#07C0D9',
                 'data'  =>  $this->notificationData,
-                'showPoints' => true
+                'showPoints' => true,
+                'tooltip' => '<b>{title}:</b> {value} {label}'
             )
         );
 
@@ -489,7 +489,8 @@ class Monitoring_AlertsummaryController extends Controller
                 'label' => $this->translate('Defects'),
                 'color' => '#ff5566',
                 'data'  =>  $this->problemData,
-                'showPoints' => true
+                'showPoints' => true,
+                'tooltip' => '<b>{title}:</b> {value} {label}'
             )
         );
 

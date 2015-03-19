@@ -1,11 +1,12 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web;
 
 use Exception;
 use RecursiveIteratorIterator;
 use Icinga\Application\Logger;
+use Icinga\Web\Menu\PermittedMenuItemFilter;
 
 /**
  * A renderer to draw a menu with its sub-menus using an unordered html list
@@ -44,7 +45,7 @@ class MenuRenderer extends RecursiveIteratorIterator
         } else {
             $this->url = Url::fromPath($url);
         }
-        parent::__construct($menu, RecursiveIteratorIterator::CHILD_FIRST);
+        parent::__construct(new PermittedMenuItemFilter($menu), RecursiveIteratorIterator::CHILD_FIRST);
     }
 
     /**
@@ -61,7 +62,7 @@ class MenuRenderer extends RecursiveIteratorIterator
      */
     public function beginIteration()
     {
-        $this->tags[] = '<ul role="navigation">';
+        $this->tags[] = '<ul>';
     }
 
     /**
@@ -115,7 +116,7 @@ class MenuRenderer extends RecursiveIteratorIterator
         }
         if ($child->getIcon() && strpos($child->getIcon(), '.') === false) {
             return sprintf(
-                '<a href="%s" class="icon-%s">%s</a>',
+                '<a href="%s"><i aria-hidden="true" class="icon-%s"></i>%s</a>',
                 $child->getUrl() ?: '#',
                 $child->getIcon(),
                 htmlspecialchars($child->getTitle())
@@ -124,7 +125,9 @@ class MenuRenderer extends RecursiveIteratorIterator
         return sprintf(
             '<a href="%s">%s%s</a>',
             $child->getUrl() ?: '#',
-            $child->getIcon() ? '<img src="' . Url::fromPath($child->getIcon()) . '" class="icon" /> ' : '',
+            $child->getIcon()
+                ? '<img aria-hidden="true" src="' . Url::fromPath($child->getIcon()) . '" class="icon" /> '
+                : '',
             htmlspecialchars($child->getTitle())
         );
     }

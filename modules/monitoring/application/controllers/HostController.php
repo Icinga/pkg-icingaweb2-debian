@@ -1,11 +1,12 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 use Icinga\Module\Monitoring\Forms\Command\Object\AcknowledgeProblemCommandForm;
 use Icinga\Module\Monitoring\Forms\Command\Object\AddCommentCommandForm;
 use Icinga\Module\Monitoring\Forms\Command\Object\ProcessCheckResultCommandForm;
 use Icinga\Module\Monitoring\Forms\Command\Object\ScheduleHostCheckCommandForm;
 use Icinga\Module\Monitoring\Forms\Command\Object\ScheduleHostDowntimeCommandForm;
+use Icinga\Module\Monitoring\Forms\Command\Object\SendCustomNotificationCommandForm;
 use Icinga\Module\Monitoring\Object\Host;
 use Icinga\Module\Monitoring\Web\Controller\MonitoredObjectController;
 use Icinga\Web\Hook;
@@ -66,8 +67,9 @@ class Monitoring_HostController extends MonitoredObjectController
     {
         $this->assertPermission('monitoring/command/acknowledge-problem');
 
-        $this->view->title = $this->translate('Acknowledge Host Problem');
-        $this->handleCommandForm(new AcknowledgeProblemCommandForm());
+        $form = new AcknowledgeProblemCommandForm();
+        $form->setTitle($this->translate('Acknowledge Host Problem'));
+        $this->handleCommandForm($form);
     }
 
     /**
@@ -77,8 +79,9 @@ class Monitoring_HostController extends MonitoredObjectController
     {
         $this->assertPermission('monitoring/command/comment/add');
 
-        $this->view->title = $this->translate('Add Host Comment');
-        $this->handleCommandForm(new AddCommentCommandForm());
+        $form = new AddCommentCommandForm();
+        $form->setTitle($this->translate('Add Host Comment'));
+        $this->handleCommandForm($form);
     }
 
     /**
@@ -88,8 +91,9 @@ class Monitoring_HostController extends MonitoredObjectController
     {
         $this->assertPermission('monitoring/command/schedule-check');
 
-        $this->view->title = $this->translate('Reschedule Host Check');
-        $this->handleCommandForm(new ScheduleHostCheckCommandForm());
+        $form = new ScheduleHostCheckCommandForm();
+        $form->setTitle($this->translate('Reschedule Host Check'));
+        $this->handleCommandForm($form);
     }
 
     /**
@@ -99,8 +103,9 @@ class Monitoring_HostController extends MonitoredObjectController
     {
         $this->assertPermission('monitoring/command/downtime/schedule');
 
-        $this->view->title = $this->translate('Schedule Host Downtime');
-        $this->handleCommandForm(new ScheduleHostDowntimeCommandForm());
+        $form = new ScheduleHostDowntimeCommandForm();
+        $form->setTitle($this->translate('Schedule Host Downtime'));
+        $this->handleCommandForm($form);
     }
 
     /**
@@ -110,7 +115,20 @@ class Monitoring_HostController extends MonitoredObjectController
     {
         $this->assertPermission('monitoring/command/process-check-result');
 
-        $this->view->title = $this->translate('Submit Passive Host Check Result');
-        $this->handleCommandForm(new ProcessCheckResultCommandForm());
+        $form = new ProcessCheckResultCommandForm();
+        $form->setTitle($this->translate('Submit Passive Host Check Result'));
+        $this->handleCommandForm($form);
+    }
+
+    /**
+     * Send a custom notification for host
+     */
+    public function sendCustomNotificationAction()
+    {
+        $this->assertPermission('monitoring/command/send-custom-notification');
+
+        $form = new SendCustomNotificationCommandForm();
+        $form->setTitle($this->translate('Send Custom Host Notification'));
+        $this->handleCommandForm($form);
     }
 }

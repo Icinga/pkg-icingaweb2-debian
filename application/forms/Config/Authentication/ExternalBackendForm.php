@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Forms\Config\Authentication;
 
@@ -40,12 +40,21 @@ class ExternalBackendForm extends Form
                         array(
                             'pattern'  => '/^[^\\[\\]:]+$/',
                             'messages' => array(
-                                'regexNotMatch' => 'The backend name cannot contain \'[\', \']\' or \':\'.'
+                                'regexNotMatch' => $this->translate(
+                                    'The backend name cannot contain \'[\', \']\' or \':\'.'
+                                )
                             )
                         )
                     )
                 )
             )
+        );
+        $callbackValidator = new Zend_Validate_Callback(function ($value) {
+            return @preg_match($value, '') !== false;
+        });
+        $callbackValidator->setMessage(
+            $this->translate('"%value%" is not a valid regular expression.'),
+            Zend_Validate_Callback::INVALID_VALUE
         );
         $this->addElement(
             'text',
@@ -53,14 +62,11 @@ class ExternalBackendForm extends Form
             array(
                 'label'         => $this->translate('Filter Pattern'),
                 'description'   => $this->translate(
-                    'The regular expression to use to strip specific parts off from usernames.'
-                    . ' Leave empty if you do not want to strip off anything'
+                    'The filter to use to strip specific parts off from usernames.'
+                    . ' Leave empty if you do not want to strip off anything.'
                 ),
-                'validators'    => array(
-                    new Zend_Validate_Callback(function ($value) {
-                        return @preg_match($value, '') !== false;
-                    })
-                )
+                'requirement'   => $this->translate('The filter pattern must be a valid regular expression.'),
+                'validators'    => array($callbackValidator)
             )
         );
         $this->addElement(

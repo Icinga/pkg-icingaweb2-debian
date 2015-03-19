@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Chart;
 
@@ -83,6 +83,13 @@ class GridChart extends Chart
      * @var Tooltip
      */
     private $tooltips = array();
+
+    public function __construct()
+    {
+        $this->title = t('Grid Chart');
+        $this->description = t('Contains data in a bar or line chart.');
+        parent::__construct();
+    }
 
     /**
      * Check if the current dataset has the proper structure for this chart.
@@ -395,7 +402,12 @@ class GridChart extends Chart
                         );
                         break;
                     case self::TYPE_LINE:
-                        $graphObj = new LineGraph($axis->transform($graph['data']));
+                        $graphObj = new LineGraph(
+                            $axis->transform($graph['data']),
+                            $graphs,
+                            $dataset,
+                            $this->tooltips
+                        );
                         break;
                     default:
                         continue;

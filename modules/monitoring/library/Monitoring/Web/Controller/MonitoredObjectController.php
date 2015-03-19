@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Web\Controller;
 
@@ -73,27 +73,28 @@ abstract class MonitoredObjectController extends Controller
                 }
             }
         }
-        if (count($this->object->comments) > 0 && $auth->hasPermission('monitoring/command/comment/delete')) {
-            $delCommentForm = new DeleteCommentCommandForm();
-            $delCommentForm
-                ->setObjects($this->object)
-                ->handleRequest();
-            $this->view->delCommentForm = $delCommentForm;
-        }
-        if (count($this->object->downtimes > 0) && $auth->hasPermission('monitoring/command/downtime/delete')) {
-            $delDowntimeForm = new DeleteDowntimeCommandForm();
-            $delDowntimeForm
-                ->setObjects($this->object)
-                ->handleRequest();
-            $this->view->delDowntimeForm = $delDowntimeForm;
-        }
+        $this->object->populate();
         $toggleFeaturesForm = new ToggleObjectFeaturesCommandForm();
         $toggleFeaturesForm
             ->load($this->object)
             ->setObjects($this->object)
             ->handleRequest();
         $this->view->toggleFeaturesForm = $toggleFeaturesForm;
-        $this->view->object = $this->object->populate();
+        if (! empty($this->object->comments) && $auth->hasPermission('monitoring/command/comment/delete')) {
+            $delCommentForm = new DeleteCommentCommandForm();
+            $delCommentForm
+                ->setObjects($this->object)
+                ->handleRequest();
+            $this->view->delCommentForm = $delCommentForm;
+        }
+        if (! empty($this->object->downtimes) && $auth->hasPermission('monitoring/command/downtime/delete')) {
+            $delDowntimeForm = new DeleteDowntimeCommandForm();
+            $delDowntimeForm
+                ->setObjects($this->object)
+                ->handleRequest();
+            $this->view->delDowntimeForm = $delDowntimeForm;
+        }
+        $this->view->object = $this->object;
     }
 
     /**
@@ -164,10 +165,12 @@ abstract class MonitoredObjectController extends Controller
         $tabs = $this->getTabs();
         $object = $this->object;
         if ($object->getType() === $object::TYPE_HOST) {
+            $isService = false;
             $params = array(
                 'host' => $object->getName()
             );
         } else {
+            $isService = true;
             $params = array(
                 'host'      => $object->getHost()->getName(),
                 'service'   => $object->getName()
@@ -176,17 +179,26 @@ abstract class MonitoredObjectController extends Controller
         $tabs->add(
             'host',
             array(
-                'title'     => $this->translate('Host'),
+                'title'     => sprintf(
+                    $this->translate('Show detailed information for host %s'),
+                    $isService ? $object->getHost()->getName() : $object->getName()
+                ),
+                'label'     => $this->translate('Host'),
                 'icon'      => 'host',
                 'url'       => 'monitoring/host/show',
                 'urlParams' => $params
             )
         );
-        if (isset($params['service'])) {
+        if ($isService) {
             $tabs->add(
                 'service',
                 array(
-                    'title'     => $this->translate('Service'),
+                    'title'     => sprintf(
+                        $this->translate('Show detailed information for service %s on host %s'),
+                        $object->getName(),
+                        $object->getHost()->getName()
+                    ),
+                    'label'     => $this->translate('Service'),
                     'icon'      => 'service',
                     'url'       => 'monitoring/service/show',
                     'urlParams' => $params
@@ -196,7 +208,11 @@ abstract class MonitoredObjectController extends Controller
         $tabs->add(
             'services',
             array(
-                'title'     => $this->translate('Services'),
+                'title'     => sprintf(
+                    $this->translate('List all services on host %s'),
+                    $isService ? $object->getHost()->getName() : $object->getName()
+                ),
+                'label'     => $this->translate('Services'),
                 'icon'      => 'services',
                 'url'       => 'monitoring/show/services',
                 'urlParams' => $params
@@ -206,7 +222,15 @@ abstract class MonitoredObjectController extends Controller
             $tabs->add(
                 'history',
                 array(
-                    'title'     => $this->translate('History'),
+                    'title'     => $isService
+                        ? sprintf(
+                            $this->translate('Show all event records of service %s on host %s'),
+                            $object->getName(),
+                            $object->getHost()->getName()
+                        )
+                        : sprintf($this->translate('Show all event records of host %s'), $object->getName())
+                    ,
+                    'label'     => $this->translate('History'),
                     'icon'      => 'rewind',
                     'url'       => 'monitoring/show/history',
                     'urlParams' => $params
