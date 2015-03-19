@@ -1,11 +1,10 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Forms\Config\General;
 
 use Icinga\Application\Logger;
 use Icinga\Web\Form;
-use Icinga\Web\Form\Validator\WritablePathValidator;
 
 class LoggingConfigForm extends Form
 {
@@ -67,6 +66,7 @@ class LoggingConfigForm extends Form
                     'description'   => $this->translate(
                         'The name of the application by which to prefix syslog messages.'
                     ),
+                    'requirement'   => $this->translate('The application prefix must not contain whitespace.'),
                     'value'         => 'icingaweb2',
                     'validators'    => array(
                         array(
@@ -75,7 +75,9 @@ class LoggingConfigForm extends Form
                             array(
                                 'pattern'  => '/^[^\W]+$/',
                                 'messages' => array(
-                                    'regexNotMatch' => 'The application prefix cannot contain any whitespaces.'
+                                    'regexNotMatch' => $this->translate(
+                                        'The application prefix must not contain whitespace.'
+                                    )
                                 )
                             )
                         )
@@ -107,7 +109,7 @@ class LoggingConfigForm extends Form
                     'label'         => $this->translate('File path'),
                     'description'   => $this->translate('The full path to the log file to write messages to.'),
                     'value'         => '/var/log/icingaweb2/icingaweb2.log',
-                    'validators'    => array(new WritablePathValidator())
+                    'validators'    => array('WritablePathValidator')
                 )
             );
         }

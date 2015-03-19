@@ -1,4 +1,4 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 /**
  * Icinga.Loader
@@ -114,10 +114,10 @@
             req.done(this.onResponse);
             req.fail(this.onFailure);
             req.complete(this.onComplete);
-            req.historyTriggered = false;
             req.autorefresh = autorefresh;
             req.action = action;
             req.failure = false;
+            req.addToHistory = true;
 
             if (id) {
                 this.requests[id] = req;
@@ -245,14 +245,41 @@
             }
         },
 
+        /**
+         * Process the X-Icinga-Redirect HTTP Response Header
+         *
+         * If the response includes the X-Icinga-Redirect header, redirects to the URL associated with the header.
+         *
+         * @param   {object}    req     Current request
+         *
+         * @returns {boolean}           Whether we're about to redirect
+         */
         processRedirectHeader: function(req) {
-            var icinga = this.icinga;
-            var redirect = req.getResponseHeader('X-Icinga-Redirect');
-            if (! redirect) return false;
+            var icinga      = this.icinga,
+                redirect    = req.getResponseHeader('X-Icinga-Redirect');
+
+            if (! redirect) {
+                return false;
+            }
+
             redirect = decodeURIComponent(redirect);
             if (redirect.match(/__SELF__/)) {
-                redirect = redirect.replace(/__SELF__/, encodeURIComponent(document.location.pathname + document.location.search + document.location.hash));
+                if (req.autorefresh) {
+                    // Redirect to the current window's URL in case it's an auto-refresh request. If authenticated
+                    // externally this ensures seamless re-login if the session's expired
+                    redirect = redirect.replace(
+                        /__SELF__/,
+                        encodeURIComponent(
+                            document.location.pathname + document.location.search + document.location.hash
+                        )
+                    );
+                } else {
+                    // Redirect to the URL which required authentication. When clicking a link this ensures that we
+                    // redirect to the link's URL instead of the current window's URL (see above)
+                    redirect = redirect.replace(/__SELF__/, req.url);
+                }
             }
+
             icinga.logger.debug(
                 'Got redirect for ', req.$target, ', URL was ' + redirect
             );
@@ -265,6 +292,12 @@
                 r.url = redirect;
                 if (parts.length) {
                     r.loadNext = parts;
+                } else if (!! document.location.hash) {
+                    // Retain detail URL if the layout is rerendered
+                    parts = document.location.hash.split('#!').splice(1);
+                    if (parts.length) {
+                        r.loadNext = parts;
+                    }
                 }
 
             } else {
@@ -420,8 +453,6 @@
                     var $el = $(el);
                     if ($el.hasClass('dashboard')) {
                         return;
-                    } else {
-
                     }
                     var url = $el.data('icingaUrl');
                     targets[i].data('icingaUrl', url);
@@ -555,7 +586,7 @@
 
             // Update history when necessary. Don't do so for requests triggered
             // by history or autorefresh events
-            if (! req.historyTriggered && ! req.autorefresh) {
+            if (! req.autorefresh && req.addToHistory) {
                 if (req.$target.hasClass('container') && ! req.failure) {
                     // We only want to care about top-level containers
                     if (req.$target.parent().closest('.container').length === 0) {
@@ -564,7 +595,7 @@
                 } else {
                     // Request wasn't for a container, so it's usually the body
                     // or the full layout. Push request URL to history:
-                    this.icinga.history.pushUrl(req.url);
+                    this.icinga.history.pushCurrentState();
                 }
             }
 
@@ -594,10 +625,12 @@
 
             req.failure = true;
 
+            req.$target.data('icingaUrl', req.url);
+
             /*
              * Test if a manual actions comes in and autorefresh is active: Stop refreshing
              */
-            if (! req.historyTriggered && ! req.autorefresh && req.$target.data('icingaRefresh') > 0
+            if (req.addToHistory && ! req.autorefresh && req.$target.data('icingaRefresh') > 0
             && req.$target.data('icingaUrl') !== url) {
                 req.$target.data('icingaRefresh', 0);
                 req.$target.data('icingaUrl', url);
@@ -621,6 +654,9 @@
                         'Request to ' + url + ' has been aborted for ',
                         req.$target
                     );
+
+                    // Aborted requests should not be added to browser history
+                    req.addToHistory = false;
                 } else {
                     if (this.failureNotice === null) {
                         this.failureNotice = this.createNotice(
@@ -672,7 +708,6 @@
             // Container update happens here
             var scrollPos = false;
             var self = this;
-            var origFocus = document.activeElement;
             var containerId = $container.attr('id');
             if (typeof containerId !== 'undefined') {
                 if (autorefresh) {
@@ -680,6 +715,9 @@
                 } else {
                     scrollPos = 0;
                 }
+            }
+            if (autorefresh && $.contains($container[0], document.activeElement)) {
+                var origFocus = self.icinga.utils.getDomPath(document.activeElement);
             }
 
             $container.trigger('beforerender');
@@ -737,8 +775,10 @@
             }
             this.icinga.ui.assignUniqueContainerIds();
 
-            if (origFocus) {
-                $(origFocus).focus();
+            if (origFocus && origFocus.length > 0 && origFocus[0] !== '') {
+                setTimeout(function() {
+                    $(self.icinga.utils.getElementByDomPath(origFocus)).focus();
+                }, 0);
             }
 
             // TODO: this.icinga.events.refreshContainer(container);

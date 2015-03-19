@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Setup\Forms;
 
@@ -19,6 +19,11 @@ class DbResourcePage extends Form
     public function init()
     {
         $this->setName('setup_db_resource');
+        $this->setTitle($this->translate('Database Resource', 'setup.page.title'));
+        $this->addDescription($this->translate(
+            'Now please configure your database resource. Note that the database itself does not need to'
+            . ' exist at this time as it is going to be created once the wizard is about to be finished.'
+        ));
     }
 
     /**
@@ -32,27 +37,6 @@ class DbResourcePage extends Form
             array(
                 'required'  => true,
                 'value'     => 'db'
-            )
-        );
-        $this->addElement(
-            'note',
-            'title',
-            array(
-                'value'         => $this->translate('Database Resource', 'setup.page.title'),
-                'decorators'    => array(
-                    'ViewHelper',
-                    array('HtmlTag', array('tag' => 'h2'))
-                )
-            )
-        );
-        $this->addElement(
-            'note',
-            'description',
-            array(
-                'value' => $this->translate(
-                    'Now please configure your database resource. Note that the database itself does not need to'
-                    . ' exist at this time as it is going to be created once the wizard is about to be finished.'
-                )
             )
         );
 

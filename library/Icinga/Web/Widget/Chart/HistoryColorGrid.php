@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web\Widget\Chart;
 
@@ -122,17 +122,18 @@ class HistoryColorGrid extends AbstractWidget {
     {
         if (array_key_exists($day, $this->data) && $this->data[$day]['value'] > 0) {
             $entry = $this->data[$day];
-            return'<a ' .
-                'style="background-color:' . $this->calculateColor($entry['value']) . '; '
-                    . ' opacity: ' . $this->opacity . ';"' .
+            return '<a ' .
+                'style="background-color: ' . $this->calculateColor($entry['value']) . ';'
+                    . ' opacity: ' . $this->opacity . ';" ' .
+                'aria-label="' . $entry['caption'] . '" ' .
                 'title="' . $entry['caption'] . '" ' .
                 'href="'  . $entry['url'] . '"' .
-            '>&nbsp;</a>';
-        } else {
-            return '<a ' .
-                'style="background-color:' . $this->calculateColor(0) . '; ' . ' opacity: ' . $this->opacity . ';" ' .
-                'title="No entries for ' . $day . '" ' .
             '></a>';
+        } else {
+            return '<span ' .
+                'style="background-color: ' . $this->calculateColor(0) . '; opacity: ' . $this->opacity . ';" ' .
+                'title="No entries for ' . $day . '" ' .
+            '></span>';
         }
     }
 
@@ -267,7 +268,7 @@ class HistoryColorGrid extends AbstractWidget {
                 }
                 $week++;
             }
-            if ($day > cal_days_in_month(CAL_GREGORIAN, $month, $year)) {
+            if ($day > date('t', mktime(0, 0, 0, $month, 1, $year))) {
                 $month++;
                 if ($month > 12) {
                     $year++;

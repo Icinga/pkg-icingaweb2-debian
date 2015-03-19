@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\DataView;
 
@@ -9,9 +9,7 @@ namespace Icinga\Module\Monitoring\DataView;
 class Comment extends DataView
 {
     /**
-     * Retrieve columns provided by this view
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function getColumns()
     {
@@ -34,9 +32,7 @@ class Comment extends DataView
     }
 
     /**
-     * Retrieve default sorting rules for particular columns. These involve sort order and potential additional to sort
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function getSortRules()
     {

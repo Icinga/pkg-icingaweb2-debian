@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 use Icinga\Application\Config;
 use Icinga\Forms\ConfirmRemovalForm;
@@ -20,29 +20,35 @@ class RolesController extends ActionController
      */
     public function init()
     {
-        $this->assertPermission('system/config/roles');
+        $this->assertPermission('config/application/roles');
         $tabs = $this->getTabs();
         $auth = $this->Auth();
-        if ($auth->hasPermission('system/config/application')) {
+        if ($auth->hasPermission('config/application/general')) {
             $tabs->add('application', array(
-                'title' => $this->translate('Application'),
+                'title' => $this->translate('Adjust the general configuration of Icinga Web 2'),
+                'label' => $this->translate('Application'),
                 'url'   => 'config'
             ));
         }
-        if ($auth->hasPermission('system/config/authentication')) {
+        if ($auth->hasPermission('config/application/authentication')) {
             $tabs->add('authentication', array(
-                'title' => $this->translate('Authentication'),
+                'title' => $this->translate('Configure how users authenticate with and log into Icinga Web 2'),
+                'label' => $this->translate('Authentication'),
                 'url'   => 'config/authentication'
             ));
         }
-        if ($auth->hasPermission('system/config/resources')) {
+        if ($auth->hasPermission('config/application/resources')) {
             $tabs->add('resource', array(
-                'title' => $this->translate('Resources'),
+                'title' => $this->translate('Configure which resources are being utilized by Icinga Web 2'),
+                'label' => $this->translate('Resources'),
                 'url'   => 'config/resource'
             ));
         }
         $tabs->add('roles', array(
-            'title' => $this->translate('Roles'),
+            'title' => $this->translate(
+                'Configure roles to permit or restrict users and groups accessing Icinga Web 2'
+            ),
+            'label' => $this->translate('Roles'),
             'url'   => 'roles'
         ));
     }
@@ -79,6 +85,7 @@ class RolesController extends ActionController
             }
         ));
         $role
+            ->setTitle($this->translate('New Role'))
             ->setSubmitLabel($this->translate('Create Role'))
             ->setIniConfig(Config::app('roles', true))
             ->setRedirectUrl('roles')
@@ -101,6 +108,7 @@ class RolesController extends ActionController
             );
         }
         $role = new RoleForm();
+        $role->setTitle(sprintf($this->translate('Update Role %s'), $name));
         $role->setSubmitLabel($this->translate('Update Role'));
         try {
             $role
@@ -131,7 +139,6 @@ class RolesController extends ActionController
             })
             ->setRedirectUrl('roles')
             ->handleRequest();
-        $this->view->name = $name;
         $this->view->form = $role;
     }
 
@@ -176,10 +183,10 @@ class RolesController extends ActionController
             }
         ));
         $confirmation
+            ->setTitle(sprintf($this->translate('Remove Role %s'), $name))
             ->setSubmitLabel($this->translate('Remove Role'))
             ->setRedirectUrl('roles')
             ->handleRequest();
-        $this->view->name = $name;
         $this->view->form = $confirmation;
     }
 }

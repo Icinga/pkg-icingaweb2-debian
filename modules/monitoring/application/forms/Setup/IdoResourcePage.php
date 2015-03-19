@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Forms\Setup;
 
@@ -11,6 +11,10 @@ class IdoResourcePage extends Form
     public function init()
     {
         $this->setName('setup_monitoring_ido');
+        $this->setTitle($this->translate('Monitoring IDO Resource', 'setup.page.title'));
+        $this->addDescription($this->translate(
+            'Please fill out the connection details below to access the IDO database of your monitoring environment.'
+        ));
     }
 
     public function createElements(array $formData)
@@ -21,27 +25,6 @@ class IdoResourcePage extends Form
             array(
                 'required'  => true,
                 'value'     => 'db'
-            )
-        );
-        $this->addElement(
-            'note',
-            'title',
-            array(
-                'value'         => $this->translate('Monitoring IDO Resource', 'setup.page.title'),
-                'decorators'    => array(
-                    'ViewHelper',
-                    array('HtmlTag', array('tag' => 'h2'))
-                )
-            )
-        );
-        $this->addElement(
-            'note',
-            'description',
-            array(
-                'value' => $this->translate(
-                    'Please fill out the connection details below to access'
-                    . ' the IDO database of your monitoring environment.'
-                )
             )
         );
 

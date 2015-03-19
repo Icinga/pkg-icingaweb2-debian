@@ -1,4 +1,4 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 /**
  * Icinga.Events
@@ -74,9 +74,6 @@
                 }
             });
 
-            if (document.activeElement === document.body) {
-                $('input.autofocus', el).focus();
-            }
             var searchField = $('#menu input.search', el);
             // Remember initial search field value if any
             if (searchField.length && searchField.val().length) {
@@ -121,14 +118,16 @@
             // Select a table row
             $(document).on('click', 'table.multiselect tr[href]', { self: this }, this.rowSelected);
 
-            $(document).on('click', 'button', { self: this }, this.submitForm);
-
             // We catch all form submit events
             $(document).on('submit', 'form', { self: this }, this.submitForm);
 
             // We support an 'autosubmit' class on dropdown form elements
             $(document).on('change', 'form select.autosubmit', { self: this }, this.autoSubmitForm);
             $(document).on('change', 'form input.autosubmit', { self: this }, this.autoSubmitForm);
+
+            // Automatically check a radio button once a specific input is focused
+            $(document).on('focus', 'form select[data-related-radiobtn]', { self: this }, this.autoCheckRadioButton);
+            $(document).on('focus', 'form input[data-related-radiobtn]', { self: this }, this.autoCheckRadioButton);
 
             $(document).on('keyup', '#menu input.search', {self: this}, this.autoSubmitSearch);
 
@@ -166,6 +165,15 @@
         onContainerScroll: function (event) {
             // Ugly. And PLEASE, not so often
             icinga.ui.fixControls();
+        },
+
+        autoCheckRadioButton: function (event) {
+            var $input = $(event.currentTarget);
+            var $radio = $('#' + $input.attr('data-related-radiobtn'));
+            if ($radio.length) {
+                $radio.prop('checked', true);
+            }
+            return true;
         },
 
         autoSubmitSearch: function(event) {
@@ -231,9 +239,23 @@
             event.stopPropagation();
             event.preventDefault();
 
-            icinga.logger.debug('Submitting form: ' + method + ' ' + url, method);
+            if ($button.length) {
+                // Activate spinner
+                if ($button.hasClass('spinner')) {
+                    $button.addClass('active');
+                }
 
-            $target = self.getLinkTargetFor($form);
+                $target = self.getLinkTargetFor($button);
+            } else {
+                $target = self.getLinkTargetFor($form);
+            }
+
+            if (! url) {
+                // Use the URL of the target container if the form's action is not set
+                url = $target.closest('.container').data('icinga-url');
+            }
+
+            icinga.logger.debug('Submitting form: ' + method + ' ' + url, method);
 
             if (method === 'GET') {
                 var dataObj = $form.serializeObject();
@@ -257,6 +279,7 @@
                     }
                 }
             }
+
             icinga.loader.loadUrl(url, $target, data, method);
 
             return false;
@@ -339,6 +362,20 @@
             return false;
         },
 
+        /**
+         * Handle anchor, i.e. focus the element which is referenced by the anchor
+         *
+         * @param {string} query jQuery selector
+         */
+        handleAnchor: function(query) {
+            var $element = $(query);
+            if ($element.length > 0) {
+                if (typeof $element.attr('tabindex') === 'undefined') {
+                    $element.attr('tabindex', -1);
+                }
+                $element.focus();
+            }
+        },
 
         /**
          * Someone clicked a link or tr[href]
@@ -347,6 +384,7 @@
             var self   = event.data.self;
             var icinga = self.icinga;
             var $a = $(this);
+            var $eventTarget = $(event.target);
             var href = $a.attr('href');
             var linkTarget = $a.attr('target');
             var $target;
@@ -383,11 +421,18 @@
                 return false;
             }
 
-            // Ignore form elements in action rows
-            if ($(event.target).is('input') || $(event.target).is('button')) {
-                return;
+            if (! $eventTarget.is($a)) {
+                if ($eventTarget.is('input') || $eventTarget.is('button')) {
+                    // Ignore form elements in action rows
+                    return;
+                } else {
+                    var $button = $('input[type=submit]:focus').add('button[type=submit]:focus');
+                    if ($button.length > 0 && $.contains($button[0], $eventTarget[0])) {
+                        // Ignore any descendant of form elements
+                        return;
+                    }
+                }
             }
-
 
             // ignore multiselect table row clicks
             if ($a.is('tr') && $a.closest('table.multiselect').length > 0) {
@@ -397,6 +442,18 @@
             // Handle all other links as XHR requests
             event.stopPropagation();
             event.preventDefault();
+
+            // This is an anchor only
+            if (href.substr(0, 1) === '#' && href.length > 1
+                && href.substr(1, 1) !== '!') {
+                self.handleAnchor(href);
+                return;
+            }
+
+            // activate spinner indicator
+            if ($a.hasClass('spinner')) {
+                $a.addClass('active');
+            }
 
             // If link has hash tag...
             if (href.match(/#/)) {
@@ -495,14 +552,6 @@
             return $target;
         },
 
-    /*
-        hrefIsHashtag: function(href) {
-            // WARNING: IE gives full URL :(
-            // Also it doesn't support negativ indexes in substr
-            return href.substr(href.length - 1, 1) == '#';
-        },
-    */
-
         unbindGlobalHandlers: function () {
             $.each(self.icinga.behaviors, function (name, behavior) {
                 behavior.unbind($(document));
@@ -516,8 +565,10 @@
             $(document).off('click', 'table.action tr[href]', this.rowSelected);
             $(document).off('click', 'table.action tr a', this.rowSelected);
             $(document).off('submit', 'form', this.submitForm);
-            $(document).off('click', 'button', this.submitForm);
             $(document).off('change', 'form select.autosubmit', this.submitForm);
+            $(document).off('change', 'form input.autosubmit', this.submitForm);
+            $(document).off('focus', 'form select[data-related-radiobtn]', this.autoCheckRadioButton);
+            $(document).off('focus', 'form input[data-related-radiobtn]', this.autoCheckRadioButton);
         },
 
         destroy: function() {

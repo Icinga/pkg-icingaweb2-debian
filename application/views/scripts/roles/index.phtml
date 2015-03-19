@@ -1,6 +1,5 @@
 <div class="controls" data-base-target="_main">
     <?= $tabs ?>
-    <h1><?= $this->translate('Roles') ?></h1>
 </div>
 <div class="content">
     <div>
@@ -21,10 +20,12 @@
                 <?php foreach ($roles as $name => $role): /** @var object $role */ ?>
                     <tr>
                         <td>
-                            <?= $this->escape($name) ?>
-                            <div class="hidden">
-                                <a href="<?= $this->url('roles/update', array('role' => $name)) ?>"></a>
-                            </div>
+                            <?= $this->qlink(
+                                $name,
+                                'roles/update',
+                                array('role' => $name),
+                                array('title' => sprintf($this->translate('Edit role %s'), $name))
+                            ); ?>
                         </td>
 <!--                        <td>--><?//= $this->escape($role->permissions, 0, 50) ?><!--</td>-->
 <!--                        <td>-->
@@ -51,13 +52,15 @@
                         <td><?= $this->escape($role->users) ?></td>
                         <td><?= $this->escape($role->groups) ?></td>
                         <td>
-                            <a href="<?= $this->url('roles/remove', array('role' => $name)) ?>"
-                               title="<?= sprintf(
-                                   $this->translate('Remove role %s'),
-                                   $name
-                               ) ?>">
-                                <?= $this->icon('cancel') ?>
-                            </a>
+                            <?= $this->qlink(
+                                '',
+                                'roles/remove',
+                                array('role' => $name),
+                                array(
+                                    'icon'  => 'trash',
+                                    'title' => sprintf($this->translate('Remove role %s'), $name)
+                                )
+                            ); ?>
                         </td>
                     </tr>
                 <?php endforeach ?>
@@ -65,7 +68,7 @@
             </table>
         <?php endif ?>
         <a data-base-target="_next" href="<?= $this->href('roles/new') ?>">
-            <?= $this->translate('New Role') ?>
+            <?= $this->translate('Create a New Role') ?>
         </a>
     </div>
 </div>

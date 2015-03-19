@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Forms\Command\Object;
 
@@ -18,7 +18,10 @@ class ToggleObjectFeaturesCommandForm extends ObjectsCommandForm
      */
     public function init()
     {
+        $this->setUseFormAutosubmit();
+        $this->setTitle('Feature Commands');
         $this->setAttrib('class', 'inline object-features');
+        $this->loadDefaultDecorators()->getDecorator('description')->setTag('h4');
     }
 
     /**

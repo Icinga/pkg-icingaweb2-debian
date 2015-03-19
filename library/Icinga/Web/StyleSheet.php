@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web;
 
@@ -13,6 +13,7 @@ class StyleSheet
         '../application/fonts/fontello-ifont/css/ifont-embedded.css',
         'css/vendor/tipsy.css',
         'css/icinga/defaults.less',
+        'css/icinga/animation.less',
         'css/icinga/layout-colors.less',
         'css/icinga/layout-structure.less',
         'css/icinga/menu.less',

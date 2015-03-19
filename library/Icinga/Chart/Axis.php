@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Chart;
 
@@ -16,7 +16,7 @@ use Icinga\Chart\Unit\LinearUnit;
 /**
  * Axis class for the GridChart class.
  *
- * Implements drawing functions for the axis and it's labels but delegates tick and label calculations
+ * Implements drawing functions for the axis and its labels but delegates tick and label calculations
  * to the AxisUnit implementations
  *
  * @see GridChart

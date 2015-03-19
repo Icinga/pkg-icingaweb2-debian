@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Backend\Ido\Query;
 
@@ -290,7 +290,12 @@ abstract class IdoQuery extends DbQuery
                 && strpos($filter->getColumn(), 'LOWER') !== 0
             ) {
                 $filter->setColumn('LOWER(' . $filter->getColumn() . ')');
-                $filter->setExpression(strtolower($filter->getExpression()));
+                $expression = $filter->getExpression();
+                if (is_array($expression)) {
+                    $filter->setExpression(array_map('strtolower', $expression));
+                } else {
+                    $filter->setExpression(strtolower($expression));
+                }
             }
         } else {
             foreach ($filter->filters() as $chainedFilter) {

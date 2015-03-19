@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Setup\Steps;
 
@@ -126,11 +126,15 @@ class AuthenticationStep extends Step
             . '</tr>'
             . ($authType === 'ldap' ? (
                 '<tr>'
-                . '<td><strong>' . t('User Object Class') . '</strong></td>'
+                . '<td><strong>' . mt('setup', 'User Object Class') . '</strong></td>'
                 . '<td>' . $this->data['backendConfig']['user_class'] . '</td>'
                 . '</tr>'
                 . '<tr>'
-                . '<td><strong>' . t('User Name Attribute') . '</strong></td>'
+                . '<td><strong>' . mt('setup', 'Custom Filter') . '</strong></td>'
+                . '<td>' . trim($this->data['backendConfig']['filter']) ?: t('None', 'auth.ldap.filter') . '</td>'
+                . '</tr>'
+                . '<tr>'
+                . '<td><strong>' . mt('setup', 'User Name Attribute') . '</strong></td>'
                 . '<td>' . $this->data['backendConfig']['user_name_attribute'] . '</td>'
                 . '</tr>'
             ) : ($authType === 'external' ? (

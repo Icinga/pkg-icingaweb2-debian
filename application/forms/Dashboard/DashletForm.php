@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Forms\Dashboard;
 
@@ -116,9 +116,9 @@ class DashletForm extends Form
             'checkbox',
             'create_new_pane',
             array(
+                'autosubmit'    => true,
                 'required'      => false,
                 'label'         => $this->translate('New dashboard'),
-                'class'         => 'autosubmit',
                 'description'   => $this->translate('Check this box if you want to add the dashlet to a new dashboard')
             )
         );

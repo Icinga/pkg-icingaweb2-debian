@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web\Widget;
 
@@ -310,8 +310,8 @@ class FilterEditor extends AbstractWidget
             $this->preservedUrl()->with('removeFilter', $filter->getId()),
             null,
             array(
-                'title' => t('Click to remove this part of your filter'),
-                'class' => 'icon-cancel'
+                'icon'  => 'trash',
+                'title' => t('Remove this part of your filter')
             )
         );
     }
@@ -323,8 +323,8 @@ class FilterEditor extends AbstractWidget
             $this->preservedUrl()->with('addFilter', $filter->getId()),
             null,
             array(
-                'title' => t('Click to add another filter'),
-                'class' => 'icon-plus'
+                'icon'  => 'plus',
+                'title' => t('Add another filter')
             )
         );
     }
@@ -336,8 +336,8 @@ class FilterEditor extends AbstractWidget
             $this->preservedUrl()->with('stripFilter', $filter->getId()),
             null,
             array(
-                'title' => t('Strip this filter'),
-                'class' => 'icon-minus'
+                'icon'  => 'minus',
+                'title' => t('Strip this filter')
             )
         );
     }
@@ -349,8 +349,8 @@ class FilterEditor extends AbstractWidget
             $this->preservedUrl()->without('addFilter'),
             null,
             array(
-                'title' => t('Cancel this operation'),
-                'class' => 'icon-cancel'
+                'icon'  => 'cancel',
+                'title' => t('Cancel this operation')
             )
         );
     }
@@ -666,10 +666,12 @@ class FilterEditor extends AbstractWidget
         return $html
             . '<a href="'
             . $this->preservedUrl()->with('modifyFilter', true)
+            . '" aria-label="'
+            . $title
             . '" title="'
             . $title
             . '">'
-            . '<i class="icon-filter"></i>'
+            . '<i aria-hidden="true" class="icon-filter"></i>'
             . '</a>';
     }
 

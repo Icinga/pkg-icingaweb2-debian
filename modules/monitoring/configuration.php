@@ -1,7 +1,7 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
-/** @type $this \Icinga\Application\Modules\Module */
+/** @var $this \Icinga\Application\Modules\Module */
 
 $this->providePermission(
     'monitoring/command/*',
@@ -55,6 +55,10 @@ $this->providePermission(
     'monitoring/command/feature/object',
     $this->translate('Allow processing commands for toggling features on host and service objects')
 );
+$this->providePermission(
+    'monitoring/command/send-custom-notification',
+    $this->translate('Allow sending custom notifications for hosts and services')
+);
 
 $this->provideRestriction(
     'monitoring/hosts/filter',
@@ -67,11 +71,13 @@ $this->provideRestriction(
 );
 
 $this->provideConfigTab('backends', array(
-    'title' => 'Backends',
+    'title' => $this->translate('Configure how to retrieve monitoring information'),
+    'label' => $this->translate('Backends'),
     'url' => 'config'
 ));
 $this->provideConfigTab('security', array(
-    'title' => 'Security',
+    'title' => $this->translate('Configure how to protect your monitoring environment against prying eyes'),
+    'label' => $this->translate('Security'),
     'url' => 'config/security'
 ));
 $this->provideSetupWizard('Icinga\Module\Monitoring\MonitoringWizard');
@@ -79,10 +85,10 @@ $this->provideSetupWizard('Icinga\Module\Monitoring\MonitoringWizard');
 /*
  * Available Search Urls
  */
-$this->provideSearchUrl($this->translate('Hosts'), 'monitoring/list/hosts?sort=host_severity&limit=10');
-$this->provideSearchUrl($this->translate('Services'), 'monitoring/list/services?sort=service_severity&limit=10');
-$this->provideSearchUrl($this->translate('Hostgroups'), 'monitoring/list/hostgroups?limit=10');
-$this->provideSearchUrl($this->translate('Servicegroups'), 'monitoring/list/servicegroups?limit=10');
+$this->provideSearchUrl($this->translate('Hosts'), 'monitoring/list/hosts?sort=host_severity&limit=10', 99);
+$this->provideSearchUrl($this->translate('Services'), 'monitoring/list/services?sort=service_severity&limit=10', 98);
+$this->provideSearchUrl($this->translate('Hostgroups'), 'monitoring/list/hostgroups?limit=10', 97);
+$this->provideSearchUrl($this->translate('Servicegroups'), 'monitoring/list/servicegroups?limit=10', 96);
 
 /*
  * Problems Section

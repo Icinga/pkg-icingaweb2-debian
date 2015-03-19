@@ -1,10 +1,11 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web\Form\Validator;
 
 use DateTime;
 use Zend_Validate_Abstract;
+use Icinga\Util\DateTimeFactory;
 
 /**
  * Validator for date-and-time input controls
@@ -13,6 +14,21 @@ use Zend_Validate_Abstract;
  */
 class DateTimeValidator extends Zend_Validate_Abstract
 {
+    const INVALID_DATETIME_TYPE = 'invalidDateTimeType';
+    const INVALID_DATETIME_FORMAT = 'invalidDateTimeFormat';
+
+    /**
+     * The messages to write on differen error states
+     *
+     * @var array
+     *
+     * @see Zend_Validate_Abstract::$_messageTemplates‚
+     */
+    protected $_messageTemplates = array(
+        self::INVALID_DATETIME_TYPE     => 'Invalid type given. Instance of DateTime or date/time string expected',
+        self::INVALID_DATETIME_FORMAT   => 'Date/time string not in the expected format: %value%'
+    );
+
     protected $local;
 
     /**
@@ -38,17 +54,25 @@ class DateTimeValidator extends Zend_Validate_Abstract
     public function isValid($value, $context = null)
     {
         if (! $value instanceof DateTime && ! is_string($value)) {
-            $this->_error(t('Invalid type given. Instance of DateTime or date/time string expected'));
+            $this->_error(self::INVALID_DATETIME_TYPE);
             return false;
         }
-        if (is_string($value)) {
-            $format = $this->local === true ? 'Y-m-d\TH:i:s' : DateTime::RFC3339;
+
+        if (! $value instanceof DateTime) {
+            $format = $baseFormat = $this->local === true ? 'Y-m-d\TH:i:s' : DateTime::RFC3339;
             $dateTime = DateTime::createFromFormat($format, $value);
+
+            if ($dateTime === false) {
+                $format = substr($format, 0, strrpos($format, ':'));
+                $dateTime = DateTime::createFromFormat($format, $value);
+            }
+
             if ($dateTime === false || $dateTime->format($format) !== $value) {
-                $this->_error(sprintf(t('Date/time string not in the expected format %s'), $format));
+                $this->_error(self::INVALID_DATETIME_FORMAT, DateTimeFactory::create()->format($baseFormat));
                 return false;
             }
         }
+
         return true;
     }
 }

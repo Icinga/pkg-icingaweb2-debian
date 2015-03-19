@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 use Icinga\Module\Monitoring\Controller;
 use Icinga\Web\Url;
@@ -23,7 +23,7 @@ class ListController extends Controller
     protected function addTitleTab($action)
     {
         $this->getTabs()->add($action, array(
-            'title' => ucfirst($action),
+            'label' => ucfirst($action),
             'url' => Url::fromPath(
                     'list/'
                     . str_replace(' ', '', $action)

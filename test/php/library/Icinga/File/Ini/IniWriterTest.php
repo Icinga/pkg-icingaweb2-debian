@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Tests\Icinga\Config;
 
@@ -726,7 +726,7 @@ EOD;
     }
 
     /**
-     * Write a INI-configuration string to a temporary file and return it's path
+     * Write a INI-configuration string to a temporary file and return its path
      *
      * @param   string      $config     The config string to write
      *

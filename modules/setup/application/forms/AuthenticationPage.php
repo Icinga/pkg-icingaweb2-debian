@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Setup\Forms;
 
@@ -16,7 +16,13 @@ class AuthenticationPage extends Form
      */
     public function init()
     {
+        $this->setRequiredCue(null);
         $this->setName('setup_authentication_type');
+        $this->setTitle($this->translate('Authentication', 'setup.page.title'));
+        $this->addDescription($this->translate(
+            'Please choose how you want to authenticate when accessing Icinga Web 2.'
+            . ' Configuring backend specific details follows in a later step.'
+        ));
     }
 
     /**
@@ -24,49 +30,13 @@ class AuthenticationPage extends Form
      */
     public function createElements(array $formData)
     {
-        $this->addElement(
-            'note',
-            'title',
-            array(
-                'value'         => $this->translate('Authentication', 'setup.page.title'),
-                'decorators'    => array(
-                    'ViewHelper',
-                    array('HtmlTag', array('tag' => 'h2'))
-                )
-            )
-        );
-
         if (isset($formData['type']) && $formData['type'] === 'external' && !isset($_SERVER['REMOTE_USER'])) {
-            $this->addElement(
-                'note',
-                'external_note',
-                array(
-                    'value'         => $this->translate(
-                        'You\'re currently not authenticated using any of the web server\'s authentication '
-                        . 'mechanisms. Make sure you\'ll configure such, otherwise you\'ll not be able to '
-                        . 'log into Icinga Web 2.'
-                    ),
-                    'decorators'    => array(
-                        'ViewHelper',
-                        array(
-                            'HtmlTag',
-                            array('tag' => 'p', 'class' => 'icon-info info-box')
-                        )
-                    )
-                )
-            );
+            $this->addDescription($this->translate(
+                'You\'re currently not authenticated using any of the web server\'s authentication '
+                . 'mechanisms. Make sure you\'ll configure such, otherwise you\'ll not be able to '
+                . 'log into Icinga Web 2.'
+            ));
         }
-
-        $this->addElement(
-            'note',
-            'description',
-            array(
-                'value' => $this->translate(
-                    'Please choose how you want to authenticate when accessing Icinga Web 2.'
-                    . ' Configuring backend specific details follows in a later step.'
-                )
-            )
-        );
 
         $backendTypes = array();
         if (Platform::hasMysqlSupport() || Platform::hasPostgresqlSupport()) {

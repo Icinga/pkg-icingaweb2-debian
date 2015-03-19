@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Tests\Icinga\Forms\Config\Authentication;
 
@@ -31,7 +31,10 @@ class DbBackendFormTest extends BaseTestCase
             ->shouldReceive('count')
             ->andReturn(2);
 
-        $form = new DbBackendForm();
+        $form = Mockery::mock('Icinga\Forms\Config\Authentication\DbBackendForm[getView]');
+        $form->shouldReceive('getView->escape')
+            ->with(Mockery::type('string'))
+            ->andReturnUsing(function ($s) { return $s; });
         $form->setTokenDisabled();
         $form->setResources(array('test_db_backend'));
         $form->populate(array('resource' => 'test_db_backend'));
@@ -53,7 +56,10 @@ class DbBackendFormTest extends BaseTestCase
             ->shouldReceive('count')
             ->andReturn(0);
 
-        $form = new DbBackendForm();
+        $form = Mockery::mock('Icinga\Forms\Config\Authentication\DbBackendForm[getView]');
+        $form->shouldReceive('getView->escape')
+            ->with(Mockery::type('string'))
+            ->andReturnUsing(function ($s) { return $s; });
         $form->setTokenDisabled();
         $form->setResources(array('test_db_backend'));
         $form->populate(array('resource' => 'test_db_backend'));

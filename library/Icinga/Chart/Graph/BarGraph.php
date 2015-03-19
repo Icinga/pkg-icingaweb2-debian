@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Chart\Graph;
 
@@ -65,7 +65,13 @@ class BarGraph extends Styleable implements Drawable
     ) {
         $this->order = $order;
         $this->dataSet = $dataSet;
+
         $this->tooltips = $tooltips;
+        foreach ($this->tooltips as $value) {
+            $ts[] = $value;
+        }
+        $this->tooltips = $ts;
+
         $this->graphs = $graphs;
     }
 

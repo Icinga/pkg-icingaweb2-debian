@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Authentication;
 
@@ -93,16 +93,17 @@ abstract class UserBackend implements Countable
                 break;
             case 'msldap':
                 $groupOptions = array(
-                    'group_base_dn'             => $backendConfig->group_base_dn,
-                    'group_attribute'           => $backendConfig->group_attribute,
-                    'group_member_attribute'    => $backendConfig->group_member_attribute,
-                    'group_class'               => $backendConfig->group_class
+                    'group_base_dn'             => $backendConfig->get('group_base_dn', $resource->getDN()),
+                    'group_attribute'           => $backendConfig->get('group_attribute', 'sAMAccountName'),
+                    'group_member_attribute'    => $backendConfig->get('group_member_attribute', 'member'),
+                    'group_class'               => $backendConfig->get('group_class', 'group')
                 );
                 $backend = new LdapUserBackend(
                     $resource,
                     $backendConfig->get('user_class', 'user'),
                     $backendConfig->get('user_name_attribute', 'sAMAccountName'),
                     $backendConfig->get('base_dn', $resource->getDN()),
+                    $backendConfig->get('filter'),
                     $groupOptions
                 );
                 break;
@@ -130,6 +131,7 @@ abstract class UserBackend implements Countable
                     $backendConfig->user_class,
                     $backendConfig->user_name_attribute,
                     $backendConfig->get('base_dn', $resource->getDN()),
+                    $backendConfig->get('filter'),
                     $groupOptions
                 );
                 break;

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Forms\Command\Object;
 
@@ -7,7 +7,6 @@ use Icinga\Module\Monitoring\Command\Object\PropagateHostDowntimeCommand;
 use Icinga\Module\Monitoring\Command\Object\ScheduleHostDowntimeCommand;
 use Icinga\Module\Monitoring\Command\Object\ScheduleServiceDowntimeCommand;
 use Icinga\Web\Notification;
-use Icinga\Web\Request;
 
 /**
  * Form for scheduling host downtimes
@@ -83,8 +82,7 @@ class ScheduleHostDowntimeCommandForm extends ScheduleServiceDowntimeCommandForm
             $hostDowntime->setObject($object);
             $this->scheduleDowntime($hostDowntime, $this->request);
         }
-        Notification::success(mtp(
-            'monitoring',
+        Notification::success($this->translatePlural(
             'Scheduling host downtime..',
             'Scheduling host downtimes..',
             count($this->objects)

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Forms\Config;
 
@@ -17,7 +17,7 @@ class BackendConfigForm extends ConfigForm
     /**
      * The available monitoring backend resources split by type
      *
-     * @type array
+     * @var array
      */
     protected $resources;
 
@@ -43,8 +43,11 @@ class BackendConfigForm extends ConfigForm
     {
         $resources = array();
         foreach ($resourceConfig as $name => $resource) {
-            if ($resource->type === 'db' || $resource->type === 'livestatus') {
-                $resources[$resource->type === 'db' ? 'ido' : 'livestatus'][$name] = $name;
+//            if ($resource->type === 'db' || $resource->type === 'livestatus') {
+//                $resources[$resource->type === 'db' ? 'ido' : 'livestatus'][$name] = $name;
+//            }
+            if ($resource->type === 'db') {
+                $resources['ido'][$name] = $name;
             }
         }
 
@@ -183,13 +186,19 @@ class BackendConfigForm extends ConfigForm
     {
         $resourceType = isset($formData['type']) ? $formData['type'] : key($this->resources);
 
+        if ($resourceType === 'livestatus') {
+            throw new ConfigurationError(
+                'We\'ve disabled livestatus support for now because it\'s not feature complete yet'
+            );
+        }
+
         $resourceTypes = array();
         if ($resourceType === 'ido' || array_key_exists('ido', $this->resources)) {
             $resourceTypes['ido'] = 'IDO Backend';
         }
-        if ($resourceType === 'livestatus' || array_key_exists('livestatus', $this->resources)) {
-            $resourceTypes['livestatus'] = 'Livestatus';
-        }
+//        if ($resourceType === 'livestatus' || array_key_exists('livestatus', $this->resources)) {
+//            $resourceTypes['livestatus'] = 'Livestatus';
+//        }
 
         $this->addElement(
             'checkbox',
@@ -221,7 +230,9 @@ class BackendConfigForm extends ConfigForm
             )
         );
 
-        $resourceElement = $this->createElement(
+        $decorators = static::$defaultElementDecorators;
+        array_pop($decorators); // Removes the HtmlTag decorator
+        $this->addElement(
             'select',
             'resource',
             array(
@@ -229,32 +240,35 @@ class BackendConfigForm extends ConfigForm
                 'label'         => $this->translate('Resource'),
                 'description'   => $this->translate('The resource to use'),
                 'multiOptions'  => $this->resources[$resourceType],
+                'value'         => current($this->resources[$resourceType]),
+                'decorators'    => $decorators,
                 'autosubmit'    => true
             )
         );
-
-        if (empty($formData)) {
-            $options = $resourceElement->options;
-            $resourceName = array_shift($options);
-        } else {
-            $resourceName = (isset($formData['resource'])) ? $formData['resource'] : $this->getValue('resource');
-        }
-
-        $this->addElement($resourceElement);
-
-        if ($resourceElement) {
-            $this->addElement(
-                'note',
-                'resource_note',
-                array(
-                    'value' => sprintf(
-                        '<a href="%s" data-base-target="_main">%s</a>',
-                        $this->getView()->url('config/editresource', array('resource' => $resourceName)),
-                        $this->translate('Show resource configuration')
-                    ),
-                    'escape' => false
+        $resourceName = isset($formData['resource']) ? $formData['resource'] : $this->getValue('resource');
+        $this->addElement(
+            'note',
+            'resource_note',
+            array(
+                'escape'        => false,
+                'decorators'    => $decorators,
+                'value'         => sprintf(
+                    '<a href="%1$s" data-base-target="_next" title="%2$s" aria-label="%2$s">%3$s</a>',
+                    $this->getView()->url('config/editresource', array('resource' => $resourceName)),
+                    sprintf($this->translate('Show the configuration of the %s resource'), $resourceName),
+                    $this->translate('Show resource configuration')
                 )
-            );
-        }
+            )
+        );
+        $this->addDisplayGroup(
+            array('resource', 'resource_note'),
+            'resource-group',
+            array(
+                'decorators'    => array(
+                    'FormElements',
+                    array('HtmlTag', array('tag' => 'div', 'class' => 'element'))
+                )
+            )
+        );
     }
 }

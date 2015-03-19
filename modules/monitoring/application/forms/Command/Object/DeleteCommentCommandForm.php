@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Forms\Command\Object;
 
@@ -17,7 +17,7 @@ class DeleteCommentCommandForm extends ObjectsCommandForm
      */
     public function init()
     {
-        $this->setAttrib('class', 'inline link-like');
+        $this->setAttrib('class', 'inline');
     }
 
     /**
@@ -31,12 +31,16 @@ class DeleteCommentCommandForm extends ObjectsCommandForm
                 'hidden',
                 'comment_id',
                 array(
-                    'required' => true
+                    'required'      => true,
+                    'decorators'    => array('ViewHelper')
                 )
             ),
             array(
                 'hidden',
-                'redirect'
+                'redirect',
+                array(
+                    'decorators' => array('ViewHelper')
+                )
             )
         ));
         return $this;
@@ -49,12 +53,15 @@ class DeleteCommentCommandForm extends ObjectsCommandForm
     public function addSubmitButton()
     {
         $this->addElement(
-            'submit',
+            'button',
             'btn_submit',
             array(
                 'ignore'        => true,
-                'label'         => 'X',
-                'title'         => $this->translate('Delete comment'),
+                'escape'        => false,
+                'type'          => 'submit',
+                'class'         => 'link-like',
+                'label'         => $this->getView()->icon('trash'),
+                'title'         => $this->translate('Delete this comment'),
                 'decorators'    => array('ViewHelper')
             )
         );

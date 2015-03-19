@@ -2,10 +2,10 @@
   <?= $tabs; ?>
 </div>
 <div class="content" data-base-target="_next">
-  <p>
-    <a href="<?= $this->href('/config/createAuthenticationBackend'); ?>">
-      <?= $this->icon('plus'); ?><?= $this->translate('Create A New Authentication Backend'); ?>
-    </a>
-  </p>
-  <?= $form; ?>
+  <a href="<?= $this->href('/config/createAuthenticationBackend'); ?>">
+    <?= $this->icon('plus'); ?><?= $this->translate('Create A New Authentication Backend'); ?>
+  </a>
+  <div id="authentication-reorder-form">
+    <?= $form; ?>
+  </div>
 </div>

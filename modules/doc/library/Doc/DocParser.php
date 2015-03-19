@@ -1,9 +1,11 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Doc;
 
-use SplDoublyLinkedList;
+use LogicException;
+use SplStack;
+use Icinga\Data\Tree\SimpleTree;
 use Icinga\Exception\NotReadableError;
 use Icinga\Module\Doc\Exception\DocEmptyException;
 use Icinga\Module\Doc\Exception\DocException;
@@ -121,16 +123,15 @@ class DocParser
     /**
      * Get the documentation tree
      *
-     * @return DocTree
+     * @return SimpleTree
      */
     public function getDocTree()
     {
-        $tree = new DocTree();
-        $stack = new SplDoublyLinkedList();
+        $tree = new SimpleTree();
+        $stack = new SplStack();
         foreach ($this->docIterator as $fileInfo) {
-            /* @var $file \SplFileInfo */
+            /** @var $fileInfo \SplFileInfo */
             $file = $fileInfo->openFile();
-            /* @var $file \SplFileObject */
             $lastLine = null;
             foreach ($file as $line) {
                 $header = $this->extractHeader($line, $lastLine);
@@ -142,7 +143,7 @@ class DocParser
                     if ($id === null) {
                         $path = array();
                         foreach ($stack as $section) {
-                            /* @var $section Section */
+                            /** @var $section DocSection */
                             $path[] = $section->getTitle();
                         }
                         $path[] = $title;
@@ -151,17 +152,27 @@ class DocParser
                     } else {
                         $noFollow = false;
                     }
+                    if ($tree->getNode($id) !== null) {
+                        $id = uniqid($id);
+                    }
+                    $section = new DocSection();
+                    $section
+                        ->setId($id)
+                        ->setTitle($title)
+                        ->setLevel($level)
+                        ->setNoFollow($noFollow);
                     if ($stack->isEmpty()) {
-                        $chapterId = $id;
-                        $section = new Section($id, $title, $level, $noFollow, $chapterId);
-                        $tree->addRoot($section);
+                        $section->setChapter($section);
+                        $tree->addChild($section);
                     } else {
-                        $chapterId = $stack->bottom()->getId();
-                        $section = new Section($id, $title, $level, $noFollow, $chapterId);
+                        $section->setChapter($stack->bottom());
                         $tree->addChild($section, $stack->top());
                     }
                     $stack->push($section);
                 } else {
+                    if ($stack->isEmpty()) {
+                        throw new LogicException('Heading required');
+                    }
                     $stack->top()->appendContent($line);
                 }
                 // Save last line for setext-style headers

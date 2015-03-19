@@ -1,4 +1,4 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 (function(Icinga, $) {
 
@@ -14,7 +14,7 @@
         this.on('click', '#menu tr[href]', this.linkClicked, this);
         this.on('mouseenter', 'li.dropdown', this.dropdownHover, this);
         this.on('mouseleave', 'li.dropdown', this.dropdownLeave, this);
-        this.on('mouseenter', '#menu > ul > li', this.menuTitleHovered, this);
+        this.on('mouseenter', '#menu > nav > ul > li', this.menuTitleHovered, this);
         this.on('mouseleave', '#sidebar', this.leaveSidebar, this);
         this.on('rendered', this.onRendered);
     };

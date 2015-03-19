@@ -4,15 +4,18 @@ if (! empty($object->contacts)) {
 
     $list = array();
     foreach ($object->contacts as $contact) {
-        $list[] = $this->qlink($contact->contact_alias, 'monitoring/show/contact', array(
-            'contact' => $contact->contact_name
-        ));
+        $list[] = $this->qlink(
+            $contact->contact_alias,
+            'monitoring/show/contact',
+            array('contact' => $contact->contact_name),
+            array('title' => sprintf($this->translate('Show detailed information about %s'), $contact->contact_alias))
+        );
     }
 
     printf(
         "<tr><th>%s</th><td>%s %s</td></tr>\n",
         $this->translate('Contacts'),
-	$this->icon('user'),
+        $this->icon('user'),
         implode(', ', $list)
     );
 
@@ -24,14 +27,15 @@ if (! empty($object->contactgroups)) {
         $list[] = $this->qlink(
             $contactgroup->contactgroup_alias,
             'monitoring/list/contactgroups',
-            array('contactgroup' => $contactgroup->contactgroup_name)
+            array('contactgroup' => $contactgroup->contactgroup_name),
+            array('title' => sprintf($this->translate('List contacts in contact-group "%s"'), $contactgroup->contactgroup_alias))
         );
     }
 
     printf(
         "<tr><th>%s</th><td>%s %s</td></tr>\n",
         $this->translate('Contactgroups'),
-	$this->icon('users'),
+        $this->icon('users'),
         implode(', ', $list)
     );
 

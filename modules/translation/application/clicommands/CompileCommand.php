@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Translation\Clicommands;
 
@@ -15,7 +15,7 @@ use Icinga\Module\Translation\Util\GettextTranslationHelper;
  * Domains are the global one 'icinga' and all available and enabled modules
  * identified by their name.
  *
- * Once a PO-file is compiled it's content is used by Icinga Web 2 to display
+ * Once a PO-file is compiled its content is used by Icinga Web 2 to display
  * messages in the configured language.
  */
 class CompileCommand extends TranslationCommand

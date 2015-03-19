@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\DataView;
 
@@ -242,6 +242,7 @@ abstract class DataView implements Browsable, Countable, Filterable, Sortable
         $order = (strtoupper($order) === static::SORT_ASC) ? 'ASC' : 'DESC';
 
         foreach ($sortColumns['columns'] as $column) {
+            list($column, $direction) = $this->query->splitOrder($column);
             if (! $this->isValidFilterTarget($column)) {
                 throw new QueryException(
                     mt('monitoring', 'The sort column "%s" is not allowed in "%s".'),
@@ -249,7 +250,7 @@ abstract class DataView implements Browsable, Countable, Filterable, Sortable
                     get_class($this)
                 );
             }
-            $this->query->order($column, $order);
+            $this->query->order($column, $direction !== null ? $direction : $order);
         }
         $this->isSorted = true;
         return $this;
