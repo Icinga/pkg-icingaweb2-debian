@@ -1,4 +1,4 @@
-icingaweb2 (2.0.0~beta3-1~debmon70+1) debmon-wheezy; urgency=medium
+icingaweb2 (2.0.0~beta3-1~debmon80+1) debmon-jessie; urgency=medium
 
   * Rebuild for debmon
 
