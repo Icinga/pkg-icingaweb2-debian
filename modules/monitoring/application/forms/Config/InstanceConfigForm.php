@@ -60,7 +60,7 @@ class InstanceConfigForm extends ConfigForm
      *
      * @param   array   $values             The values to extend the configuration with
      *
-     * @return  self
+     * @return  $this
      *
      * @throws  InvalidArgumentException    In case the resource already exists
      */
@@ -143,6 +143,11 @@ class InstanceConfigForm extends ConfigForm
 
             $instanceConfig = $this->config->getSection($instanceName)->toArray();
             $instanceConfig['name'] = $instanceName;
+
+            if (isset($instanceConfig['resource'])) {
+                $instanceConfig['use_resource'] = true;
+            }
+
             $this->populate($instanceConfig);
         }
     }

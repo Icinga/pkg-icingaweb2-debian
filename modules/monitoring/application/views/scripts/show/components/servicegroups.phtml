@@ -7,15 +7,14 @@ foreach ($object->servicegroups as $name => $alias) {
     $list[] = $this->qlink(
         $alias,
         'monitoring/list/services',
-        array('servicegroup' => $name),
+        array('servicegroup_name' => $name),
         array('title' => sprintf($this->translate('List all services in the group "%s"'), $alias))
     );
 }
 
 printf(
-    "<tr><th>%s</th><td>%s %s</td></tr>\n",
+    "<tr><th>%s</th><td class=\"go-ahead\">%s</td></tr>\n",
     $this->translate('Servicegroups'),
-    $this->icon('services'),
     implode(', ', $list)
 );
 
