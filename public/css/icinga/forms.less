@@ -87,14 +87,13 @@ button::-moz-focus-inner {
   outline: 0;
 }
 
+button {
+  cursor: pointer;
+}
+
 select::-moz-focus-inner {
   border: 0;
   outline: 0;
-}
-
-input:disabled, select:disabled {
-    background-color: #fff;
-    border-color: white;
 }
 
 form.inline {
@@ -165,6 +164,32 @@ form ul.form-errors {
   }
 }
 
+form ul.form-notifications {
+  .non-list-like-list;
+  margin-bottom: 1em;
+  padding: 0em;
+
+  li.info {
+    background: @colorFormNotificationInfo;
+  }
+
+  li.warning {
+    background: @colorFormNotificationWarning;
+  }
+
+  li.error {
+    background: @colorFormNotificationError;
+  }
+
+  li {
+    color: white;
+    font-weight: bold;
+    line-height: 1.5em;
+    padding: 0.5em;
+    margin-bottom: 0.5em;
+  }
+}
+
 form div.element {
   margin: 0.5em 0;
 }
@@ -183,6 +208,13 @@ select, input[type=text], textarea {
 
 textarea {
   height: 4em;
+}
+
+textarea.resource {
+  &.ssh-identity {
+    width: 50%;
+    height: 25em;
+  }
 }
 
 form .description {
@@ -226,11 +258,5 @@ form ul.descriptions {
       margin-left: -1.3em;
       list-style-type: none;
     }
-  }
-}
-
-form > div.header {
-  h1, h2, h3, h4, h5, h6 {
-    display: inline-block;
   }
 }

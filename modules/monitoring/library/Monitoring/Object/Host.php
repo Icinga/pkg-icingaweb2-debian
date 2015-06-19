@@ -7,7 +7,7 @@ use InvalidArgumentException;
 use Icinga\Module\Monitoring\Backend\MonitoringBackend;
 
 /**
- * A Icinga host
+ * An Icinga host
  */
 class Host extends MonitoredObject
 {
@@ -89,6 +89,8 @@ class Host extends MonitoredObject
     protected function getDataView()
     {
         $columns = array(
+            'host_icon_image',
+            'host_icon_image_alt',
             'host_acknowledged',
             'host_action_url',
             'host_active_checks_enabled',
@@ -117,6 +119,7 @@ class Host extends MonitoredObject
             'host_max_check_attempts',
             'host_name',
             'host_next_check',
+            'host_notes',
             'host_notes_url',
             'host_notifications_enabled',
             'host_notifications_enabled_changed',
@@ -134,7 +137,7 @@ class Host extends MonitoredObject
         if ($this->backend->getType() === 'livestatus') {
             $columns[] = 'host_contacts';
         }
-        return $this->backend->select()->from('hostStatus', $columns)
+        return $this->backend->select()->from('hoststatus', $columns)
             ->where('host_name', $this->host);
     }
 
@@ -146,10 +149,10 @@ class Host extends MonitoredObject
     public function fetchServices()
     {
         $services = array();
-        foreach ($this->backend->select()->from('serviceStatus', array('service_description'))
+        foreach ($this->backend->select()->from('servicestatus', array('service_description'))
                 ->where('host_name', $this->host)
-                ->getQuery()
-                ->fetchAll() as $service) {
+                ->applyFilter($this->getFilter())
+                ->getQuery() as $service) {
             $services[] = new Service($this->backend, $this->host, $service->service_description);
         }
         $this->services = $services;
@@ -185,5 +188,17 @@ class Host extends MonitoredObject
                 throw new InvalidArgumentException('Invalid host state \'%s\'', $state);
         }
         return $text;
+    }
+
+    public function getNotesUrls()
+    {
+        return $this->resolveAllStrings(
+            MonitoredObject::parseAttributeUrls($this->host_notes_url)
+        );
+    }
+
+    public function getNotes()
+    {
+        return $this->host_notes;
     }
 }

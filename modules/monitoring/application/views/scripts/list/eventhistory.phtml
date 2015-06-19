@@ -1,92 +1,75 @@
 <?php
-
 use Icinga\Module\Monitoring\Object\Host;
 use Icinga\Module\Monitoring\Object\Service;
 
-?>
-
-<?php if (false === $this->compact): ?>
+if (! $this->compact): ?>
 <div class="controls">
-  <?= $this->tabs ?>
-  <div style="margin: 1em" class="dontprint">
-    <div style="float: right">
-      <?= $this->translate('Sort by') ?> <?= $this->sortControl ?>
-    </div>
-  </div>
-
-  <?= $this->widget('limiter', array('url' => $this->url, 'max' => $this->history->count())); ?>
-  <?= $this->paginationControl($history, null, null, array('preserve' => $this->preserve)); ?>
-
+  <?= $this->tabs; ?>
+  <?= $this->sortBox; ?>
+  <?= $this->limiter; ?>
+  <?= $this->paginator; ?>
+  <?= $this->filterEditor; ?>
 </div>
 <?php endif ?>
-
 <div class="content">
-<?= $this->filterEditor ?>
-<?php if (empty($history)): ?>
-  <?= $this->translate('No history events matching the filter') ?>
-</div>
-<?php return; endif ?>
-
+<?php
+if (count($history) === 0) {
+    echo $this->translate('No history events found matching the filter') . '</div>';
+    return;
+}
+?>
   <table data-base-target="_next" class="action">
     <tbody>
     <?php foreach ($history as $event): ?>
     <?php
       $icon = 'help';
+      $msg = $event->output;
       $title = $event->type;
       $stateName = 'invalid';
-      $isService = isset($event->service);
+      $isService = isset($event->service_description);
       switch ($event->type) {
         case 'notify':
           $icon = 'bell';
           $title = $this->translate('Notification');
-          $msg = $event->output;
+          $msg = $msg ?: $this->translate('This notification was not sent out to any contact.');
           break;
         case 'comment':
           $icon = 'comment';
           $title = $this->translate('Comment');
-          $msg = $event->output;
           break;
         case 'ack':
           $icon = 'ok';
           $title = $this->translate('Acknowledgement');
-          $msg = $event->output;
           break;
         case 'dt_comment':
           $icon = 'plug';
           $title = $this->translate('In Downtime');
-          $msg = $event->output;
           break;
         case 'flapping':
           $icon = 'flapping';
           $title = $this->translate('Flapping');
-          $msg = $event->output;
           break;
         case 'flapping_deleted':
           $icon = 'ok';
           $title = $this->translate('Flapping Stopped');
-          $msg = $event->output;
           break;
         case 'hard_state':
           $icon = $isService ? 'service' : 'host';
-          $msg = '[ ' . $event->attempt . '/' . $event->max_attempts . ' ] ' . $event->output;
           $stateName = $isService ? Service::getStateText($event->state) : Host::getStateText($event->state);
           $title = $isService ? Service::getStateText($event->state, true) : Host::getStateText($event->state, true);
           break;
         case 'soft_state':
           $icon = 'lightbulb';
-          $msg = '[ ' . $event->attempt . '/' . $event->max_attempts . ' ] ' . $event->output;
           $stateName = $isService ? Service::getStateText($event->state) : Host::getStateText($event->state);
           $title = $isService ? Service::getStateText($event->state, true) : Host::getStateText($event->state, true);
           break;
         case 'dt_start':
           $icon = 'starttime';
           $title = $this->translate('Downtime Start');
-          $msg = $event->output;
           break;
         case 'dt_end':
           $icon = 'endtime';
           $title = $this->translate('Downtime End');
-          $msg = $event->output;
           break;
         }
       ?>
@@ -94,15 +77,15 @@ use Icinga\Module\Monitoring\Object\Service;
         <td class="state">
           <strong><?= $this->escape($title); ?></strong>
           <br>
-          <?= date('d.m. H:i', $event->timestamp); ?>
+          <?= $this->timeAgo($event->timestamp, $this->compact); ?>
         </td>
         <td>
         <?php if ($isService): ?>
           <?= $this->link()->service(
-              $event->service, $event->service_display_name, $event->host, $event->host_display_name
+              $event->service_description, $event->service_display_name, $event->host_name, $event->host_display_name
           ) ?>
         <?php else: ?>
-          <?= $this->link()->host($event->host, $event->host_display_name) ?>
+          <?= $this->link()->host($event->host_name, $event->host_display_name) ?>
         <?php endif ?>
           <br>
           <div>

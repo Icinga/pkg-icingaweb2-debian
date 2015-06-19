@@ -3,15 +3,14 @@
 
 namespace Icinga\Data\Db;
 
-use Icinga\Data\SimpleQuery;
-use Icinga\Application\Benchmark;
-use Icinga\Data\Filter\FilterChain;
-use Icinga\Data\Filter\FilterExpression;
-use Icinga\Data\Filter\FilterOr;
-use Icinga\Data\Filter\FilterAnd;
-use Icinga\Data\Filter\FilterNot;
-use Icinga\Exception\IcingaException;
 use Zend_Db_Select;
+use Icinga\Data\Filter\FilterAnd;
+use Icinga\Data\Filter\FilterChain;
+use Icinga\Data\Filter\FilterNot;
+use Icinga\Data\Filter\FilterOr;
+use Icinga\Data\SimpleQuery;
+use Icinga\Exception\ProgrammingError;
+use Icinga\Exception\QueryException;
 
 /**
  * Database query class
@@ -22,6 +21,15 @@ class DbQuery extends SimpleQuery
      * @var Zend_Db_Adapter_Abstract
      */
     protected $db;
+
+    /**
+     * Whether or not the query is a sub query
+     *
+     * Sub queries are automatically wrapped in parentheses
+     *
+     * @var bool
+     */
+    protected $isSubQuery = false;
 
     /**
      * Select query
@@ -68,12 +76,41 @@ class DbQuery extends SimpleQuery
     protected function init()
     {
         $this->db = $this->ds->getDbAdapter();
+        $this->select = $this->db->select();
         parent::init();
+    }
+
+    /**
+     * Get whether or not the query is a sub query
+     */
+    public function getIsSubQuery()
+    {
+        return $this->isSubQuery;
+    }
+
+    /**
+     * Set whether or not the query is a sub query
+     *
+     * @param   bool $isSubQuery
+     *
+     * @return  $this
+     */
+    public function setIsSubQuery($isSubQuery = true)
+    {
+        $this->isSubQuery = (bool) $isSubQuery;
+        return $this;
     }
 
     public function setUseSubqueryCount($useSubqueryCount = true)
     {
         $this->useSubqueryCount = $useSubqueryCount;
+        return $this;
+    }
+
+    public function from($target, array $fields = null)
+    {
+        parent::from($target, $fields);
+        $this->select->from($this->target, array());
         return $this;
     }
 
@@ -85,9 +122,6 @@ class DbQuery extends SimpleQuery
 
     protected function dbSelect()
     {
-        if ($this->select === null) {
-            $this->select = $this->db->select()->from($this->target, array());
-        }
         return clone $this->select;
     }
 
@@ -112,8 +146,9 @@ class DbQuery extends SimpleQuery
             }
         }
 
-        if ($this->group) {
-            $select->group($this->group);
+        $group = $this->getGroup();
+        if ($group) {
+            $select->group($group);
         }
 
         $select->columns($this->columns);
@@ -153,7 +188,7 @@ class DbQuery extends SimpleQuery
                 $op = ' AND ';
                 $str .= ' NOT ';
             } else {
-                throw new IcingaException(
+                throw new QueryException(
                     'Cannot render filter: %s',
                     $filter
                 );
@@ -166,10 +201,12 @@ class DbQuery extends SimpleQuery
                         $parts[] = $filterPart;
                     }
                 }
-                if ($level > 0) {
-                    $str .= ' (' . implode($op, $parts) . ') ';
-                } else {
-                    $str .= implode($op, $parts);
+                if (! empty($parts)) {
+                    if ($level > 0) {
+                        $str .= ' (' . implode($op, $parts) . ') ';
+                    } else {
+                        $str .= implode($op, $parts);
+                    }
                 }
             }
         } else {
@@ -212,7 +249,7 @@ class DbQuery extends SimpleQuery
         if (! $value) {
             /*
             NOTE: It's too late to throw exceptions, we might finish in __toString
-            throw new IcingaException(sprintf(
+            throw new QueryException(sprintf(
                 '"%s" is not a valid time expression',
                 $value
             ));
@@ -250,12 +287,27 @@ class DbQuery extends SimpleQuery
         if ($this->isTimestamp($col)) {
             $expression = $this->valueToTimestamp($expression);
         }
+
         if (is_array($expression) && $sign === '=') {
             // TODO: Should we support this? Doesn't work for blub*
             return $col . ' IN (' . $this->escapeForSql($expression) . ')';
         } elseif ($sign === '=' && strpos($expression, '*') !== false) {
+            if ($expression === '*') {
+                // We'll ignore such filters as it prevents index usage and because "*" means anything, anything means
+                // all whereas all means that whether we use a filter to match anything or no filter at all makes no
+                // difference, except for performance reasons...
+                return '';
+            }
+
             return $col . ' LIKE ' . $this->escapeForSql($this->escapeWildcards($expression));
         } elseif ($sign === '!=' && strpos($expression, '*') !== false) {
+            if ($expression === '*') {
+                // We'll ignore such filters as it prevents index usage and because "*" means nothing, so whether we're
+                // using a real column with a valid comparison here or just an expression which cannot be evaluated to
+                // true makes no difference, except for performance reasons...
+                return $this->escapeForSql(0);
+            }
+
             return $col . ' NOT LIKE ' . $this->escapeForSql($this->escapeWildcards($expression));
         } else {
             return $col . ' ' . $sign . ' ' . $this->escapeForSql($expression);
@@ -271,8 +323,9 @@ class DbQuery extends SimpleQuery
     {
         // TODO: there may be situations where we should clone the "select"
         $count = $this->dbSelect();
-        if ($this->group) {
-            $count->group($this->group);
+        $group = $this->getGroup();
+        if ($group) {
+            $count->group($group);
         }
         $this->applyFilterSql($count);
         if ($this->useSubqueryCount || $this->group) {
@@ -296,10 +349,9 @@ class DbQuery extends SimpleQuery
     public function count()
     {
         if ($this->count === null) {
-            Benchmark::measure('DB is counting');
-            $this->count = $this->db->fetchOne($this->getCountQuery());
-            Benchmark::measure('DB finished count');
+            $this->count = parent::count();
         }
+
         return $this->count;
     }
 
@@ -319,9 +371,7 @@ class DbQuery extends SimpleQuery
 
     public function __clone()
     {
-        if ($this->select) {
-            $this->select = clone $this->select;
-        }
+        $this->select = clone $this->select;
     }
 
     /**
@@ -329,7 +379,8 @@ class DbQuery extends SimpleQuery
      */
     public function __toString()
     {
-        return (string) $this->getSelectQuery();
+        $select = (string) $this->getSelectQuery();
+        return $this->getIsSubQuery() ? ('(' . $select . ')') : $select;
     }
 
     /**
@@ -342,6 +393,178 @@ class DbQuery extends SimpleQuery
     public function group($group)
     {
         $this->group = $group;
+        return $this;
+    }
+
+    /**
+     * Return the GROUP BY clause
+     *
+     * @return  string|array
+     */
+    public function getGroup()
+    {
+        return $this->group;
+    }
+
+    /**
+     * Return whether the given table has been joined
+     *
+     * @param   string  $table
+     *
+     * @return  bool
+     */
+    public function hasJoinedTable($table)
+    {
+        $fromPart = $this->select->getPart(Zend_Db_Select::FROM);
+        if (isset($fromPart[$table])) {
+            return true;
+        }
+
+        foreach ($fromPart as $options) {
+            if ($options['tableName'] === $table && $options['joinType'] !== Zend_Db_Select::FROM) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Return the alias used for joining the given table
+     *
+     * @param   string      $table
+     *
+     * @return  string|null         null in case no alias is being used
+     *
+     * @throws  ProgrammingError    In case the given table has not been joined
+     */
+    public function getJoinedTableAlias($table)
+    {
+        $fromPart = $this->select->getPart(Zend_Db_Select::FROM);
+        if (isset($fromPart[$table])) {
+            if ($fromPart[$table]['joinType'] === Zend_Db_Select::FROM) {
+                throw new ProgrammingError('Table "%s" has not been joined', $table);
+            }
+
+            return; // No alias in use
+        }
+
+        foreach ($fromPart as $alias => $options) {
+            if ($options['tableName'] === $table && $options['joinType'] !== Zend_Db_Select::FROM) {
+                return $alias;
+            }
+        }
+
+        throw new ProgrammingError('Table "%s" has not been joined', $table);
+    }
+
+    /**
+     * Add an INNER JOIN table and colums to the query
+     *
+     * @param   array|string|Zend_Db_Expr   $name   The table name
+     * @param   string                      $cond   Join on this condition
+     * @param   array|string                $cols   The columns to select from the joined table
+     * @param   string                      $schema The database name to specify, if any
+     *
+     * @return  $this
+     */
+    public function join($name, $cond, $cols = Zend_Db_Select::SQL_WILDCARD, $schema = null)
+    {
+        $this->select->joinInner($name, $cond, $cols, $schema);
+        return $this;
+    }
+
+    /**
+     * Add an INNER JOIN table and colums to the query
+     *
+     * @param   array|string|Zend_Db_Expr   $name   The table name
+     * @param   string                      $cond   Join on this condition
+     * @param   array|string                $cols   The columns to select from the joined table
+     * @param   string                      $schema The database name to specify, if any
+     *
+     * @return  $this
+     */
+    public function joinInner($name, $cond, $cols = Zend_Db_Select::SQL_WILDCARD, $schema = null)
+    {
+        $this->select->joinInner($name, $cond, $cols, $schema);
+        return $this;
+    }
+
+    /**
+     * Add a LEFT OUTER JOIN table and colums to the query
+     *
+     * @param   array|string|Zend_Db_Expr   $name   The table name
+     * @param   string                      $cond   Join on this condition
+     * @param   array|string                $cols   The columns to select from the joined table
+     * @param   string                      $schema The database name to specify, if any
+     *
+     * @return  $this
+     */
+    public function joinLeft($name, $cond, $cols = Zend_Db_Select::SQL_WILDCARD, $schema = null)
+    {
+        $this->select->joinLeft($name, $cond, $cols, $schema);
+        return $this;
+    }
+
+    /**
+     * Add a RIGHT OUTER JOIN table and colums to the query
+     *
+     * @param   array|string|Zend_Db_Expr   $name   The table name
+     * @param   string                      $cond   Join on this condition
+     * @param   array|string                $cols   The columns to select from the joined table
+     * @param   string                      $schema The database name to specify, if any
+     *
+     * @return  $this
+     */
+    public function joinRight($name, $cond, $cols = Zend_Db_Select::SQL_WILDCARD, $schema = null)
+    {
+        $this->select->joinRight($name, $cond, $cols, $schema);
+        return $this;
+    }
+
+    /**
+     * Add a FULL OUTER JOIN table and colums to the query
+     *
+     * @param   array|string|Zend_Db_Expr   $name   The table name
+     * @param   string                      $cond   Join on this condition
+     * @param   array|string                $cols   The columns to select from the joined table
+     * @param   string                      $schema The database name to specify, if any
+     *
+     * @return  $this
+     */
+    public function joinFull($name, $cond, $cols = Zend_Db_Select::SQL_WILDCARD, $schema = null)
+    {
+        $this->select->joinFull($name, $cond, $cols, $schema);
+        return $this;
+    }
+
+    /**
+     * Add a CROSS JOIN table and colums to the query
+     *
+     * @param   array|string|Zend_Db_Expr   $name   The table name
+     * @param   array|string                $cols   The columns to select from the joined table
+     * @param   string                      $schema The database name to specify, if any
+     *
+     * @return  $this
+     */
+    public function joinCross($name, $cols = Zend_Db_Select::SQL_WILDCARD, $schema = null)
+    {
+        $this->select->joinCross($name, $cols, $schema);
+        return $this;
+    }
+
+    /**
+     * Add a NATURAL JOIN table and colums to the query
+     *
+     * @param   array|string|Zend_Db_Expr   $name   The table name
+     * @param   array|string                $cols   The columns to select from the joined table
+     * @param   string                      $schema The database name to specify, if any
+     *
+     * @return  $this
+     */
+    public function joinNatural($name, $cols = Zend_Db_Select::SQL_WILDCARD, $schema = null)
+    {
+        $this->select->joinNatural($name, $cols, $schema);
         return $this;
     }
 }
