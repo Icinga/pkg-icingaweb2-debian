@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Test\Clicommands;
 
@@ -41,7 +41,7 @@ class PhpCommand extends Command
      *
      *   icingacli test php unit --verbose
      *   icingacli test php unit --build
-     *   icingacli test php unit --include *SpecialTest
+     *   icingacli test php unit --include=*SpecialTest
      */
     public function unitAction()
     {
@@ -109,8 +109,8 @@ class PhpCommand extends Command
      *
      *   icingacli test php style --verbose
      *   icingacli test php style --build
-     *   icingacli test php style --include path/to/your/file
-     *   icingacli test php style --exclude *someFile* --exclude someOtherFile*
+     *   icingacli test php style --include=path/to/your/file
+     *   icingacli test php style --exclude=*someFile* --exclude=someOtherFile*
      */
     public function styleAction()
     {

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Forms;
 
@@ -25,7 +25,7 @@ class ConfigForm extends Form
      *
      * @param   Config      $config     The configuration to use
      *
-     * @return  self
+     * @return  $this
      */
     public function setIniConfig(Config $config)
     {

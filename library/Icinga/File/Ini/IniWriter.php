@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\File\Ini;
 
@@ -60,7 +60,7 @@ class IniWriter extends Zend_Config_Writer_FileAbstract
     {
         if (file_exists($this->_filename)) {
             $oldconfig = new Zend_Config_Ini($this->_filename);
-            $content = file_get_contents($this->_filename);
+            $content = trim(file_get_contents($this->_filename));
         } else {
             $oldconfig = new Zend_Config(array());
             $content = '';

@@ -1,4 +1,4 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 div.config-form-buttons {
   margin-top: 5px;
@@ -87,14 +87,13 @@ button::-moz-focus-inner {
   outline: 0;
 }
 
+button {
+  cursor: pointer;
+}
+
 select::-moz-focus-inner {
   border: 0;
   outline: 0;
-}
-
-input:disabled, select:disabled {
-    background-color: #fff;
-    border-color: white;
 }
 
 form.inline {
@@ -126,10 +125,10 @@ input.link-like:hover, button.link-like:focus {
 .non-list-like-list {
   list-style-type: none;
   margin: 0;
-  padding: 0;
+  padding: 0.5em 0.5em 0;
 
   li {
-    margin: 0.5em;
+    padding-bottom: 0.5em;
   }
 }
 
@@ -146,18 +145,48 @@ form div.element ul.errors {
 
 form ul.form-errors {
   .non-list-like-list;
-  display: inline-block;
   margin-bottom: 1em;
   background-color: @colorCritical;
 
   ul.errors {
     .non-list-like-list;
+    padding: 0;
+
+    li:last-child {
+      padding-bottom: 0;
+    }
   }
 
   li {
     color: white;
     font-weight: bold;
     line-height: 1.5em;
+  }
+}
+
+form ul.form-notifications {
+  .non-list-like-list;
+  margin-bottom: 1em;
+  padding: 0em;
+
+  li.info {
+    background: @colorFormNotificationInfo;
+  }
+
+  li.warning {
+    background: @colorFormNotificationWarning;
+  }
+
+  li.error {
+    background: @colorFormNotificationError;
+  }
+
+  li {
+    color: white;
+    font-weight: bold;
+    line-height: 1.5em;
+    padding: 0.5em;
+    margin-bottom: 0.5em;
   }
 }
 
@@ -181,6 +210,13 @@ textarea {
   height: 4em;
 }
 
+textarea.resource {
+  &.ssh-identity {
+    width: 50%;
+    height: 25em;
+  }
+}
+
 form .description {
   font-size: 0.8em;
   margin: 0.3em 0 0 0.6em;
@@ -190,38 +226,37 @@ form .description {
   display: block;
 }
 
-form label.has-feedback:after {
-  content: '\e85b';
-  font-family: "ifont";
-  font-style: normal;
-  font-weight: normal;
-  speak: none;
-
-  text-decoration: inherit;
-  width: 1em;
-  margin-right: .2em;
-  text-align: center;
-  /* opacity: .8; */
-
-  /* For safety - reset parent styles, that can break glyph codes*/
-  font-variant: normal;
-  text-transform: none;
-
-  /* fix buttons height, for twitter bootstrap */
-  line-height: 1em;
-
-  /* Animation center compensation - margins should be symmetric */
-  /* remove if not needed */
-  margin-left: .2em;
-
-  /* you can be more comfortable with increased icons size */
-  /* font-size: 120%; */
-
-  /* Uncomment for 3D effect */
-  /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
-}
-
 select.grant-permissions {
   height: 20em;
   width: auto;
+}
+
+label ~ input, label ~ select {
+  margin-left: 1.6em;
+}
+
+label + i ~ input, label + i ~ select {
+  margin-left: 0;
+}
+
+button.noscript-apply {
+  margin-left: 0.5em;
+}
+
+html.no-js i.autosubmit-warning {
+  .sr-only;
+}
+
+form ul.descriptions {
+  .info-box;
+  padding: 0.5em 0.5em 0 1.8em;
+
+  li {
+    padding-bottom: 0.5em;
+
+    &:only-child {
+      margin-left: -1.3em;
+      list-style-type: none;
+    }
+  }
 }

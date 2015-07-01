@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Clicommands;
 
@@ -27,8 +27,8 @@ class NrpeCommand extends Command
      *
      * EXAMPLE
      *
-     * icingacli monitoring nrpe 127.0.0.1 CheckMEM --ssl --MaxWarn 80% \
-     *   --MaxCrit 90% --type physical
+     * icingacli monitoring nrpe 127.0.0.1 CheckMEM --ssl --MaxWarn=80% \
+     *   --MaxCrit=90% --type=physical
      */
     public function checkAction()
     {

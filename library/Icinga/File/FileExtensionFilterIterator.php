@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\File;
 
@@ -33,7 +33,7 @@ class FileExtensionFilterIterator extends FilterIterator
     /**
      * The extension to filter for
      *
-     * @type string
+     * @var string
      */
     protected $extension;
 
@@ -58,7 +58,7 @@ class FileExtensionFilterIterator extends FilterIterator
     public function accept()
     {
         $current = $this->current();
-        /* @var $current \SplFileInfo */
+        /** @var $current \SplFileInfo */
         if (! $current->isFile()) {
             return false;
         }

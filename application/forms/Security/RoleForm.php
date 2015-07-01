@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Forms\Security;
 
@@ -18,39 +18,58 @@ class RoleForm extends ConfigForm
     /**
      * Provided permissions by currently loaded modules
      *
-     * @type array
+     * @var array
      */
     protected $providedPermissions = array(
-        '*'                             => '*',
-        'system/config/*'               => 'system/config/*',
-        'system/config/application'     => 'system/config/application',
-        'system/config/authentication'  => 'system/config/authentication',
-        'system/config/modules'         => 'system/config/modules',
-        'system/config/resources'       => 'system/config/resources',
-        'system/config/roles'           => 'system/config/roles'
+        '*'                                             => 'Allow everything (*)',
+        'config/*'                                      => 'Allow config access (config/*)',
+/*
+        // [tg] seems excessive for me, hidden for rc1, tbd
+        'config/application/*'                          => 'config/application/*',
+        'config/application/general'                    => 'config/application/general',
+        'config/application/resources'                  => 'config/application/resources',
+        'config/application/userbackend'                => 'config/application/userbackend',
+        'config/application/usergroupbackend'           => 'config/application/usergroupbackend',
+        'config/authentication/*'                       => 'config/authentication/*',
+        'config/authentication/users/*'                 => 'config/authentication/users/*',
+        'config/authentication/users/show'              => 'config/authentication/users/show',
+        'config/authentication/users/add'               => 'config/authentication/users/add',
+        'config/authentication/users/edit'              => 'config/authentication/users/edit',
+        'config/authentication/users/remove'            => 'config/authentication/users/remove',
+        'config/authentication/groups/*'                => 'config/authentication/groups/*',
+        'config/authentication/groups/show'             => 'config/authentication/groups/show',
+        'config/authentication/groups/add'              => 'config/authentication/groups/add',
+        'config/authentication/groups/edit'             => 'config/authentication/groups/edit',
+        'config/authentication/groups/remove'           => 'config/authentication/groups/remove',
+        'config/authentication/roles/*'                 => 'config/authentication/roles/*',
+        'config/authentication/roles/show'              => 'config/authentication/roles/show',
+        'config/authentication/roles/add'               => 'config/authentication/roles/add',
+        'config/authentication/roles/edit'              => 'config/authentication/roles/edit',
+        'config/authentication/roles/remove'            => 'config/authentication/roles/remove',
+        'config/modules'                                => 'config/modules'
+*/
     );
 
     /**
      * Provided restrictions by currently loaded modules
      *
-     * @type array
+     * @var array
      */
     protected $providedRestrictions = array();
 
     /**
-     * (non-PHPDoc)
-     * @see \Icinga\Web\Form::init() For the method documentation.
+     * {@inheritdoc}
      */
     public function init()
     {
         $helper = new Zend_Form_Element('bogus');
         foreach (Icinga::app()->getModuleManager()->getLoadedModules() as $module) {
             foreach ($module->getProvidedPermissions() as $permission) {
-                /** @type object $permission */
-                $this->providedPermissions[$permission->name] = $permission->name . ': ' . $permission->description;
+                /** @var object $permission */
+                $this->providedPermissions[$permission->name] = $permission->description . ' (' . $permission->name . ')';
             }
             foreach ($module->getProvidedRestrictions() as $restriction) {
-                /** @type object $restriction */
+                /** @var object $restriction */
                 $name = $helper->filterName($restriction->name); // Zend only permits alphanumerics, the underscore,
                                                                  // the circumflex and any ASCII character in range
                                                                  // \x7f to \xff (127 to 255)
@@ -68,8 +87,7 @@ class RoleForm extends ConfigForm
     }
 
     /**
-     * (non-PHPDoc)
-     * @see \Icinga\Web\Form::createElements() For the method documentation.
+     * {@inheritdoc}
      */
     public function createElements(array $formData = array())
     {
@@ -253,8 +271,7 @@ class RoleForm extends ConfigForm
     }
 
     /**
-     * (non-PHPDoc)
-     * @see \Zend_Form::getValues() For the method documentation.
+     * {@inheritdoc}
      */
     public function getValues($suppressArrayNotation = false)
     {

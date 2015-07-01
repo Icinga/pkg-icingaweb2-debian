@@ -1,11 +1,12 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 use Icinga\Module\Monitoring\Forms\Command\Object\AcknowledgeProblemCommandForm;
 use Icinga\Module\Monitoring\Forms\Command\Object\AddCommentCommandForm;
 use Icinga\Module\Monitoring\Forms\Command\Object\ProcessCheckResultCommandForm;
 use Icinga\Module\Monitoring\Forms\Command\Object\ScheduleHostCheckCommandForm;
 use Icinga\Module\Monitoring\Forms\Command\Object\ScheduleHostDowntimeCommandForm;
+use Icinga\Module\Monitoring\Forms\Command\Object\SendCustomNotificationCommandForm;
 use Icinga\Module\Monitoring\Object\Host;
 use Icinga\Module\Monitoring\Web\Controller\MonitoredObjectController;
 use Icinga\Web\Hook;
@@ -20,23 +21,26 @@ class Monitoring_HostController extends MonitoredObjectController
 
     /**
      * Fetch the requested host from the monitoring backend
-     *
-     * @throws Zend_Controller_Action_Exception If the host was not found
      */
     public function init()
     {
-        $host = new Host($this->backend, $this->params->get('host'));
+        $host = new Host($this->backend, $this->params->getRequired('host'));
 
-        $this->applyRestriction('monitoring/hosts/filter', $host);
+        $this->applyRestriction('monitoring/filter/objects', $host);
 
         if ($host->fetch() === false) {
-            throw new Zend_Controller_Action_Exception($this->translate('Host not found'));
+            $this->httpNotFound($this->translate('Host not found'));
         }
         $this->object = $host;
         $this->createTabs();
         $this->getTabs()->activate('host');
     }
 
+    /**
+     * Get host actions from hook
+     *
+     * @return array
+     */
     protected function getHostActions()
     {
         $urls = array();
@@ -55,8 +59,56 @@ class Monitoring_HostController extends MonitoredObjectController
      */
     public function showAction()
     {
-        $this->view->hostActions = $this->getHostActions();
+        $this->view->actions = $this->getHostActions();
         parent::showAction();
+    }
+
+    /**
+     * List a host's services
+     */
+    public function servicesAction()
+    {
+        $this->setAutorefreshInterval(10);
+        $this->getTabs()->activate('services');
+        $query = $this->backend->select()->from('servicestatus', array(
+            'host_name',
+            'host_display_name',
+            'host_state',
+            'host_state_type',
+            'host_last_state_change',
+            'host_address',
+            'host_handled',
+            'service_description',
+            'service_display_name',
+            'service_state',
+            'service_in_downtime',
+            'service_acknowledged',
+            'service_handled',
+            'service_output',
+            'service_perfdata',
+            'service_attempt',
+            'service_last_state_change',
+            'service_icon_image',
+            'service_icon_image_alt',
+            'service_is_flapping',
+            'service_state_type',
+            'service_handled',
+            'service_severity',
+            'service_last_check',
+            'service_notifications_enabled',
+            'service_action_url',
+            'service_notes_url',
+            'service_last_comment',
+            'service_last_ack',
+            'service_last_downtime',
+            'service_active_checks_enabled',
+            'service_passive_checks_enabled',
+            'current_check_attempt' => 'service_current_check_attempt',
+            'max_check_attempts'    => 'service_max_check_attempts'
+        ));
+        $this->applyRestriction('monitoring/filter/objects', $query);
+        $this->view->services = $query->where('host_name', $this->object->getName());
+        $this->view->object = $this->object;
     }
 
     /**
@@ -66,8 +118,9 @@ class Monitoring_HostController extends MonitoredObjectController
     {
         $this->assertPermission('monitoring/command/acknowledge-problem');
 
-        $this->view->title = $this->translate('Acknowledge Host Problem');
-        $this->handleCommandForm(new AcknowledgeProblemCommandForm());
+        $form = new AcknowledgeProblemCommandForm();
+        $form->setTitle($this->translate('Acknowledge Host Problem'));
+        $this->handleCommandForm($form);
     }
 
     /**
@@ -77,8 +130,9 @@ class Monitoring_HostController extends MonitoredObjectController
     {
         $this->assertPermission('monitoring/command/comment/add');
 
-        $this->view->title = $this->translate('Add Host Comment');
-        $this->handleCommandForm(new AddCommentCommandForm());
+        $form = new AddCommentCommandForm();
+        $form->setTitle($this->translate('Add Host Comment'));
+        $this->handleCommandForm($form);
     }
 
     /**
@@ -88,8 +142,9 @@ class Monitoring_HostController extends MonitoredObjectController
     {
         $this->assertPermission('monitoring/command/schedule-check');
 
-        $this->view->title = $this->translate('Reschedule Host Check');
-        $this->handleCommandForm(new ScheduleHostCheckCommandForm());
+        $form = new ScheduleHostCheckCommandForm();
+        $form->setTitle($this->translate('Reschedule Host Check'));
+        $this->handleCommandForm($form);
     }
 
     /**
@@ -99,8 +154,9 @@ class Monitoring_HostController extends MonitoredObjectController
     {
         $this->assertPermission('monitoring/command/downtime/schedule');
 
-        $this->view->title = $this->translate('Schedule Host Downtime');
-        $this->handleCommandForm(new ScheduleHostDowntimeCommandForm());
+        $form = new ScheduleHostDowntimeCommandForm();
+        $form->setTitle($this->translate('Schedule Host Downtime'));
+        $this->handleCommandForm($form);
     }
 
     /**
@@ -110,7 +166,20 @@ class Monitoring_HostController extends MonitoredObjectController
     {
         $this->assertPermission('monitoring/command/process-check-result');
 
-        $this->view->title = $this->translate('Submit Passive Host Check Result');
-        $this->handleCommandForm(new ProcessCheckResultCommandForm());
+        $form = new ProcessCheckResultCommandForm();
+        $form->setTitle($this->translate('Submit Passive Host Check Result'));
+        $this->handleCommandForm($form);
+    }
+
+    /**
+     * Send a custom notification for host
+     */
+    public function sendCustomNotificationAction()
+    {
+        $this->assertPermission('monitoring/command/send-custom-notification');
+
+        $form = new SendCustomNotificationCommandForm();
+        $form->setTitle($this->translate('Send Custom Host Notification'));
+        $this->handleCommandForm($form);
     }
 }

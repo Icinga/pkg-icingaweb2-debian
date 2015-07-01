@@ -1,4 +1,4 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 (function(Icinga) {
 
@@ -44,7 +44,8 @@
       /**
        * Prepare the timer to handle the timeline's infinite loading
        */
-      if ($('div.timeline').length) {
+      var $timeline = $('div.timeline');
+      if ($timeline.length && !$timeline.closest('.dashboard').length) {
         if (this.scrollCheckTimer === null) {
           this.scrollCheckTimer = this.module.icinga.timer.register(
             this.checkTimelinePosition,

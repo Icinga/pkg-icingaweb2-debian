@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web;
 
@@ -18,7 +18,7 @@ class Menu implements RecursiveIterator
     /**
      * The id of this menu
      *
-     * @type string
+     * @var string
      */
     protected $id;
 
@@ -27,7 +27,7 @@ class Menu implements RecursiveIterator
      *
      * Used for sorting when priority is unset or equal to other items
      *
-     * @type string
+     * @var string
      */
     protected $title;
 
@@ -36,44 +36,55 @@ class Menu implements RecursiveIterator
      *
      * Used for sorting
      *
-     * @type int
+     * @var int
      */
     protected $priority = 100;
 
     /**
      * The url of this menu
      *
-     * @type string
+     * @var string
      */
     protected $url;
 
     /**
      * The path to the icon of this menu
      *
-     * @type string
+     * @var string
      */
     protected $icon;
 
     /**
      * The sub menus of this menu
      *
-     * @type array
+     * @var array
      */
     protected $subMenus = array();
 
     /**
      * A custom item renderer used instead of the default rendering logic
      *
-     * @type MenuItemRenderer
+     * @var MenuItemRenderer
      */
     protected $itemRenderer = null;
 
     /*
      * Parent menu
      *
-     * @type Menu
+     * @var Menu
      */
     protected $parent;
+
+    /**
+     * Permission a user is required to have granted to display the menu item
+     *
+     * If a permission is set, authentication is of course required.
+     *
+     * Note that only one required permission can be set yet.
+     *
+     * @var string|null
+     */
+    protected $permission;
 
     /**
      * Create a new menu
@@ -106,13 +117,18 @@ class Menu implements RecursiveIterator
             foreach ($props as $key => $value) {
                 $method = 'set' . implode('', array_map('ucfirst', explode('_', strtolower($key))));
                 if ($key === 'renderer') {
-                    $class = '\Icinga\Web\Menu\\' . $value;
-                    if (!class_exists($class)) {
-                        throw new ConfigurationError(
-                            sprintf('ItemRenderer with class "%s" does not exist', $class)
-                        );
+                    $value = '\\' . ltrim($value, '\\');
+                    if (class_exists($value)) {
+                        $value = new $value;
+                    } else {
+                        $class = '\Icinga\Web\Menu' . $value;
+                        if (!class_exists($class)) {
+                            throw new ConfigurationError(
+                                sprintf('ItemRenderer with class "%s" does not exist', $class)
+                            );
+                        }
+                        $value = new $class;
                     }
-                    $value = new $class;
                 }
                 if (method_exists($this, $method)) {
                     $this->{$method}($value);
@@ -217,37 +233,54 @@ class Menu implements RecursiveIterator
             ));
 
             $section = $this->add(t('System'), array(
-                'icon'     => 'wrench',
-                'priority' => 200
+                'icon'     => 'services',
+                'priority' => 700,
+                'renderer' => 'ProblemMenuItemRenderer'
             ));
-            $section->add(t('Configuration'), array(
-                'url'      => 'config',
-                'priority' => 300
+            $section->add(t('About'), array(
+                'url'       => 'about',
+                'priority'  => 701
             ));
-            $section->add(t('Modules'), array(
-                'url'      => 'config/modules',
-                'priority' => 400
-            ));
-
             if (Logger::writesToFile()) {
                 $section->add(t('Application Log'), array(
                     'url'      => 'list/applicationlog',
-                    'priority' => 500
+                    'priority' => 710
                 ));
             }
 
+            $section = $this->add(t('Configuration'), array(
+                'icon'          => 'wrench',
+                'permission'    => 'config/*',
+                'priority'      => 800
+            ));
+            $section->add(t('Application'), array(
+                'url'           => 'config',
+                'permission'    => 'config/application/*',
+                'priority'      => 810
+            ));
+            $section->add(t('Authentication'), array(
+                'url'           => 'user',
+                'permission'    => 'config/authentication/*',
+                'priority'      => 820
+            ));
+            $section->add(t('Modules'), array(
+                'url'           => 'config/modules',
+                'permission'    => 'config/modules',
+                'priority'      => 890
+            ));
+
             $section = $this->add($auth->getUser()->getUsername(), array(
                 'icon'     => 'user',
-                'priority' => 600
+                'priority' => 900
             ));
             $section->add(t('Preferences'), array(
                 'url'      => 'preference',
-                'priority' => 601
+                'priority' => 910
             ));
 
             $section->add(t('Logout'), array(
                 'url'      => 'authentication/logout',
-                'priority' => 700,
+                'priority' => 990,
                 'renderer' => 'ForeignMenuItemRenderer'
             ));
         }
@@ -442,15 +475,47 @@ class Menu implements RecursiveIterator
     }
 
     /**
-     * Set required Permissions
+     * Get the permission a user is required to have granted to display the menu item
      *
-     * @param   $permission
+     * @return string|null
+     */
+    public function getPermission()
+    {
+        return $this->permission;
+    }
+
+    /**
+     * Get parent menu
+     *
+     * @return \Icinga\Web\Menu
+     */
+    public function getParent()
+    {
+        return $this->parent;
+    }
+
+    /**
+     * Get submenus
+     *
+     * @return array
+     */
+    public function getSubMenus()
+    {
+        return $this->subMenus;
+    }
+
+    /**
+     * Set permission a user is required to have granted to display the menu item
+     *
+     * If a permission is set, authentication is of course required.
+     *
+     * @param   string  $permission
      *
      * @return  $this
      */
-    public function requirePermission($permission)
+    public function setPermission($permission)
     {
-        // Not implemented yet
+        $this->permission = (string) $permission;
         return $this;
     }
 
@@ -614,7 +679,7 @@ class Menu implements RecursiveIterator
      *
      * @param   array   $menus  The menus to load, as key-value array
      *
-     * @return  static
+     * @return  $this
      */
     protected function loadSubMenus(array $menus)
     {

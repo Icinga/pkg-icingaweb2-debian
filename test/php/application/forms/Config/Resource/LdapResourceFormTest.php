@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Tests\Icinga\Forms\Config\Resource;
 
@@ -29,7 +29,11 @@ class LdapResourceFormTest extends BaseTestCase
             Mockery::mock()->shouldReceive('testCredentials')->once()->andReturn(true)->getMock()
         );
 
-        $form = new LdapResourceForm();
+        // Passing array(null) is required to make Mockery call the constructor...
+        $form = Mockery::mock('Icinga\Forms\Config\Resource\LdapResourceForm[getView]', array(null));
+        $form->shouldReceive('getView->escape')
+            ->with(Mockery::type('string'))
+            ->andReturnUsing(function ($s) { return $s; });
         $form->setTokenDisabled();
 
         $this->assertTrue(
@@ -48,7 +52,11 @@ class LdapResourceFormTest extends BaseTestCase
             Mockery::mock()->shouldReceive('testCredentials')->once()->andThrow('\Exception')->getMock()
         );
 
-        $form = new LdapResourceForm();
+        // Passing array(null) is required to make Mockery call the constructor...
+        $form = Mockery::mock('Icinga\Forms\Config\Resource\LdapResourceForm[getView]', array(null));
+        $form->shouldReceive('getView->escape')
+            ->with(Mockery::type('string'))
+            ->andReturnUsing(function ($s) { return $s; });
         $form->setTokenDisabled();
 
         $this->assertFalse(

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Forms;
 
@@ -11,11 +11,11 @@ use Icinga\Web\Form;
 class ConfirmRemovalForm extends Form
 {
     /**
-     * Initalize this form
+     * Initialize this form
      */
     public function init()
     {
         $this->setName('form_confirm_removal');
-        $this->setSubmitLabel($this->translate('Confirm Removal'));
+        $this->getSubmitLabel() ?: $this->setSubmitLabel($this->translate('Confirm Removal'));
     }
 }

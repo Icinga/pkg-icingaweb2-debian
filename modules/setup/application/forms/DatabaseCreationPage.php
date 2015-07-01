@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Setup\Forms;
 
@@ -39,6 +39,13 @@ class DatabaseCreationPage extends Form
     public function init()
     {
         $this->setName('setup_database_creation');
+        $this->setTitle($this->translate('Database Setup', 'setup.page.title'));
+        $this->addDescription($this->translate(
+            'It seems that either the database you defined earlier does not yet exist and cannot be created'
+            . ' using the provided access credentials, the database does not have the required schema to be'
+            . ' operated by Icinga Web 2 or the provided access credentials do not have the sufficient '
+            . 'permissions to access the database. Please provide appropriate access credentials to solve this.'
+        ));
     }
 
     /**
@@ -46,7 +53,7 @@ class DatabaseCreationPage extends Form
      *
      * @param   array   $config
      *
-     * @return  self
+     * @return  $this
      */
     public function setResourceConfig(array $config)
     {
@@ -59,7 +66,7 @@ class DatabaseCreationPage extends Form
      *
      * @param   array   $privileges     The privileges
      *
-     * @return  self
+     * @return  $this
      */
     public function setDatabaseSetupPrivileges(array $privileges)
     {
@@ -72,7 +79,7 @@ class DatabaseCreationPage extends Form
      *
      * @param   array   $privileges     The privileges
      *
-     * @return  self
+     * @return  $this
      */
     public function setDatabaseUsagePrivileges(array $privileges)
     {
@@ -85,30 +92,6 @@ class DatabaseCreationPage extends Form
      */
     public function createElements(array $formData)
     {
-        $this->addElement(
-            'note',
-            'title',
-            array(
-                'value'         => $this->translate('Database Setup', 'setup.page.title'),
-                'decorators'    => array(
-                    'ViewHelper',
-                    array('HtmlTag', array('tag' => 'h2'))
-                )
-            )
-        );
-        $this->addElement(
-            'note',
-            'description',
-            array(
-                'value' => $this->translate(
-                    'It seems that either the database you defined earlier does not yet exist and cannot be created'
-                    . ' using the provided access credentials, the database does not have the required schema to be'
-                    . ' operated by Icinga Web 2 or the provided access credentials do not have the sufficient '
-                    . 'permissions to access the database. Please provide appropriate access credentials to solve this.'
-                )
-            )
-        );
-
         $skipValidation = isset($formData['skip_validation']) && $formData['skip_validation'];
         $this->addElement(
             'text',
@@ -213,7 +196,7 @@ class DatabaseCreationPage extends Form
             'checkbox',
             'skip_validation',
             array(
-                'order'         => 2,
+                'order'         => 0,
                 'required'      => true,
                 'label'         => $this->translate('Skip Validation'),
                 'description'   => $this->translate(

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Forms\Command\Instance;
 
@@ -25,7 +25,10 @@ class ToggleInstanceFeaturesCommandForm extends CommandForm
      */
     public function init()
     {
+        $this->setUseFormAutosubmit();
+        $this->setTitle($this->translate('Feature Commands'));
         $this->setAttrib('class', 'inline instance-features');
+        $this->loadDefaultDecorators()->getDecorator('description')->setTag('h2');
     }
 
     /**
@@ -60,7 +63,7 @@ class ToggleInstanceFeaturesCommandForm extends CommandForm
         if ((bool) $this->status->notifications_enabled) {
             if ($this->hasPermission('monitoring/command/feature/instance')) {
                 $notificationDescription = sprintf(
-                    '<a title="%s" href="%s" data-base-target="_next">%s</a>',
+                    '<a aria-label="%1$s" title="%1$s" href="%2$s" data-base-target="_next">%3$s</a>',
                     $this->translate('Disable notifications for a specific time on a program-wide basis'),
                     $this->getView()->href('monitoring/process/disable-notifications'),
                     $this->translate('Disable temporarily')
@@ -82,7 +85,7 @@ class ToggleInstanceFeaturesCommandForm extends CommandForm
                 'checkbox',
                 ToggleInstanceFeatureCommand::FEATURE_ACTIVE_HOST_CHECKS,
                 array(
-                    'label'         =>  $this->translate('Active Host Checks Being Executed'),
+                    'label'         =>  $this->translate('Active Host Checks'),
                     'autosubmit'    => true,
                     'disabled'      => $toggleDisabled
                 )
@@ -91,7 +94,7 @@ class ToggleInstanceFeaturesCommandForm extends CommandForm
                 'checkbox',
                 ToggleInstanceFeatureCommand::FEATURE_ACTIVE_SERVICE_CHECKS,
                 array(
-                    'label'         =>  $this->translate('Active Service Checks Being Executed'),
+                    'label'         =>  $this->translate('Active Service Checks'),
                     'autosubmit'    => true,
                     'disabled'      => $toggleDisabled
                 )
@@ -100,7 +103,7 @@ class ToggleInstanceFeaturesCommandForm extends CommandForm
                 'checkbox',
                 ToggleInstanceFeatureCommand::FEATURE_EVENT_HANDLERS,
                 array(
-                    'label'         => $this->translate('Event Handlers Enabled'),
+                    'label'         => $this->translate('Event Handlers'),
                     'autosubmit'    => true,
                     'disabled'      => $toggleDisabled
                 )
@@ -109,7 +112,7 @@ class ToggleInstanceFeaturesCommandForm extends CommandForm
                 'checkbox',
                 ToggleInstanceFeatureCommand::FEATURE_FLAP_DETECTION,
                 array(
-                    'label'         => $this->translate('Flap Detection Enabled'),
+                    'label'         => $this->translate('Flap Detection'),
                     'autosubmit'    => true,
                     'disabled'      => $toggleDisabled
                 )
@@ -118,7 +121,7 @@ class ToggleInstanceFeaturesCommandForm extends CommandForm
                 'checkbox',
                 ToggleInstanceFeatureCommand::FEATURE_NOTIFICATIONS,
                 array(
-                    'label'         => $this->translate('Notifications Enabled'),
+                    'label'         => $this->translate('Notifications'),
                     'autosubmit'    => true,
                     'description'   => $notificationDescription,
                     'decorators'    => array(
@@ -156,7 +159,7 @@ class ToggleInstanceFeaturesCommandForm extends CommandForm
                 'checkbox',
                 ToggleInstanceFeatureCommand::FEATURE_PASSIVE_HOST_CHECKS,
                 array(
-                    'label'         =>  $this->translate('Passive Host Checks Being Accepted'),
+                    'label'         =>  $this->translate('Passive Host Checks'),
                     'autosubmit'    => true,
                     'disabled'      => $toggleDisabled
                 )
@@ -165,7 +168,7 @@ class ToggleInstanceFeaturesCommandForm extends CommandForm
                 'checkbox',
                 ToggleInstanceFeatureCommand::FEATURE_PASSIVE_SERVICE_CHECKS,
                 array(
-                    'label'         =>  $this->translate('Passive Service Checks Being Accepted'),
+                    'label'         =>  $this->translate('Passive Service Checks'),
                     'autosubmit'    => true,
                     'disabled'      => $toggleDisabled
                 )
@@ -174,7 +177,7 @@ class ToggleInstanceFeaturesCommandForm extends CommandForm
                 'checkbox',
                 ToggleInstanceFeatureCommand::FEATURE_PERFORMANCE_DATA,
                 array(
-                    'label'         =>  $this->translate('Performance Data Being Processed'),
+                    'label'         =>  $this->translate('Performance Data'),
                     'autosubmit'    => true,
                     'disabled'      => $toggleDisabled
                 )
@@ -206,14 +209,63 @@ class ToggleInstanceFeaturesCommandForm extends CommandForm
     public function onSuccess()
     {
         $this->assertPermission('monitoring/command/feature/instance');
+
+        $notifications = array(
+            ToggleInstanceFeatureCommand::FEATURE_ACTIVE_HOST_CHECKS => array(
+                $this->translate('Enabling active host checks..'),
+                $this->translate('Disabling active host checks..')
+            ),
+            ToggleInstanceFeatureCommand::FEATURE_ACTIVE_SERVICE_CHECKS => array(
+                $this->translate('Enabling active service checks..'),
+                $this->translate('Disabling active service checks..')
+            ),
+            ToggleInstanceFeatureCommand::FEATURE_EVENT_HANDLERS => array(
+                $this->translate('Enabling event handlers..'),
+                $this->translate('Disabling event handlers..')
+            ),
+            ToggleInstanceFeatureCommand::FEATURE_FLAP_DETECTION => array(
+                $this->translate('Enabling flap detection..'),
+                $this->translate('Disabling flap detection..')
+            ),
+            ToggleInstanceFeatureCommand::FEATURE_NOTIFICATIONS => array(
+                $this->translate('Enabling notifications..'),
+                $this->translate('Disabling notifications..')
+            ),
+            ToggleInstanceFeatureCommand::FEATURE_HOST_OBSESSING => array(
+                $this->translate('Enabling obsessing over hosts..'),
+                $this->translate('Disabling obsessing over hosts..')
+            ),
+            ToggleInstanceFeatureCommand::FEATURE_SERVICE_OBSESSING => array(
+                $this->translate('Enabling obsessing over services..'),
+                $this->translate('Disabling obsessing over services..')
+            ),
+            ToggleInstanceFeatureCommand::FEATURE_PASSIVE_HOST_CHECKS => array(
+                $this->translate('Enabling passive host checks..'),
+                $this->translate('Disabling passive host checks..')
+            ),
+            ToggleInstanceFeatureCommand::FEATURE_PASSIVE_SERVICE_CHECKS => array(
+                $this->translate('Enabling passive service checks..'),
+                $this->translate('Disabling passive service checks..')
+            ),
+            ToggleInstanceFeatureCommand::FEATURE_PERFORMANCE_DATA => array(
+                $this->translate('Enabling performance data..'),
+                $this->translate('Disabling performance data..')
+            )
+        );
+
         foreach ($this->getValues() as $feature => $enabled) {
             $toggleFeature = new ToggleInstanceFeatureCommand();
             $toggleFeature
                 ->setFeature($feature)
                 ->setEnabled($enabled);
             $this->getTransport($this->request)->send($toggleFeature);
+
+            if ((bool) $this->status->{$feature} !== (bool) $enabled) {
+                Notification::success(
+                    $notifications[$feature][$enabled ? 0 : 1]
+                );
+            }
         }
-        Notification::success($this->translate('Toggling feature..'));
         return true;
     }
 }

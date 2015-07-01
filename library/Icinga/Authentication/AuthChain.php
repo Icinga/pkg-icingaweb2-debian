@@ -1,10 +1,12 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Authentication;
 
 use Iterator;
 use Icinga\Data\ConfigObject;
+use Icinga\Authentication\User\UserBackend;
+use Icinga\Authentication\User\UserBackendInterface;
 use Icinga\Application\Config;
 use Icinga\Application\Logger;
 use Icinga\Exception\ConfigurationError;
@@ -24,7 +26,7 @@ class AuthChain implements Iterator
     /**
      * The consecutive user backend while looping
      *
-     * @var UserBackend
+     * @var UserBackendInterface
      */
     private $currentBackend;
 
@@ -52,7 +54,7 @@ class AuthChain implements Iterator
     /**
      * Return the current user backend
      *
-     * @return UserBackend
+     * @return UserBackendInterface
      */
     public function current()
     {

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Setup\Forms;
 
@@ -8,8 +8,8 @@ use LogicException;
 use Icinga\Web\Form;
 use Icinga\Data\ConfigObject;
 use Icinga\Data\ResourceFactory;
-use Icinga\Authentication\Backend\DbUserBackend;
-use Icinga\Authentication\Backend\LdapUserBackend;
+use Icinga\Authentication\User\DbUserBackend;
+use Icinga\Authentication\User\LdapUserBackend;
 
 /**
  * Wizard page to define the initial administrative account
@@ -44,7 +44,7 @@ class AdminAccountPage extends Form
      *
      * @param   array   $config
      *
-     * @return  self
+     * @return  $this
      */
     public function setResourceConfig(array $config)
     {
@@ -57,7 +57,7 @@ class AdminAccountPage extends Form
      *
      * @param   array   $config
      *
-     * @return  self
+     * @return  $this
      */
     public function setBackendConfig(array $config)
     {
@@ -78,7 +78,7 @@ class AdminAccountPage extends Form
                 'text',
                 'by_name',
                 array(
-                    'required'      => isset($formData['user_type']) && $formData['user_type'] === 'by_name',
+                    'required'      => !isset($formData['user_type']) || $formData['user_type'] === 'by_name',
                     'value'         => $this->getUsername(),
                     'label'         => $this->translate('Username'),
                     'description'   => $this->translate(
@@ -87,6 +87,12 @@ class AdminAccountPage extends Form
                     )
                 )
             );
+            if (! $this->request->isXmlHttpRequest()) {
+                // In case JS is disabled we must not provide client side validation as
+                // the user is required to input data even he has changed his mind
+                $this->getElement('by_name')->setAttrib('required', null);
+                $this->getElement('by_name')->setAttrib('aria-required', null);
+            }
         }
 
         if ($this->backendConfig['backend'] === 'db' || $this->backendConfig['backend'] === 'ldap') {
@@ -111,6 +117,12 @@ class AdminAccountPage extends Form
                         'multiOptions'  => array_combine($users, $users)
                     )
                 );
+                if (! $this->request->isXmlHttpRequest()) {
+                    // In case JS is disabled we must not provide client side validation as
+                    // the user is required to input data even he has changed his mind
+                    $this->getElement('existing_user')->setAttrib('required', null);
+                    $this->getElement('existing_user')->setAttrib('aria-required', null);
+                }
             }
         }
 
@@ -149,6 +161,14 @@ class AdminAccountPage extends Form
                     )
                 )
             );
+            if (! $this->request->isXmlHttpRequest()) {
+                // In case JS is disabled we must not provide client side validation as
+                // the user is required to input data even he has changed his mind
+                foreach (array('new_user', 'new_user_password', 'new_user_2ndpass') as $elementName) {
+                    $this->getElement($elementName)->setAttrib('aria-required', null);
+                    $this->getElement($elementName)->setAttrib('required', null);
+                }
+            }
         }
 
         if (count($choices) > 1) {
@@ -157,6 +177,8 @@ class AdminAccountPage extends Form
                 'user_type',
                 array(
                     'required'      => true,
+                    'autosubmit'    => true,
+                    'value'         => key($choices),
                     'multiOptions'  => $choices
                 )
             );
@@ -170,31 +192,6 @@ class AdminAccountPage extends Form
                 )
             );
         }
-
-        $this->addElement(
-            'note',
-            'title',
-            array(
-                'value'         => $this->translate('Administration', 'setup.page.title'),
-                'decorators'    => array(
-                    'ViewHelper',
-                    array('HtmlTag', array('tag' => 'h2'))
-                )
-            )
-        );
-        $this->addElement(
-            'note',
-            'description',
-            array(
-                'value' => tp(
-                    'Now it\'s time to configure your first administrative account for Icinga Web 2.'
-                    . ' Please follow the instructions below:',
-                    'Now it\'s time to configure your first administrative account for Icinga Web 2.'
-                    . ' Below are several options you can choose from. Select one and follow its instructions:',
-                    count($choices)
-                )
-            )
-        );
     }
 
     /**
@@ -216,6 +213,26 @@ class AdminAccountPage extends Form
         }
 
         return true;
+    }
+
+    /**
+     * Return whether the given values (possibly incomplete) are valid
+     *
+     * Unsets all empty text-inputs so that they are not being validated when auto-submitting the form.
+     *
+     * @param   array   $formData
+     *
+     * @return type
+     */
+    public function isValidPartial(array $formData)
+    {
+        foreach (array('by_name', 'new_user', 'new_user_password', 'new_user_2ndpass') as $elementName) {
+            if (isset($formData[$elementName]) && $formData[$elementName] === '') {
+                unset($formData[$elementName]);
+            }
+        }
+
+        return parent::isValidPartial($formData);
     }
 
     /**
@@ -251,12 +268,8 @@ class AdminAccountPage extends Form
         if ($this->backendConfig['backend'] === 'db') {
             $backend = new DbUserBackend(ResourceFactory::createResource(new ConfigObject($this->resourceConfig)));
         } elseif ($this->backendConfig['backend'] === 'ldap') {
-            $backend = new LdapUserBackend(
-                ResourceFactory::createResource(new ConfigObject($this->resourceConfig)),
-                $this->backendConfig['user_class'],
-                $this->backendConfig['user_name_attribute'],
-                $this->backendConfig['base_dn']
-            );
+            $backend = new LdapUserBackend(ResourceFactory::createResource(new ConfigObject($this->resourceConfig)));
+            $backend->setConfig($this->backendConfig);
         } else {
             throw new LogicException(
                 sprintf(
@@ -267,8 +280,8 @@ class AdminAccountPage extends Form
         }
 
         try {
-            return $backend->listUsers();
-        } catch (Exception $e) {
+            return $backend->select(array('user_name'))->fetchColumn();
+        } catch (Exception $_) {
             // No need to handle anything special here. Error means no users found.
             return array();
         }

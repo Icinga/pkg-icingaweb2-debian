@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Backend\Ido\Query;
 
@@ -12,6 +12,7 @@ class ProgramstatusQuery extends IdoQuery
         'programstatus' => array(
             'id'                    => 'programstatus_id',
             'status_update_time'    => 'UNIX_TIMESTAMP(programstatus.status_update_time)',
+            'program_version'       => 'program_version',
             'program_start_time'    => 'UNIX_TIMESTAMP(programstatus.program_start_time)',
             'program_end_time'      => 'UNIX_TIMESTAMP(programstatus.program_end_time)',
             'is_currently_running'  => 'CASE WHEN (programstatus.is_currently_running = 0)
@@ -26,6 +27,7 @@ class ProgramstatusQuery extends IdoQuery
                     END
                 END',
             'process_id'                        => 'process_id',
+            'endpoint_name'                     => 'endpoint_name',
             'daemon_mode'                       => 'daemon_mode',
             'last_command_check'                => 'UNIX_TIMESTAMP(programstatus.last_command_check)',
             'last_log_rotation'                 => 'UNIX_TIMESTAMP(programstatus.last_log_rotation)',
@@ -47,4 +49,16 @@ class ProgramstatusQuery extends IdoQuery
             'global_service_event_handler'      => 'global_service_event_handler',
         )
     );
+
+    protected function joinBaseTables()
+    {
+        parent::joinBaseTables();
+
+        if (version_compare($this->getIdoVersion(), '1.11.7', '<')) {
+            $this->columnMap['programstatus']['endpoint_name'] = '(0)';
+        }
+        if (version_compare($this->getIdoVersion(), '1.11.8', '<')) {
+            $this->columnMap['programstatus']['program_version'] = '(NULL)';
+        }
+    }
 }

@@ -1,7 +1,9 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Cli;
+
+use Icinga\Exception\MissingParameterException;
 
 /**
  * Params
@@ -45,7 +47,12 @@ class Params
                 $noOptionFlag = true;
             } elseif (!$noOptionFlag && substr($argv[$i], 0, 2) === '--') {
                 $key = substr($argv[$i], 2);
-                if (! isset($argv[$i + 1]) || substr($argv[$i + 1], 0, 2) === '--') {
+                $matches = array();
+                if (1 === preg_match(
+                    '/(?<!.)([^=]+)=(.*)(?!.)/ms', $key, $matches
+                )) {
+                    $this->params[$matches[1]] = $matches[2];
+                } elseif (! isset($argv[$i + 1]) || substr($argv[$i + 1], 0, 2) === '--') {
                     $this->params[$key] = true;
                 } elseif (array_key_exists($key, $this->params)) {
                     if (!is_array($this->params[$key])) {
@@ -156,12 +163,35 @@ class Params
     }
 
     /**
+     * Require a parameter
+     *
+     * @param   string  $name               Name of the parameter
+     * @param   bool    $strict             Whether the parameter's value must not be the empty string
+     *
+     * @return  mixed
+     *
+     * @throws  MissingParameterException   If the parameter was not given
+     */
+    public function getRequired($name, $strict = true)
+    {
+        if ($this->has($name)) {
+            $value = $this->get($name);
+            if (! $strict || strlen($value) > 0) {
+                return $value;
+            }
+        }
+        $e = new MissingParameterException(t('Required parameter \'%s\' missing'), $name);
+        $e->setParameter($name);
+        throw $e;
+    }
+
+    /**
      * Set a value for the given option
      *
      * @param   string  $key    The option name
      * @param   mixed   $value  The value to set
      *
-     * @return  self
+     * @return  $this
      */
     public function set($key, $value)
     {
@@ -174,7 +204,7 @@ class Params
      *
      * @param   string|array    $keys   The option or options to remove
      *
-     * @return  self
+     * @return  $this
      */
     public function remove($keys = array())
     {
@@ -234,11 +264,35 @@ class Params
     }
 
     /**
+     * Require and remove a parameter
+     *
+     * @param   string  $name               Name of the parameter
+     * @param   bool    $strict             Whether the parameter's value must not be the empty string
+     *
+     * @return  mixed
+     *
+     * @throws  MissingParameterException   If the parameter was not given
+     */
+    public function shiftRequired($name, $strict = true)
+    {
+        if ($this->has($name)) {
+            $value = $this->get($name);
+            if (! $strict || strlen($value) > 0) {
+                $this->shift($name);
+                return $value;
+            }
+        }
+        $e = new MissingParameterException(t('Required parameter \'%s\' missing'), $name);
+        $e->setParameter($name);
+        throw $e;
+    }
+
+    /**
      * Put the given value onto the argument stack
      *
      * @param   mixed   $key    The argument
      *
-     * @return  self
+     * @return  $this
      */
     public function unshift($key)
     {

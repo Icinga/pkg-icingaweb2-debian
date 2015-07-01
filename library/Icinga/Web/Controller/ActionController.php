@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web\Controller;
 
@@ -7,9 +7,11 @@ use Exception;
 use Icinga\Application\Benchmark;
 use Icinga\Application\Config;
 use Icinga\Authentication\Manager;
+use Icinga\Exception\Http\HttpMethodNotAllowedException;
 use Icinga\Exception\IcingaException;
 use Icinga\Exception\ProgrammingError;
 use Icinga\File\Pdf;
+use Icinga\Forms\AutoRefreshForm;
 use Icinga\Security\SecurityException;
 use Icinga\Util\Translator;
 use Icinga\Web\Notification;
@@ -50,10 +52,15 @@ class ActionController extends Zend_Controller_Action
     /**
      * Authentication manager
      *
-     * @type Manager|null
+     * @var Manager|null
      */
     private $auth;
 
+    /**
+     * URL parameters
+     *
+     * @var UrlParams
+     */
     protected $params;
 
     /**
@@ -79,8 +86,13 @@ class ActionController extends Zend_Controller_Action
         $this->handlerBrowserWindows();
         $this->view->translationDomain = 'icinga';
         $this->_helper->layout()->isIframe = $request->getUrl()->shift('isIframe');
+        $this->_helper->layout()->showFullscreen = $request->getUrl()->shift('showFullscreen');
         $this->_helper->layout()->moduleName = false;
 
+        $this->view->compact = $request->getParam('view') === 'compact';
+        if ($request->getUrl()->shift('showCompact')) {
+            $this->view->compact = true;
+        }
         if ($this->rerenderLayout = $request->getUrl()->shift('renderLayout')) {
             $this->xhrLayout = 'body';
         }
@@ -185,16 +197,17 @@ class ActionController extends Zend_Controller_Action
     /**
      * Respond with HTTP 405 if the current request's method is not one of the given methods
      *
-     * @param   string $httpMethod                  Unlimited number of allowed HTTP methods
+     * @param   string $httpMethod              Unlimited number of allowed HTTP methods
      *
-     * @throws  \Zend_Controller_Action_Exception   If the request method is not one of the given methods
+     * @throws  HttpMethodNotAllowedException   If the request method is not one of the given methods
      */
     public function assertHttpMethod($httpMethod)
     {
         $httpMethods = array_flip(array_map('strtoupper', func_get_args()));
         if (! isset($httpMethods[$this->getRequest()->getMethod()])) {
-            $this->getResponse()->setHeader('Allow', implode(', ', array_keys($httpMethods)));
-            throw new \Zend_Controller_Action_Exception($this->translate('Method Not Allowed'), 405);
+            $e = new HttpMethodNotAllowedException($this->translate('Method Not Allowed'));
+            $e->setAllowedMethods(implode(', ', array_keys($httpMethods)));
+            throw $e;
         }
     }
 
@@ -292,34 +305,36 @@ class ActionController extends Zend_Controller_Action
     }
 
     /**
-     * Redirect to the login path
+     * Redirect to login
      *
-     * @param   Url         $afterLogin   The action to call when the login was successful. Defaults to '/index/welcome'
+     * XHR will always redirect to __SELF__ if an URL to redirect to after successful login is set. __SELF__ instructs
+     * JavaScript to redirect to the current window's URL if it's an auto-refresh request or to redirect to the URL
+     * which required login if it's not an auto-refreshing one.
      *
-     * @throws  \Exception
+     * XHR will respond with HTTP status code 403 Forbidden.
+     *
+     * @param   Url|string  $redirect   URL to redirect to after successful login
      */
-    protected function redirectToLogin($afterLogin = null)
+    protected function redirectToLogin($redirect = null)
     {
-        $redir = null;
-        if ($afterLogin !== null) {
-            if (! $afterLogin instanceof Url) {
-                $afterLogin = Url::fromPath($afterLogin);
+        $login = Url::fromPath('authentication/login');
+        if ($this->isXhr()) {
+            if ($redirect !== null) {
+                $login->setParam('redirect', '__SELF__');
             }
-            if ($this->isXhr()) {
-                $redir = '__SELF__';
-            } else {
-                // TODO: Ignore /?
-                $redir = $afterLogin->getRelativeUrl();
+
+            $this->_response->setHttpResponseCode(403);
+        } elseif ($redirect !== null) {
+            if (! $redirect instanceof Url) {
+                $redirect = Url::fromPath($redirect);
+            }
+
+            if (($relativeUrl = $redirect->getRelativeUrl())) {
+                $login->setParam('redirect', $relativeUrl);
             }
         }
 
-        $url = Url::fromPath('authentication/login');
-
-        if ($redir) {
-            $url->setParam('redirect', $redir);
-        }
-
-        $this->rerenderLayout()->redirectNow($url);
+        $this->rerenderLayout()->redirectNow($login);
     }
 
     protected function rerenderLayout()
@@ -380,6 +395,16 @@ class ActionController extends Zend_Controller_Action
     }
 
     /**
+     * @see Zend_Controller_Action::preDispatch()
+     */
+    public function preDispatch()
+    {
+        $form = new AutoRefreshForm();
+        $form->handleRequest();
+        $this->_helper->layout()->autoRefreshForm = $form;
+    }
+
+    /**
      * Detect whether the current request requires changes in the layout and apply them before rendering
      *
      * @see Zend_Controller_Action::postDispatch()
@@ -399,10 +424,13 @@ class ActionController extends Zend_Controller_Action
                     $layout->benchmark = $this->renderBenchmark();
                 }
             }
+
+            if ((bool) $user->getPreferences()->getValue('icingaweb', 'auto_refresh', true) === false) {
+                $this->disableAutoRefresh();
+            }
         }
 
         if ($req->getParam('format') === 'pdf') {
-            $layout->setLayout('pdf');
             $this->shutdownSession();
             $this->sendAsPdf();
             exit;

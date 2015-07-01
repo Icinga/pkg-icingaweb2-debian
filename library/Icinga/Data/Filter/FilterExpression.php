@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Data\Filter;
 
@@ -12,7 +12,6 @@ class FilterExpression extends Filter
     public function __construct($column, $sign, $expression)
     {
         $column = trim($column);
-        $expression = is_array($expression) ? array_map('trim', $expression) : trim($expression);
         $this->column = $column;
         $this->sign = $sign;
         $this->expression = $expression;

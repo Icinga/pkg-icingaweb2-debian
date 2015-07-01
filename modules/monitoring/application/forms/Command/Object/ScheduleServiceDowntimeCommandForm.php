@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Forms\Command\Object;
 
@@ -25,29 +25,26 @@ class ScheduleServiceDowntimeCommandForm extends ObjectsCommandForm
     const FLEXIBLE = 'flexible';
 
     /**
-     * (non-PHPDoc)
-     * @see \Icinga\Web\Form::getSubmitLabel() For the method documentation.
+     * Initialize this form
      */
-    public function getSubmitLabel()
+    public function init()
     {
-        return mtp(
-            'monitoring', 'Schedule downtime', 'Schedule downtimes', count($this->objects)
-        );
-    }
-
-    /**
-     * (non-PHPDoc)
-     * @see \Icinga\Module\Monitoring\Forms\Command\CommandForm::getHelp() For the method documentation.
-     */
-    public function getHelp()
-    {
-        return $this->translate(
+        $this->addDescription($this->translate(
             'This command is used to schedule host and service downtimes. During the specified downtime,'
             . ' Icinga will not send notifications out about the hosts and services. When the scheduled'
             . ' downtime expires, Icinga will send out notifications for the hosts and services as it'
             . ' normally would. Scheduled downtimes are preserved across program shutdowns and'
             . ' restarts.'
-        );
+        ));
+    }
+
+    /**
+     * (non-PHPDoc)
+     * @see \Icinga\Web\Form::getSubmitLabel() For the method documentation.
+     */
+    public function getSubmitLabel()
+    {
+        return $this->translatePlural('Schedule downtime', 'Schedule downtimes', count($this->objects));
     }
 
     /**
@@ -206,8 +203,7 @@ class ScheduleServiceDowntimeCommandForm extends ObjectsCommandForm
             $downtime->setObject($object);
             $this->scheduleDowntime($downtime, $this->request);
         }
-        Notification::success(mtp(
-            'monitoring',
+        Notification::success($this->translatePlural(
             'Scheduling service downtime..',
             'Scheduling service downtimes..',
             count($this->objects)

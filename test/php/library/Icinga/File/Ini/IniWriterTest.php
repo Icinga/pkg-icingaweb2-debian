@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Tests\Icinga\Config;
 
@@ -521,11 +521,9 @@ EOD
 key1                = "1"
 key2                = "2"
 
-
 [two]
 a.b                 = "c"
 d.e                 = "f"
-
 
 [three]
 key                 = "value"
@@ -537,11 +535,9 @@ EOD;
 key                 = "value"
 foo.bar             = "raboof"
 
-
 [two]
 a.b                 = "c"
 d.e                 = "f"
-
 
 [one]
 key1                = "1"
@@ -589,7 +585,6 @@ EOD;
 ; comment 1
 [one]
 
-
 ; comment 2
 [two]
 EOD;
@@ -597,7 +592,6 @@ EOD;
         $reverted = <<<'EOD'
 ; comment 2
 [two]
-
 
 ; comment 1
 [one]
@@ -637,8 +631,8 @@ EOD;
         );
 
         $this->assertEquals(
-            $config,
-            $writer->render(),
+            trim($config),
+            trim($writer->render()),
             'IniWriter does not preserve comments on empty lines'
         );
     }
@@ -667,8 +661,8 @@ EOD;
         );
 
         $this->assertEquals(
-            $config,
-            $writer->render(),
+            trim($config),
+            trim($writer->render()),
             'IniWriter does not preserve comments on property lines'
         );
     }
@@ -686,8 +680,8 @@ EOD;
         );
 
         $this->assertEquals(
-            $config,
-            $writer->render(),
+            trim($config),
+            trim($writer->render()),
             'IniWriter does not preserve comments on empty section lines'
         );
     }
@@ -719,14 +713,42 @@ EOD;
         );
 
         $this->assertEquals(
-            $config,
-            $writer->render(),
+            trim($config),
+            trim($writer->render()),
             'IniWriter does not preserve comments on property lines'
         );
     }
 
+    public function testWhetherLinebreaksAreRemoved()
+    {
+        $target = $this->writeConfigToTemporaryFile('');
+        $writer = new IniWriter(
+            array(
+                'config' => Config::fromArray(
+                    array(
+                        'section' => array(
+                            'foo' => 'linebreak
+in line',
+                            'linebreak
+inkey' => 'blarg'
+                        )
+                    )
+                ),
+                'filename' => $target
+            )
+        );
+
+        $rendered = $writer->render();
+        var_dump($rendered);
+        $this->assertEquals(
+            count(explode("\n", $rendered)),
+            4,
+            'generated config should not contain more than three line breaks'
+        );
+    }
+
     /**
-     * Write a INI-configuration string to a temporary file and return it's path
+     * Write a INI-configuration string to a temporary file and return its path
      *
      * @param   string      $config     The config string to write
      *

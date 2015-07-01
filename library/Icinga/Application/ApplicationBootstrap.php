@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Application;
 
@@ -12,7 +12,6 @@ use Icinga\Data\ResourceFactory;
 use Icinga\Exception\ConfigurationError;
 use Icinga\Exception\NotReadableError;
 use Icinga\Application\Logger;
-use Icinga\Util\DateTimeFactory;
 use Icinga\Util\Translator;
 use Icinga\Exception\IcingaException;
 
@@ -115,7 +114,7 @@ abstract class ApplicationBootstrap
     /**
      * Whether Icinga Web 2 requires setup
      *
-     * @type bool
+     * @var bool
      */
     protected $requiresSetup = false;
 
@@ -135,17 +134,19 @@ abstract class ApplicationBootstrap
         $this->vendorDir = $baseDir . '/library/vendor';
         $this->libDir = realpath(__DIR__ . '/../..');
 
+        $this->setupAutoloader();
+
         if ($configDir === null) {
             if (array_key_exists('ICINGAWEB_CONFIGDIR', $_SERVER)) {
                 $configDir = $_SERVER['ICINGAWEB_CONFIGDIR'];
             } else {
-                $configDir = '/etc/icingaweb2';
+                $configDir = Platform::isWindows()
+                    ? $baseDir . '/config'
+                    : '/etc/icingaweb2';
             }
         }
         $canonical = realpath($configDir);
         $this->configDir = $canonical ? $canonical : $configDir;
-
-        $this->setupAutoloader();
 
         set_include_path(
             implode(
@@ -506,12 +507,21 @@ abstract class ApplicationBootstrap
     protected function setupLogger()
     {
         if ($this->config->hasSection('logging')) {
+            $loggingConfig = $this->config->getSection('logging');
+
             try {
-                Logger::create($this->config->getSection('logging'));
+                Logger::create($loggingConfig);
             } catch (ConfigurationError $e) {
-                Logger::error($e);
+                Logger::getInstance()->registerConfigError($e->getMessage());
+
+                try {
+                    Logger::getInstance()->setLevel($loggingConfig->get('level', Logger::ERROR));
+                } catch (ConfigurationError $e) {
+                    Logger::getInstance()->registerConfigError($e->getMessage());
+                }
             }
         }
+
         return $this;
     }
 
@@ -559,7 +569,6 @@ abstract class ApplicationBootstrap
                 date_default_timezone_set($timezone);
             }
         }
-        DateTimeFactory::setConfig(array('timezone' => $timezone));
         return $this;
     }
 

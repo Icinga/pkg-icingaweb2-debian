@@ -1,12 +1,13 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Util;
 
 /**
  * Provide functions to change and convert colors.
  */
-class Color {
+class Color
+{
     /**
      * Convert a given color string to an rgb-array containing
      * each color as a decimal value.

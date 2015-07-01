@@ -1,10 +1,9 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Data;
 
 use Icinga\Application\Config;
-use Icinga\Exception\ProgrammingError;
 use Icinga\Util\ConfigAwareFactory;
 use Icinga\Exception\ConfigurationError;
 use Icinga\Data\Db\DbConnection;
@@ -70,13 +69,13 @@ class ResourceFactory implements ConfigAwareFactory
     /**
      * Check if the existing resources are set. If not, throw an error.
      *
-     * @throws ProgrammingError
+     * @throws  ConfigurationError
      */
     private static function assertResourcesExist()
     {
-        if (!isset(self::$resources)) {
-            throw new ProgrammingError(
-                'The ResourceFactory must be initialised by setting a config, before it can be used'
+        if (self::$resources === null) {
+            throw new ConfigurationError(
+                'Resources not set up. Please contact your Icinga Web administrator'
             );
         }
     }

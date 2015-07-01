@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Object;
 
@@ -7,7 +7,7 @@ use InvalidArgumentException;
 use Icinga\Module\Monitoring\Backend\MonitoringBackend;
 
 /**
- * A Icinga host
+ * An Icinga host
  */
 class Host extends MonitoredObject
 {
@@ -89,54 +89,55 @@ class Host extends MonitoredObject
     protected function getDataView()
     {
         $columns = array(
-            'host_name',
-            'host_display_name',
-            'host_alias',
-            'host_address',
-            'host_state',
-            'host_state_type',
-            'host_handled',
-            'host_in_downtime',
+            'host_icon_image',
+            'host_icon_image_alt',
             'host_acknowledged',
-            'host_last_state_change',
-            'host_last_notification',
-            'host_last_check',
-            'host_next_check',
+            'host_action_url',
+            'host_active_checks_enabled',
+            'host_active_checks_enabled_changed',
+            'host_address',
+            'host_alias',
+            'host_check_command',
             'host_check_execution_time',
             'host_check_latency',
             'host_check_source',
-            'host_output',
-            'host_long_output',
-            'host_check_command',
-            'host_perfdata',
-            'host_passive_checks_enabled',
-            'host_passive_checks_enabled_changed',
-            'host_obsessing',
-            'host_obsessing_changed',
-            'host_notifications_enabled',
-            'host_notifications_enabled_changed',
+            'host_current_check_attempt',
+            'host_current_notification_number',
+            'host_display_name',
             'host_event_handler_enabled',
             'host_event_handler_enabled_changed',
             'host_flap_detection_enabled',
             'host_flap_detection_enabled_changed',
-            'host_active_checks_enabled',
-            'host_active_checks_enabled_changed',
-            'host_current_check_attempt',
-            'host_max_check_attempts',
-            'host_current_notification_number',
-            'host_percent_state_change',
+            'host_handled',
+            'host_in_downtime',
             'host_is_flapping',
-            'host_action_url',
+            'host_is_reachable',
+            'host_last_check',
+            'host_last_notification',
+            'host_last_state_change',
+            'host_long_output',
+            'host_max_check_attempts',
+            'host_name',
+            'host_next_check',
+            'host_notes',
             'host_notes_url',
-            'host_modified_host_attributes',
-            'host_problem',
-            'host_process_performance_data',
-            'process_perfdata' => 'host_process_performance_data'
+            'host_notifications_enabled',
+            'host_notifications_enabled_changed',
+            'host_obsessing',
+            'host_obsessing_changed',
+            'host_output',
+            'host_passive_checks_enabled',
+            'host_passive_checks_enabled_changed',
+            'host_percent_state_change',
+            'host_perfdata',
+            'host_process_perfdata' => 'host_process_performance_data',
+            'host_state',
+            'host_state_type'
         );
         if ($this->backend->getType() === 'livestatus') {
             $columns[] = 'host_contacts';
         }
-        return $this->backend->select()->from('hostStatus', $columns)
+        return $this->backend->select()->from('hoststatus', $columns)
             ->where('host_name', $this->host);
     }
 
@@ -148,10 +149,10 @@ class Host extends MonitoredObject
     public function fetchServices()
     {
         $services = array();
-        foreach ($this->backend->select()->from('serviceStatus', array('service_description'))
+        foreach ($this->backend->select()->from('servicestatus', array('service_description'))
                 ->where('host_name', $this->host)
-                ->getQuery()
-                ->fetchAll() as $service) {
+                ->applyFilter($this->getFilter())
+                ->getQuery() as $service) {
             $services[] = new Service($this->backend, $this->host, $service->service_description);
         }
         $this->services = $services;
@@ -187,5 +188,17 @@ class Host extends MonitoredObject
                 throw new InvalidArgumentException('Invalid host state \'%s\'', $state);
         }
         return $text;
+    }
+
+    public function getNotesUrls()
+    {
+        return $this->resolveAllStrings(
+            MonitoredObject::parseAttributeUrls($this->host_notes_url)
+        );
+    }
+
+    public function getNotes()
+    {
+        return $this->host_notes;
     }
 }

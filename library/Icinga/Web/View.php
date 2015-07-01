@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web;
 
@@ -39,7 +39,7 @@ class View extends Zend_View_Abstract
     /**
      * Authentication manager
      *
-     * @type \Icinga\Authentication\Manager|null
+     * @var \Icinga\Authentication\Manager|null
      */
     private $auth;
 
@@ -104,7 +104,7 @@ class View extends Zend_View_Abstract
      *
      * @param  string  $name     The desired function name
      * @param  Closure $function An anonymous function
-     * @return self
+     * @return $this
      */
     public function addHelperFunction($name, Closure $function)
     {

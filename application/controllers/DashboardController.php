@@ -1,7 +1,6 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
-use \Exception;
 use Icinga\Exception\ProgrammingError;
 use Icinga\Forms\ConfirmRemovalForm;
 use Icinga\Forms\Dashboard\DashletForm;
@@ -66,6 +65,7 @@ class DashboardController extends ActionController
             Notification::success(t('Dashlet created'));
             return true;
         });
+        $form->setTitle($this->translate('Add Dashlet To Dashboard'));
         $form->setRedirectUrl('dashboard');
         $form->handleRequest();
         $this->view->form = $form;
@@ -77,7 +77,7 @@ class DashboardController extends ActionController
         $dashboard = $this->dashboard;
         $form = new DashletForm();
         $form->setDashboard($dashboard);
-        $form->setSubmitLabel(t('Update Dashlet'));
+        $form->setSubmitLabel($this->translate('Update Dashlet'));
         if (! $this->_request->getParam('pane')) {
             throw new Zend_Controller_Action_Exception(
                 'Missing parameter "pane"',
@@ -128,6 +128,7 @@ class DashboardController extends ActionController
             Notification::success(t('Dashlet updated'));
             return true;
         });
+        $form->setTitle($this->translate('Edit Dashlet'));
         $form->setRedirectUrl('dashboard/settings');
         $form->handleRequest();
         $pane = $dashboard->getPane($this->getParam('pane'));
@@ -176,6 +177,7 @@ class DashboardController extends ActionController
             }
             return false;
         });
+        $form->setTitle($this->translate('Remove Dashlet From Dashboard'));
         $form->setRedirectUrl('dashboard/settings');
         $form->handleRequest();
         $this->view->pane = $pane;
@@ -215,6 +217,7 @@ class DashboardController extends ActionController
             }
             return false;
         });
+        $form->setTitle($this->translate('Remove Dashboard'));
         $form->setRedirectUrl('dashboard/settings');
         $form->handleRequest();
         $this->view->pane = $pane;
@@ -249,8 +252,9 @@ class DashboardController extends ActionController
                 $this->view->tabs->add(
                     'Add',
                     array(
-                        'title' => '+',
-                        'url' => Url::fromPath('dashboard/new-dashlet')
+                        'label' => '+',
+                        'title' => 'Add a dashlet to an existing or new dashboard',
+                        'url'   => Url::fromPath('dashboard/new-dashlet')
                     )
                 );
                 $this->view->dashboard = $this->dashboard;

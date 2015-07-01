@@ -1,10 +1,10 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 use Icinga\Web\Notification;
 use Icinga\Data\ResourceFactory;
 use Icinga\Forms\ConfirmRemovalForm;
-use Icinga\Web\Controller\ModuleActionController;
+use Icinga\Web\Controller;
 use Icinga\Module\Monitoring\Forms\Config\BackendConfigForm;
 use Icinga\Module\Monitoring\Forms\Config\InstanceConfigForm;
 use Icinga\Module\Monitoring\Forms\Config\SecurityConfigForm;
@@ -12,7 +12,7 @@ use Icinga\Module\Monitoring\Forms\Config\SecurityConfigForm;
 /**
  * Configuration controller for editing monitoring resources
  */
-class Monitoring_ConfigController extends ModuleActionController
+class Monitoring_ConfigController extends Controller
 {
     /**
      * Display a list of available backends and instances
@@ -30,6 +30,7 @@ class Monitoring_ConfigController extends ModuleActionController
     public function editbackendAction()
     {
         $form = new BackendConfigForm();
+        $form->setTitle($this->translate('Edit Existing Backend'));
         $form->setIniConfig($this->Config('backends'));
         $form->setResourceConfig(ResourceFactory::getResourceConfigs());
         $form->setRedirectUrl('monitoring/config');
@@ -44,6 +45,7 @@ class Monitoring_ConfigController extends ModuleActionController
     public function createbackendAction()
     {
         $form = new BackendConfigForm();
+        $form->setTitle($this->translate('Add New Backend'));
         $form->setIniConfig($this->Config('backends'));
         $form->setResourceConfig(ResourceFactory::getResourceConfigs());
         $form->setRedirectUrl('monitoring/config');
@@ -72,12 +74,16 @@ class Monitoring_ConfigController extends ModuleActionController
                 }
 
                 if ($configForm->save()) {
-                    Notification::success(sprintf(mt('monitoring', 'Backend "%s" successfully removed.'), $backendName));
+                    Notification::success(sprintf(
+                        $this->translate('Backend "%s" successfully removed.'),
+                        $backendName
+                    ));
                 } else {
                     return false;
                 }
             }
         ));
+        $form->setTitle($this->translate('Remove Existing Backend'));
         $form->setRedirectUrl('monitoring/config');
         $form->handleRequest();
 
@@ -104,12 +110,31 @@ class Monitoring_ConfigController extends ModuleActionController
                 }
 
                 if ($configForm->save()) {
-                    Notification::success(sprintf(mt('monitoring', 'Instance "%s" successfully removed.'), $instanceName));
+                    Notification::success(sprintf(
+                        $this->translate('Instance "%s" successfully removed.'),
+                        $instanceName
+                    ));
                 } else {
                     return false;
                 }
             }
         ));
+        $form->setTitle($this->translate('Remove Existing Instance'));
+        $form->addDescription($this->translate(
+            'If you have still any environments or views referring to this instance, '
+            . 'you won\'t be able to send commands anymore after deletion.'
+        ));
+        $form->addElement(
+            'note',
+            'question',
+            array(
+                'value'         => $this->translate('Are you sure you want to remove this instance?'),
+                'decorators'    => array(
+                    'ViewHelper',
+                    array('HtmlTag', array('tag' => 'p'))
+                )
+            )
+        );
         $form->setRedirectUrl('monitoring/config');
         $form->handleRequest();
 
@@ -122,6 +147,7 @@ class Monitoring_ConfigController extends ModuleActionController
     public function editinstanceAction()
     {
         $form = new InstanceConfigForm();
+        $form->setTitle($this->translate('Edit Existing Instance'));
         $form->setIniConfig($this->Config('instances'));
         $form->setRedirectUrl('monitoring/config');
         $form->handleRequest();
@@ -135,6 +161,7 @@ class Monitoring_ConfigController extends ModuleActionController
     public function createinstanceAction()
     {
         $form = new InstanceConfigForm();
+        $form->setTitle($this->translate('Add New Instance'));
         $form->setIniConfig($this->Config('instances'));
         $form->setRedirectUrl('monitoring/config');
         $form->handleRequest();

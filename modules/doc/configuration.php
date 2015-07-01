@@ -1,13 +1,13 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
-/** @type $this \Icinga\Application\Modules\Module */
+/** @var $this \Icinga\Application\Modules\Module */
 
 $section = $this->menuSection($this->translate('Documentation'), array(
     'title'    => 'Documentation',
     'icon'     => 'book',
     'url'      => 'doc',
-    'priority' => 190
+    'priority' => 700
 ));
 
 $section->add('Icinga Web 2', array(
@@ -18,5 +18,7 @@ $section->add('Module documentations', array(
 ));
 $section->add($this->translate('Developer - Style'), array(
     'url' => 'doc/style/guide',
-    'priority' => 200,
+    'priority' => 790
 ));
+
+$this->provideSearchUrl($this->translate('Doc'), 'doc/search', -10);

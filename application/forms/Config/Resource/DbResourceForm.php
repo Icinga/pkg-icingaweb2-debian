@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Forms\Config\Resource;
 
@@ -49,6 +49,7 @@ class DbResourceForm extends Form
             'db',
             array(
                 'required'      => true,
+                'autosubmit'    => true,
                 'label'         => $this->translate('Database Type'),
                 'description'   => $this->translate('The type of SQL database'),
                 'multiOptions'  => $dbChoices
@@ -68,10 +69,11 @@ class DbResourceForm extends Form
             'number',
             'port',
             array(
-                'required'      => true,
-                'label'         => $this->translate('Port'),
-                'description'   => $this->translate('The port to use'),
-                'value'         => 3306
+                'required'          => true,
+                'preserveDefault'   => true,
+                'label'             => $this->translate('Port'),
+                'description'       => $this->translate('The port to use'),
+                'value'             => ! array_key_exists('db', $formData) || $formData['db'] === 'mysql' ? 3306 : 5432
             )
         );
         $this->addElement(

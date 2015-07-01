@@ -1,7 +1,7 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
-/** @type $this \Icinga\Application\Modules\Module */
+/** @var $this \Icinga\Application\Modules\Module */
 
 $this->providePermission(
     'monitoring/command/*',
@@ -55,23 +55,24 @@ $this->providePermission(
     'monitoring/command/feature/object',
     $this->translate('Allow processing commands for toggling features on host and service objects')
 );
-
-$this->provideRestriction(
-    'monitoring/hosts/filter',
-    $this->translate('Restrict hosts view to the hosts that match the filter')
+$this->providePermission(
+    'monitoring/command/send-custom-notification',
+    $this->translate('Allow sending custom notifications for hosts and services')
 );
 
 $this->provideRestriction(
-    'monitoring/services/filter',
-    $this->translate('Restrict services view to the services that match the filter')
+    'monitoring/filter/objects',
+    $this->translate('Restrict views to the Icinga objects that match the filter')
 );
 
 $this->provideConfigTab('backends', array(
-    'title' => 'Backends',
+    'title' => $this->translate('Configure how to retrieve monitoring information'),
+    'label' => $this->translate('Backends'),
     'url' => 'config'
 ));
 $this->provideConfigTab('security', array(
-    'title' => 'Security',
+    'title' => $this->translate('Configure how to protect your monitoring environment against prying eyes'),
+    'label' => $this->translate('Security'),
     'url' => 'config/security'
 ));
 $this->provideSetupWizard('Icinga\Module\Monitoring\MonitoringWizard');
@@ -79,26 +80,26 @@ $this->provideSetupWizard('Icinga\Module\Monitoring\MonitoringWizard');
 /*
  * Available Search Urls
  */
-$this->provideSearchUrl($this->translate('Hosts'), 'monitoring/list/hosts?sort=host_severity&limit=10');
-$this->provideSearchUrl($this->translate('Services'), 'monitoring/list/services?sort=service_severity&limit=10');
-$this->provideSearchUrl($this->translate('Hostgroups'), 'monitoring/list/hostgroups?limit=10');
-$this->provideSearchUrl($this->translate('Servicegroups'), 'monitoring/list/servicegroups?limit=10');
+$this->provideSearchUrl($this->translate('Hosts'), 'monitoring/list/hosts?sort=host_severity&limit=10', 99);
+$this->provideSearchUrl($this->translate('Services'), 'monitoring/list/services?sort=service_severity&limit=10', 98);
+$this->provideSearchUrl($this->translate('Hostgroups'), 'monitoring/list/hostgroups?limit=10', 97);
+$this->provideSearchUrl($this->translate('Servicegroups'), 'monitoring/list/servicegroups?limit=10', 96);
 
 /*
  * Problems Section
  */
 $section = $this->menuSection($this->translate('Problems'), array(
-    'renderer'  => 'ProblemMenuItemRenderer',
+    'renderer'  => 'Icinga\Module\Monitoring\Web\Menu\ProblemMenuItemRenderer',
     'icon'      => 'block',
     'priority'  => 20
 ));
 $section->add($this->translate('Unhandled Hosts'), array(
-    'renderer'  => 'UnhandledHostMenuItemRenderer',
+    'renderer'  => 'Icinga\Module\Monitoring\Web\Menu\UnhandledHostMenuItemRenderer',
     'url'       => 'monitoring/list/hosts?host_problem=1&host_handled=0',
     'priority'  => 30
 ));
 $section->add($this->translate('Unhandled Services'), array(
-    'renderer'  => 'UnhandledServiceMenuItemRenderer',
+    'renderer'  => 'Icinga\Module\Monitoring\Web\Menu\UnhandledServiceMenuItemRenderer',
     'url'       => 'monitoring/list/services?service_problem=1&service_handled=0&sort=service_severity',
     'priority'  => 40
 ));
@@ -202,7 +203,8 @@ $section->add($this->translate('Alert Summary'), array(
 $section = $this->menuSection($this->translate('System'));
 $section->add($this->translate('Monitoring Health'), array(
     'url'      => 'monitoring/process/info',
-    'priority' => 120
+    'priority' => 720,
+    'renderer'  => 'Icinga\Module\Monitoring\Web\Menu\BackendAvailabilityMenuItemRenderer'
 ));
 
 /*

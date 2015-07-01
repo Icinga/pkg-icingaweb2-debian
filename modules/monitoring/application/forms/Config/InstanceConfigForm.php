@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Forms\Config;
 
@@ -60,7 +60,7 @@ class InstanceConfigForm extends ConfigForm
      *
      * @param   array   $values             The values to extend the configuration with
      *
-     * @return  self
+     * @return  $this
      *
      * @throws  InvalidArgumentException    In case the resource already exists
      */
@@ -143,6 +143,11 @@ class InstanceConfigForm extends ConfigForm
 
             $instanceConfig = $this->config->getSection($instanceName)->toArray();
             $instanceConfig['name'] = $instanceName;
+
+            if (isset($instanceConfig['resource'])) {
+                $instanceConfig['use_resource'] = true;
+            }
+
             $this->populate($instanceConfig);
         }
     }

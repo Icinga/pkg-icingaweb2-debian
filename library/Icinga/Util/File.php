@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Util;
 
@@ -63,7 +63,7 @@ class File extends SplFileObject
             throw new NotWritableError(sprintf('Path "%s" is not writable', $dirPath));
         }
 
-        $file = new static($path, 'x');
+        $file = new static($path, 'x+');
 
         if (! @chmod($path, $accessMode)) {
             $error = error_get_last();

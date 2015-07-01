@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 /**
  * Helper for generating frequently used jump links
@@ -32,7 +32,9 @@ class Zend_View_Helper_Link extends Zend_View_Helper_Abstract
     {
         return $this->view->qlink(
             $linkText,
-            $this->view->href('monitoring/host/show', array('host' => $host))
+            'monitoring/host/show',
+            array('host' => $host),
+            array('title' => sprintf($this->view->translate('Show detailed information for host %s'), $host))
         );
     }
 
@@ -49,12 +51,18 @@ class Zend_View_Helper_Link extends Zend_View_Helper_Abstract
     public function service($service, $serviceLinkText, $host, $hostLinkText)
     {
         return sprintf(
-            $this->view->translate('%s on %s', 'Service running on host'),
+            '%s: %s',
+            $this->host($host, $hostLinkText),
             $this->view->qlink(
                 $serviceLinkText,
-                $this->view->href('monitoring/service/show', array('host' => $host, 'service' => $service))
-            ),
-            $this->host($host, $hostLinkText)
+                'monitoring/service/show',
+                array('host' => $host, 'service' => $service),
+                array('title' => sprintf(
+                    $this->view->translate('Show detailed information for service %s on host %s'),
+                    $service,
+                    $host
+                ))
+            )
         );
     }
 }

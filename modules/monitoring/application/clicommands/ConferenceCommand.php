@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Clicommands;
 
@@ -20,7 +20,7 @@ class ConferenceCommand extends Command
      * Use this command in case you feel that you should be friendly. Should
      * be executed as follows:
      *
-     * icingacli monitoring conference welcome --watch 1
+     * icingacli monitoring conference welcome --watch=1
      */
     public function welcomeAction()
     {

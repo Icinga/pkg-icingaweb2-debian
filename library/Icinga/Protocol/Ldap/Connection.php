@@ -1,14 +1,17 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Protocol\Ldap;
 
-use Exception;
-use Icinga\Protocol\Ldap\Exception as LdapException;
-use Icinga\Application\Platform;
+use ArrayIterator;
 use Icinga\Application\Config;
 use Icinga\Application\Logger;
+use Icinga\Application\Platform;
 use Icinga\Data\ConfigObject;
+use Icinga\Data\Selectable;
+use Icinga\Data\Sortable;
+use Icinga\Exception\ProgrammingError;
+use Icinga\Protocol\Ldap\Exception as LdapException;
 
 /**
  * Backend class managing all the LDAP stuff for you.
@@ -23,14 +26,34 @@ use Icinga\Data\ConfigObject;
  *     'bind_pw'  => '***'
  * ));
  * </code>
- *
- * @copyright  Copyright (c) 2013 Icinga-Web Team <info@icinga.org>
- * @author     Icinga-Web Team <info@icinga.org>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License
  */
-class Connection
+class Connection implements Selectable
 {
-    const LDAP_NO_SUCH_OBJECT = 0x20;
+    const LDAP_NO_SUCH_OBJECT = 32;
+    const LDAP_SIZELIMIT_EXCEEDED = 4;
+    const LDAP_ADMINLIMIT_EXCEEDED = 11;
+    const PAGE_SIZE = 1000;
+
+    /**
+     * Encrypt connection using STARTTLS (upgrading a plain text connection)
+     *
+     * @var string
+     */
+    const STARTTLS = 'starttls';
+
+    /**
+     * Encrypt connection using LDAP over SSL (using a separate port)
+     *
+     * @var string
+     */
+    const LDAPS = 'ldaps';
+
+    /**
+     * Encryption for the connection if any
+     *
+     * @var string|null
+     */
+    protected $encryption;
 
     protected $ds;
     protected $hostname;
@@ -39,47 +62,7 @@ class Connection
     protected $bind_pw;
     protected $root_dn;
     protected $count;
-
-    protected $ldap_extension = array(
-        '1.3.6.1.4.1.1466.20037' => 'STARTTLS',
-        // '1.3.6.1.4.1.4203.1.11.1' => '11.1', // PASSWORD_MODIFY
-        // '1.3.6.1.4.1.4203.1.11.3' => '11.3', // Whoami
-        // '1.3.6.1.1.8' => '8', // Cancel Extended Request
-    );
-
-    protected $ms_capability = array(
-        // Prefix LDAP_CAP_
-        // Source: http://msdn.microsoft.com/en-us/library/cc223359.aspx
-
-        // Running Active Directory as AD DS:
-        '1.2.840.113556.1.4.800'  => 'ACTIVE_DIRECTORY_OID',
-
-        // Capable of signing and sealing on an NTLM authenticated connection
-        // and of performing subsequent binds on a signed or sealed connection.
-        '1.2.840.113556.1.4.1791' => 'ACTIVE_DIRECTORY_LDAP_INTEG_OID',
-
-        // If AD DS: running at least W2K3, if AD LDS running at least W2K8
-        '1.2.840.113556.1.4.1670' => 'ACTIVE_DIRECTORY_V51_OID',
-
-        // If AD LDS: accepts DIGEST-MD5 binds for AD LDSsecurity principals
-        '1.2.840.113556.1.4.1880' => 'ACTIVE_DIRECTORY_ADAM_DIGEST',
-
-        // Running Active Directory as AD LDS
-        '1.2.840.113556.1.4.1851' => 'ACTIVE_DIRECTORY_ADAM_OID',
-
-        // If AD DS: it's a Read Only DC (RODC)
-        '1.2.840.113556.1.4.1920' => 'ACTIVE_DIRECTORY_PARTIAL_SECRETS_OID',
-
-        // Running at least W2K8
-        '1.2.840.113556.1.4.1935' => 'ACTIVE_DIRECTORY_V60_OID',
-
-        // Running at least W2K8r2
-        '1.2.840.113556.1.4.2080' => 'ACTIVE_DIRECTORY_V61_R2_OID',
-
-        // Running at least W2K12
-        '1.2.840.113556.1.4.2237' => 'ACTIVE_DIRECTORY_W8_OID',
-
-    );
+    protected $reqCert = true;
 
     /**
      * Whether the bind on this connection was already performed
@@ -90,20 +73,18 @@ class Connection
 
     protected $root;
 
-    protected $supports_v3  = false;
-    protected $supports_tls = false;
-
+    /**
+     * @var Capability
+     */
     protected $capabilities;
-    protected $namingContexts;
-    protected $discoverySuccess = false;
 
-    protected $lastResult;
-    protected $pageCookie;
+    /**
+     * @var bool
+     */
+    protected $discoverySuccess = false;
 
     /**
      * Constructor
-     *
-     * TODO: Allow to pass port and SSL options
      *
      * @param ConfigObject $config
      */
@@ -114,6 +95,11 @@ class Connection
         $this->bind_pw  = $config->bind_pw;
         $this->root_dn  = $config->root_dn;
         $this->port = $config->get('port', $this->port);
+        $this->encryption = $config->get('encryption');
+        if ($this->encryption !== null) {
+            $this->encryption = strtolower($this->encryption);
+        }
+        $this->reqCert = (bool) $config->get('reqcert', $this->reqCert);
     }
 
     public function getHostname()
@@ -139,9 +125,19 @@ class Connection
         return $this->root;
     }
 
+    /**
+     * Provide a query on this connection
+     *
+     * @return  Query
+     */
     public function select()
     {
         return new Query($this);
+    }
+
+    public function query(Query $query)
+    {
+        return new ArrayIterator($this->fetchAll($query));
     }
 
     public function fetchOne($query, $fields = array())
@@ -170,11 +166,9 @@ class Connection
                 return false;
             }
             throw new LdapException(
-                sprintf(
-                    'LDAP list for "%s" failed: %s',
-                    $dn,
-                    ldap_error($this->ds)
-                )
+                'LDAP list for "%s" failed: %s',
+                $dn,
+                ldap_error($this->ds)
             );
         }
         $children = ldap_get_entries($this->ds, $result);
@@ -182,7 +176,7 @@ class Connection
             $result = $this->deleteRecursively($children[$i]['dn']);
             if (!$result) {
                 //return result code, if delete fails
-                throw new LdapException(sprintf('Recursively deleting "%s" failed', $dn));
+                throw new LdapException('Recursively deleting "%s" failed', $dn);
             }
         }
         return $this->deleteDN($dn);
@@ -199,11 +193,9 @@ class Connection
                 return false;
             }
             throw new LdapException(
-                sprintf(
-                    'LDAP delete for "%s" failed: %s',
-                    $dn,
-                    ldap_error($this->ds)
-                )
+                'LDAP delete for "%s" failed: %s',
+                $dn,
+                ldap_error($this->ds)
             );
         }
 
@@ -219,15 +211,13 @@ class Connection
      * @return string        Returns the distinguished name, or false when the given query yields no results
      * @throws LdapException When the query result is empty and contains no DN to fetch
      */
-    public function fetchDN(Query $query, $fields = array())
+    public function fetchDn(Query $query, $fields = array())
     {
         $rows = $this->fetchAll($query, $fields);
-        if (count($rows) !== 1) {
+        if (count($rows) > 1) {
             throw new LdapException(
-                sprintf(
-                    'Cannot fetch single DN for %s',
-                    $query->create()
-                )
+                'Cannot fetch single DN for %s',
+                $query
             );
         }
         return key($rows);
@@ -243,6 +233,7 @@ class Connection
     {
         $query = clone $query;
         $query->limit(1);
+        $query->setUsePagedResults(false);
         $results = $this->fetchAll($query, $fields);
         return array_shift($results);
     }
@@ -257,14 +248,9 @@ class Connection
         $this->connect();
         $this->bind();
 
-        $count = 0;
-        $results = $this->runQuery($query);
-        while (! empty($results)) {
-            $count += ldap_count_entries($this->ds, $results);
-            $results = $this->runQuery($query);
-        }
-
-        return $count;
+        // TODO: That's still not the best solution, this should probably not request any attributes
+        $res = $this->runQuery($query);
+        return count($res);
     }
 
     public function fetchAll(Query $query, $fields = array())
@@ -272,122 +258,299 @@ class Connection
         $this->connect();
         $this->bind();
 
-        $offset = $limit = null;
-        if ($query->hasLimit()) {
-            $offset = $query->getOffset();
-            $limit = $query->getLimit();
+        if ($this->pageControlAvailable($query)) {
+            return $this->runPagedQuery($query, $fields);
+        } else {
+            return $this->runQuery($query, $fields);
+        }
+    }
+
+    /**
+     * Execute the given LDAP query and return the resulting entries
+     *
+     * @param Query $query      The query to execute
+     * @param array $fields     The fields that will be fetched from the matches
+     *
+     * @return array            The matched entries
+     * @throws LdapException
+     */
+    protected function runQuery(Query $query, array $fields = null)
+    {
+        $limit = $query->getLimit();
+        $offset = $query->hasOffset() ? $query->getOffset() - 1 : 0;
+
+        if (empty($fields)) {
+            $fields = $query->getColumns();
+        }
+
+        $serverSorting = false;//$this->capabilities->hasOid(Capability::LDAP_SERVER_SORT_OID);
+        if ($serverSorting && $query->hasOrder()) {
+            ldap_set_option($this->ds, LDAP_OPT_SERVER_CONTROLS, array(
+                array(
+                    'oid'           => Capability::LDAP_SERVER_SORT_OID,
+                    'value'         => $this->encodeSortRules($query->getOrder())
+                )
+            ));
+        }
+
+        $results = @ldap_search(
+            $this->ds,
+            $query->getBase() ?: $this->root_dn,
+            (string) $query,
+            array_values($fields),
+            0, // Attributes and values
+            $serverSorting && $limit ? $offset + $limit : 0
+        );
+        if ($results === false) {
+            if (ldap_errno($this->ds) === self::LDAP_NO_SUCH_OBJECT) {
+                return array();
+            }
+
+            throw new LdapException(
+                'LDAP query "%s" (base %s) failed. Error: %s',
+                $query,
+                $query->getBase() ?: $this->root_dn,
+                ldap_error($this->ds)
+            );
+        } elseif (ldap_count_entries($this->ds, $results) === 0) {
+            return array();
         }
 
         $count = 0;
         $entries = array();
-        $results = $this->runQuery($query, $fields);
-        while (! empty($results)) {
-            $entry = ldap_first_entry($this->ds, $results);
-            while ($entry) {
-                $count++;
-                if (
-                    ($offset === null || $offset <= $count)
-                    && ($limit === null || $limit > count($entries))
-                ) {
-                    $entries[ldap_get_dn($this->ds, $entry)] = $this->cleanupAttributes(
-                        ldap_get_attributes($this->ds, $entry)
+        $entry = ldap_first_entry($this->ds, $results);
+        do {
+            $count += 1;
+            if (! $serverSorting || $offset === 0 || $offset < $count) {
+                $entries[ldap_get_dn($this->ds, $entry)] = $this->cleanupAttributes(
+                    ldap_get_attributes($this->ds, $entry), array_flip($fields)
+                );
+            }
+        } while (
+            (! $serverSorting || $limit === 0 || $limit !== count($entries))
+            && ($entry = ldap_next_entry($this->ds, $entry))
+        );
+
+        if (! $serverSorting && $query->hasOrder()) {
+            uasort($entries, array($query, 'compare'));
+            if ($limit && $count > $limit) {
+                $entries = array_splice($entries, $query->hasOffset() ? $query->getOffset() : 0, $limit);
+            }
+        }
+
+        ldap_free_result($results);
+        return $entries;
+    }
+
+    /**
+     * Returns whether requesting the page control is available
+     */
+    protected function pageControlAvailable(Query $query)
+    {
+        return $this->capabilities->hasPagedResult() &&
+               $query->getUsePagedResults() &&
+               version_compare(PHP_VERSION, '5.4.0') >= 0;
+    }
+
+    /**
+     * Execute the given LDAP query while requesting pagination control to separate
+     * big responses into smaller chunks
+     *
+     * @param Query $query      The query to execute
+     * @param array $fields     The fields that will be fetched from the matches
+     * @param int   $pageSize   The maximum page size, defaults to Connection::PAGE_SIZE
+     *
+     * @return array            The matched entries
+     * @throws LdapException
+     * @throws ProgrammingError When executed without available page controls (check with pageControlAvailable() )
+     */
+    protected function runPagedQuery(Query $query, array $fields = null, $pageSize = null)
+    {
+        if (! isset($pageSize)) {
+            $pageSize = static::PAGE_SIZE;
+        }
+
+        $limit = $query->getLimit();
+        $offset = $query->hasOffset() ? $query->getOffset() - 1 : 0;
+        $queryString = (string) $query;
+        $base = $query->getBase() ?: $this->root_dn;
+
+        if (empty($fields)) {
+            $fields = $query->getColumns();
+        }
+
+        $serverSorting = false;//$this->capabilities->hasOid(Capability::LDAP_SERVER_SORT_OID);
+        if ($serverSorting && $query->hasOrder()) {
+            ldap_set_option($this->ds, LDAP_OPT_SERVER_CONTROLS, array(
+                array(
+                    'oid'           => Capability::LDAP_SERVER_SORT_OID,
+                    'value'         => $this->encodeSortRules($query->getOrder())
+                )
+            ));
+        }
+
+        $count = 0;
+        $cookie = '';
+        $entries = array();
+        do {
+            // do not set controlPageResult as a critical extension, since we still want the
+            // possibillity  server to return an answer in case the pagination extension is missing.
+            ldap_control_paged_result($this->ds, $pageSize, false, $cookie);
+
+            $results = @ldap_search(
+                $this->ds,
+                $base,
+                $queryString,
+                array_values($fields),
+                0, // Attributes and values
+                $serverSorting && $limit ? $offset + $limit : 0
+            );
+            if ($results === false) {
+                if (ldap_errno($this->ds) === self::LDAP_NO_SUCH_OBJECT) {
+                    break;
+                }
+
+                throw new LdapException(
+                    'LDAP query "%s" (base %s) failed. Error: %s',
+                    $queryString,
+                    $base,
+                    ldap_error($this->ds)
+                );
+            } elseif (ldap_count_entries($this->ds, $results) === 0) {
+                if (in_array(
+                    ldap_errno($this->ds),
+                    array(static::LDAP_SIZELIMIT_EXCEEDED, static::LDAP_ADMINLIMIT_EXCEEDED)
+                )) {
+                    Logger::warning(
+                        'Unable to request more than %u results. Does the server allow paged search requests? (%s)',
+                        $count,
+                        ldap_error($this->ds)
                     );
                 }
 
-                $entry = ldap_next_entry($this->ds, $entry);
+                break;
             }
 
-            $results = $this->runQuery($query, $fields);
+            $entry = ldap_first_entry($this->ds, $results);
+            do {
+                $count += 1;
+                if (! $serverSorting || $offset === 0 || $offset < $count) {
+                    $entries[ldap_get_dn($this->ds, $entry)] = $this->cleanupAttributes(
+                        ldap_get_attributes($this->ds, $entry), array_flip($fields)
+                    );
+                }
+            } while (
+                (! $serverSorting || $limit === 0 || $limit !== count($entries))
+                && ($entry = ldap_next_entry($this->ds, $entry))
+            );
+
+            if (false === @ldap_control_paged_result_response($this->ds, $results, $cookie)) {
+                // If the page size is greater than or equal to the sizeLimit value, the server should ignore the
+                // control as the request can be satisfied in a single page: https://www.ietf.org/rfc/rfc2696.txt
+                // This applies no matter whether paged search requests are permitted or not. You're done once you
+                // got everything you were out for.
+                if ($serverSorting && count($entries) !== $limit) {
+
+                    // The server does not support pagination, but still returned a response by ignoring the
+                    // pagedResultsControl. We output a warning to indicate that the pagination control was ignored.
+                    Logger::warning('Unable to request paged LDAP results. Does the server allow paged search requests?');
+                }
+            }
+
+            ldap_free_result($results);
+        } while ($cookie && (! $serverSorting || $limit === 0 || count($entries) < $limit));
+
+        if ($cookie) {
+            // A sequence of paged search requests is abandoned by the client sending a search request containing a
+            // pagedResultsControl with the size set to zero (0) and the cookie set to the last cookie returned by
+            // the server: https://www.ietf.org/rfc/rfc2696.txt
+            ldap_control_paged_result($this->ds, 0, false, $cookie);
+            ldap_search($this->ds, $base, $queryString); // Returns no entries, due to the page size
+        } else {
+            // Reset the paged search request so that subsequent requests succeed
+            ldap_control_paged_result($this->ds, 0);
+        }
+
+        if (! $serverSorting && $query->hasOrder()) {
+            uasort($entries, array($query, 'compare'));
+            if ($limit && $count > $limit) {
+                $entries = array_splice($entries, $query->hasOffset() ? $query->getOffset() : 0, $limit);
+            }
         }
 
         return $entries;
     }
 
-    protected function cleanupAttributes($attrs)
+    protected function cleanupAttributes($attributes, array $requestedFields)
     {
-        $clean = (object) array();
-        for ($i = 0; $i < $attrs['count']; $i++) {
-            $attr_name = $attrs[$i];
-            if ($attrs[$attr_name]['count'] === 1) {
-                $clean->$attr_name = $attrs[$attr_name][0];
+        // In case the result contains attributes with a differing case than the requested fields, it is
+        // necessary to create another array to map attributes case insensitively to their requested counterparts.
+        // This does also apply the virtual alias handling. (Since an LDAP server does not handle such)
+        $loweredFieldMap = array();
+        foreach ($requestedFields as $name => $alias) {
+            $loweredFieldMap[strtolower($name)] = is_string($alias) ? $alias : $name;
+        }
+
+        $cleanedAttributes = array();
+        for ($i = 0; $i < $attributes['count']; $i++) {
+            $attribute_name = $attributes[$i];
+            if ($attributes[$attribute_name]['count'] === 1) {
+                $attribute_value = $attributes[$attribute_name][0];
             } else {
-                for ($j = 0; $j < $attrs[$attr_name]['count']; $j++) {
-                    $clean->{$attr_name}[] = $attrs[$attr_name][$j];
+                $attribute_value = array();
+                for ($j = 0; $j < $attributes[$attribute_name]['count']; $j++) {
+                    $attribute_value[] = $attributes[$attribute_name][$j];
                 }
             }
+
+            $requestedAttributeName = isset($loweredFieldMap[strtolower($attribute_name)])
+                ? $loweredFieldMap[strtolower($attribute_name)]
+                : $attribute_name;
+            $cleanedAttributes[$requestedAttributeName] = $attribute_value;
         }
-        return $clean;
+
+        // The result may not contain all requested fields, so populate the cleaned
+        // result with the missing fields and their value being set to null
+        foreach ($requestedFields as $name => $alias) {
+            if (! is_string($alias)) {
+                $alias = $name;
+            }
+
+            if (! array_key_exists($alias, $cleanedAttributes)) {
+                $cleanedAttributes[$alias] = null;
+                Logger::debug('LDAP query result does not provide the requested field "%s"', $name);
+            }
+        }
+
+        return (object) $cleanedAttributes;
     }
 
-    protected function runQuery(Query $query, $fields = array())
+    /**
+     * Encode the given array of sort rules as ASN.1 octet stream according to RFC 2891
+     *
+     * @param   array   $sortRules
+     *
+     * @return  string
+     *
+     * @todo    Produces an invalid stream, obviously
+     */
+    protected function encodeSortRules(array $sortRules)
     {
-        if ($query->getUsePagedResults() && version_compare(PHP_VERSION, '5.4.0') >= 0) {
-            if ($this->pageCookie === null) {
-                $this->pageCookie = '';
-            } else {
-                try {
-                    ldap_control_paged_result_response($this->ds, $this->lastResult, $this->pageCookie);
-                } catch (Exception $e) {
-                    $this->pageCookie = '';
-                    Logger::debug(
-                        'Unable to request paged LDAP results. Does the server allow paged search requests? (%s)',
-                        $e->getMessage()
-                    );
-                }
-
-                ldap_free_result($this->lastResult);
-                if (! $this->pageCookie) {
-                    $this->pageCookie = $this->lastResult = null;
-                    // Abandon the paged search request so that subsequent requests succeed
-                    ldap_control_paged_result($this->ds, 0);
-                    return false;
-                }
-            }
-
-            // Does not matter whether we'll use a valid page size here,
-            // as the server applies its hard limit in case its too high
-            ldap_control_paged_result(
-                $this->ds,
-                $query->hasLimit() ? $query->getLimit() : 500,
-                true,
-                $this->pageCookie
-            );
-        } elseif ($this->lastResult !== null) {
-            ldap_free_result($this->lastResult);
-            $this->lastResult = null;
-            return false;
-        }
-
-        $base = $query->hasBase() ? $query->getBase() : $this->root_dn;
-        $results = @ldap_search(
-            $this->ds,
-            $base,
-            $query->create(),
-            empty($fields) ? $query->listFields() : $fields,
-            0, // Attributes and values
-            $query->hasLimit() ? $query->getOffset() + $query->getLimit() : 0 // No limit - at least where possible
-        );
-
-        if ($results === false) {
-            if (ldap_errno($this->ds) === self::LDAP_NO_SUCH_OBJECT) {
-                return false;
-            }
-            throw new LdapException(
-                sprintf(
-                    'LDAP query "%s" (root %s) failed: %s',
-                    $query,
-                    $this->root_dn,
-                    ldap_error($this->ds)
-                )
+        if (count($sortRules) > 127) {
+            throw new ProgrammingError(
+                'Cannot encode more than 127 sort rules. Only length octets in short form are supported'
             );
         }
 
-        foreach ($query->getSortColumns() as $col) {
-            ldap_sort($this->ds, $results, $col[0]);
+        $seq = '30' . str_pad(dechex(count($sortRules)), 2, '0', STR_PAD_LEFT);
+        foreach ($sortRules as $rule) {
+            $hexdAttribute = unpack('H*', $rule[0]);
+            $seq .= '3002'
+                . '04' . str_pad(dechex(strlen($rule[0])), 2, '0', STR_PAD_LEFT) . $hexdAttribute[1]
+                . '0101' . ($rule[1] === Sortable::SORT_DESC ? 'ff' : '00');
         }
 
-        $this->lastResult = $results;
-        return $results;
+        return $seq;
     }
 
     public function testCredentials($username, $password)
@@ -435,70 +598,52 @@ class Connection
      */
     protected function prepareNewConnection()
     {
-        $use_tls = false;
-        $force_tls = true;
-        $force_tls = false;
-
-        if ($use_tls) {
+        if ($this->encryption === static::STARTTLS || $this->encryption === static::LDAPS) {
             $this->prepareTlsEnvironment();
         }
 
-        $ds = ldap_connect($this->hostname, $this->port);
+        $hostname = $this->hostname;
+        if ($this->encryption === static::LDAPS) {
+            $hostname = 'ldaps://' . $hostname;
+        }
+
+        $ds = ldap_connect($hostname, $this->port);
         try {
-            $capabilities = $this->discoverCapabilities($ds);
-            list($cap, $namingContexts) = $capabilities;
+            $this->capabilities = $this->discoverCapabilities($ds);
             $this->discoverySuccess = true;
         } catch (LdapException $e) {
-
-            // discovery failed, guess defaults
-            $cap = (object) array(
-                'supports_ldapv3'   => true,
-                'supports_starttls' => false,
-                'msCapabilities'    => array()
-            );
-            $namingContexts = null;
+            Logger::debug($e);
+            Logger::warning('LADP discovery failed, assuming default LDAP settings.');
+            $this->capabilities = new Capability(); // create empty default capabilities
         }
-        $this->capabilities = $cap;
-        $this->namingContexts = $namingContexts;
-
-        if ($use_tls) {
-            if ($cap->supports_starttls) {
+        if ($this->encryption === static::STARTTLS) {
+            $force_tls = false;
+            if ($this->capabilities->hasStartTls()) {
                 if (@ldap_start_tls($ds)) {
                     Logger::debug('LDAP STARTTLS succeeded');
                 } else {
-                    Logger::debug('LDAP STARTTLS failed: %s', ldap_error($ds));
-                    throw new LdapException(
-                        sprintf(
-                            'LDAP STARTTLS failed: %s',
-                            ldap_error($ds)
-                        )
-                    );
+                    Logger::error('LDAP STARTTLS failed: %s', ldap_error($ds));
+                    throw new LdapException('LDAP STARTTLS failed: %s', ldap_error($ds));
                 }
             } elseif ($force_tls) {
-                throw new LdapException(
-                    sprintf(
-                        'TLS is required but not announced by %s',
-                        $this->host_name
-                    )
-                );
+                throw new LdapException('STARTTLS is required but not announced by %s', $this->hostname);
             } else {
-                // TODO: Log noticy -> TLS enabled but not announced
+                Logger::warning('LDAP STARTTLS enabled but not announced');
             }
         }
+
         // ldap_rename requires LDAPv3:
-        if ($cap->supports_ldapv3) {
+        if ($this->capabilities->hasLdapV3()) {
             if (! ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3)) {
                 throw new LdapException('LDAPv3 is required');
             }
         } else {
-
             // TODO: remove this -> FORCING v3 for now
             ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
             Logger::warning('No LDAPv3 support detected');
         }
 
-        // Not setting this results in "Operations error" on AD when using the
-        // whole domain as search base:
+        // Not setting this results in "Operations error" on AD when using the whole domain as search base
         ldap_set_option($ds, LDAP_OPT_REFERRALS, 0);
         // ldap_set_option($ds, LDAP_OPT_DEREF, LDAP_DEREF_NEVER);
         return $ds;
@@ -506,17 +651,16 @@ class Connection
 
     protected function prepareTlsEnvironment()
     {
-        $strict_tls   = true;
         // TODO: allow variable known CA location (system VS Icinga)
         if (Platform::isWindows()) {
-            // putenv('LDAP...')
+            putenv('LDAPTLS_REQCERT=never');
         } else {
-            if ($strict_tls) {
+            if ($this->reqCert) {
                 $ldap_conf = $this->getConfigDir('ldap_ca.conf');
             } else {
                 $ldap_conf = $this->getConfigDir('ldap_nocert.conf');
             }
-            putenv('LDAPRC=' . $ldap_conf);
+            putenv('LDAPRC=' . $ldap_conf); // TODO: Does not have any effect
             if (getenv('LDAPRC') !== $ldap_conf) {
                 throw new LdapException('putenv failed');
             }
@@ -524,139 +668,17 @@ class Connection
     }
 
     /**
-     * Return if the capability object contains support for StartTLS
+     * Get the capabilities of the connected server
      *
-     * @param $cap  The object containing the capabilities
-     *
-     * @return bool Whether StartTLS is supported
-     */
-    protected function hasCapabilityStartTLS($cap)
-    {
-        $cap = $this->getExtensionCapabilities($cap);
-        return isset($cap['1.3.6.1.4.1.1466.20037']);
-    }
-
-    /**
-     * Return if the capability objects contains support for LdapV3
-     *
-     * @param $cap
-     *
-     * @return bool
-     */
-    protected function hasCapabilityLdapV3($cap)
-    {
-        if ((is_string($cap->supportedLDAPVersion)
-                && (int) $cap->supportedLDAPVersion === 3)
-            || (is_array($cap->supportedLDAPVersion)
-                && in_array(3, $cap->supportedLDAPVersion)
-            )) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Extract an array of all extension capabilities from the given ldap response
-     *
-     * @param $cap      object  The response returned by a ldap_search discovery query
-     *
-     * @return object           The extracted capabilities.
-     */
-    protected function getExtensionCapabilities($cap)
-    {
-        $extensions = array();
-        if (isset($cap->supportedExtension)) {
-            foreach ($cap->supportedExtension as $oid) {
-                if (array_key_exists($oid, $this->ldap_extension)) {
-                    if ($this->ldap_extension[$oid] === 'STARTTLS') {
-                        $extensions['1.3.6.1.4.1.1466.20037'] = $this->ldap_extension['1.3.6.1.4.1.1466.20037'];
-                    }
-                }
-            }
-        }
-        return $extensions;
-    }
-
-    /**
-     * Extract an array of all MSAD capabilities from the given ldap response
-     *
-     * @param $cap      object  The response returned by a ldap_search discovery query
-     *
-     * @return object           The extracted capabilities.
-     */
-    protected function getMsCapabilities($cap)
-    {
-        $ms = array();
-        foreach ($this->ms_capability as $name) {
-            $ms[$this->convName($name)] = false;
-        }
-
-        if (isset($cap->supportedCapabilities)) {
-            foreach ($cap->supportedCapabilities as $oid) {
-                if (array_key_exists($oid, $this->ms_capability)) {
-                    $ms[$this->convName($this->ms_capability[$oid])] = true;
-                }
-            }
-        }
-        return (object)$ms;
-    }
-
-    /**
-     * Convert a single capability name entry into camel-case
-     *
-     * @param   $name   string  The name to convert
-     *
-     * @return          string  The name in camel-case
-     */
-    private function convName($name)
-    {
-        $parts = explode('_', $name);
-        foreach ($parts as $i => $part) {
-            $parts[$i] = ucfirst(strtolower($part));
-        }
-        return implode('', $parts);
-    }
-
-    /**
-     * Get the capabilities of this ldap server
-     *
-     * @return stdClass     An object, providing the flags 'ldapv3' and 'starttls' to indicate LdapV3 and StartTLS
-     * support and an additional property 'msCapabilities', containing all supported active directory capabilities.
+     * @return Capability   The capability object
      */
     public function getCapabilities()
     {
+        if ($this->capabilities === null) {
+            $this->connect(); // Populates $this->capabilities
+        }
+
         return $this->capabilities;
-    }
-
-    /**
-     * Get the default naming context of this ldap connection
-     *
-     * @return string|null the default naming context, or null when no contexts are available
-     */
-    public function getDefaultNamingContext()
-    {
-        $cap = $this->capabilities;
-        if (isset($cap->defaultNamingContext)) {
-            return $cap->defaultNamingContext;
-        }
-        $namingContexts = $this->namingContexts($cap);
-        return empty($namingContexts) ? null : $namingContexts[0];
-    }
-
-    /**
-     * Fetch the namingContexts for this Ldap-Connection
-     *
-     * @return array    the available naming contexts
-     */
-    public function namingContexts()
-    {
-        if (!isset($this->namingContexts)) {
-            return array();
-        }
-        if (!is_array($this->namingContexts)) {
-            return array($this->namingContexts);
-        }
-        return $this->namingContexts;
     }
 
     /**
@@ -675,70 +697,48 @@ class Connection
      *
      * @param  resource     $ds     The link identifier of the current ldap connection
      *
-     * @return array                The capabilities and naming-contexts
+     * @return Capability           The capabilities
      * @throws LdapException        When the capability query fails
      */
     protected function discoverCapabilities($ds)
     {
-        $query = $this->select()->from(
-            '*',
-            array(
-                'defaultNamingContext',
-                'namingContexts',
-                'vendorName',
-                'vendorVersion',
-                'supportedSaslMechanisms',
-                'dnsHostName',
-                'schemaNamingContext',
-                'supportedLDAPVersion', // => array(3, 2)
-                'supportedCapabilities',
-                'supportedExtension',
-                '+'
-            )
-        );
-        $result = @ldap_read(
-            $ds,
-            '',
-            $query->create(),
-            $query->listFields()
+        $fields = array(
+            'defaultNamingContext',
+            'namingContexts',
+            'vendorName',
+            'vendorVersion',
+            'supportedSaslMechanisms',
+            'dnsHostName',
+            'schemaNamingContext',
+            'supportedLDAPVersion', // => array(3, 2)
+            'supportedCapabilities',
+            'supportedControl',
+            'supportedExtension',
+            '+'
         );
 
+        $result = @ldap_read($ds, '', (string) $this->select()->from('*', $fields), $fields);
         if (! $result) {
             throw new LdapException(
-                sprintf(
-                    'Capability query failed (%s:%d): %s. Check if hostname and port of the ldap resource are correct '
-                        . ' and if anonymous access is permitted.',
-                    $this->hostname,
-                    $this->port,
-                    ldap_error($ds)
-                )
+                'Capability query failed (%s:%d): %s. Check if hostname and port of the'
+                . ' ldap resource are correct and if anonymous access is permitted.',
+                $this->hostname,
+                $this->port,
+                ldap_error($ds)
             );
         }
+
         $entry = ldap_first_entry($ds, $result);
         if ($entry === false) {
             throw new LdapException(
-                sprintf(
-                    'Capabilities not available (%s:%d): %s. Discovery of root DSE probably not permitted.',
-                    $this->hostname,
-                    $this->port,
-                    ldap_error($ds)
-                )
+                'Capabilities not available (%s:%d): %s. Discovery of root DSE probably not permitted.',
+                $this->hostname,
+                $this->port,
+                ldap_error($ds)
             );
         }
 
-        $cap = (object) array(
-            'supports_ldapv3'   => false,
-            'supports_starttls' => false,
-            'msCapabilities' => array()
-        );
-
-        $ldapAttributes = ldap_get_attributes($ds, $entry);
-        $result = $this->cleanupAttributes($ldapAttributes);
-        $cap->supports_ldapv3 = $this->hasCapabilityLdapV3($result);
-        $cap->supports_starttls = $this->hasCapabilityStartTLS($result);
-        $cap->msCapabilities = $this->getMsCapabilities($result);
-
-        return array($cap,  $result->namingContexts);
+        return new Capability($this->cleanupAttributes(ldap_get_attributes($ds, $entry), array_flip($fields)));
     }
 
     /**
@@ -768,14 +768,12 @@ class Connection
         $r = @ldap_bind($this->ds, $this->bind_dn, $this->bind_pw);
         if (! $r) {
             throw new LdapException(
-                sprintf(
-                    'LDAP connection to %s:%s (%s / %s) failed: %s',
-                    $this->hostname,
-                    $this->port,
-                    $this->bind_dn,
-                    '***' /* $this->bind_pw */,
-                    ldap_error($this->ds)
-                )
+                'LDAP connection to %s:%s (%s / %s) failed: %s',
+                $this->hostname,
+                $this->port,
+                $this->bind_dn,
+                '***' /* $this->bind_pw */,
+                ldap_error($this->ds)
             );
         }
         $this->bound = true;

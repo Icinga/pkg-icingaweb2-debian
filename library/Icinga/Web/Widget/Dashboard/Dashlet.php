@@ -1,12 +1,11 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web\Widget\Dashboard;
 
 use Zend_Form_Element_Button;
 use Icinga\Web\Form;
 use Icinga\Web\Url;
-use Icinga\Web\Widget\AbstractWidget;
 use Icinga\Data\ConfigObject;
 use Icinga\Exception\IcingaException;
 
@@ -52,9 +51,14 @@ class Dashlet extends UserWidget
     private $template =<<<'EOD'
 
     <div class="container" data-icinga-url="{URL}">
-        <h1><a href="{FULL_URL}" data-base-target="col1">{TITLE}</a></h1>
+        <h1><a href="{FULL_URL}" aria-label="{TOOLTIP}" title="{TOOLTIP}" data-base-target="col1">{TITLE}</a></h1>
         <noscript>
-            <iframe src="{IFRAME_URL}" style="height:100%; width:99%" frameborder="no"></iframe>
+            <iframe
+                src="{IFRAME_URL}"
+                style="height:100%; width:99%"
+                frameborder="no"
+                title="{TITLE_PREFIX}{TITLE}">
+            </iframe>
         </noscript>
     </div>
 EOD;
@@ -115,7 +119,7 @@ EOD;
      *
      * @param  string|Url $url  The url to use, either as an Url object or as a path
      *
-     * @return self
+     * @return $this
      */
     public function setUrl($url)
     {
@@ -183,36 +187,21 @@ EOD;
             '{URL}',
             '{IFRAME_URL}',
             '{FULL_URL}',
+            '{TOOLTIP}',
             '{TITLE}',
-            '{REMOVE}'
+            '{TITLE_PREFIX}'
         );
 
         $replaceTokens = array(
             $url,
             $iframeUrl,
             $url->getUrlWithout(array('view', 'limit')),
+            sprintf($view->translate('Show %s', 'dashboard.dashlet.tooltip'), $view->escape($this->getTitle())),
             $view->escape($this->getTitle()),
-            $this->getRemoveLink()
+            $view->translate('Dashlet') . ': '
         );
 
         return str_replace($searchTokens, $replaceTokens, $this->template);
-    }
-
-    /**
-     * Render the form for removing a dashboard elemetn
-     *
-     * @return string                       The html representation of the form
-     */
-    protected function getRemoveLink()
-    {
-        return sprintf(
-            '<a data-base-target="main" href="%s">%s</a>',
-            Url::fromPath('dashboard/remove-dashlet', array(
-                'dashlet' => $this->getTitle(),
-                'pane'      => $this->pane->getTitle()
-            )),
-            t('Remove')
-        );
     }
 
     /**

@@ -1,13 +1,13 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Doc;
 
 use ArrayIterator;
 use Countable;
 use IteratorAggregate;
-use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use Icinga\File\NonEmptyFileIterator;
 use Icinga\File\FileExtensionFilterIterator;
 
@@ -46,8 +46,7 @@ class DocIterator implements Countable, IteratorAggregate
     }
 
     /**
-     * (non-PHPDoc)
-     * @see Countable::count()
+     * {@inheritdoc}
      */
     public function count()
     {
@@ -55,8 +54,7 @@ class DocIterator implements Countable, IteratorAggregate
     }
 
     /**
-     * (non-PHPDoc)
-     * @see IteratorAggregate::getIterator()
+     * {@inheritdoc}
      */
     public function getIterator()
     {

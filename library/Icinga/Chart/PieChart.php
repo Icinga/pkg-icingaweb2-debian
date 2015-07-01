@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Chart;
 
@@ -49,6 +49,13 @@ class PieChart extends Chart
      * @var bool
      */
     private $noCaption = false;
+
+    public function __construct()
+    {
+        $this->title = t('Pie Chart');
+        $this->description = t('Contains data in a pie chart.');
+        parent::__construct();
+    }
 
     /**
      * Test if the given pies have the correct format
@@ -100,7 +107,7 @@ class PieChart extends Chart
      *
      * @param   array $dataSet,...  The pie definition, see graphs.md for further details concerning the format
      *
-     * @return  self                Fluent interface
+     * @return  $this                Fluent interface
      */
     public function drawPie(array $dataSet)
     {
@@ -265,7 +272,7 @@ class PieChart extends Chart
      *
      * @param string $type  Either self::STACKED or self::ROW
      *
-     * @return self         Fluent interface
+     * @return $this         Fluent interface
      */
     public function setType($type)
     {
@@ -276,7 +283,7 @@ class PieChart extends Chart
     /**
      * Hide the caption from this PieChart
      *
-     * @return self         Fluent interface
+     * @return $this         Fluent interface
      */
     public function disableLegend()
     {

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Tests\Icinga;
 
@@ -66,12 +66,18 @@ class UserTest extends BaseTestCase
         $user->setPermissions(array(
             'test',
             'test/some/specific',
-            'test/more/*'
+            'test/more/*',
+            'test/wildcard-with-wildcard/*',
+            'test/even-more/specific-with-wildcard/*'
         ));
         $this->assertTrue($user->can('test'));
         $this->assertTrue($user->can('test/some/specific'));
         $this->assertTrue($user->can('test/more/everything'));
+        $this->assertTrue($user->can('test/wildcard-with-wildcard/*'));
+        $this->assertTrue($user->can('test/wildcard-with-wildcard/sub/sub'));
+        $this->assertTrue($user->can('test/even-more/*'));
         $this->assertFalse($user->can('not/test'));
         $this->assertFalse($user->can('test/some/not/so/specific'));
+        $this->assertFalse($user->can('test/wildcard2/*'));
     }
 }

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Setup\Forms;
 
@@ -37,6 +37,7 @@ EOT;
     public function init()
     {
         $this->setName('setup_ldap_discovery_confirm');
+        $this->setTitle($this->translate('LDAP Discovery Results', 'setup.page.title'));
     }
 
     /**
@@ -44,7 +45,7 @@ EOT;
      *
      * @param   array   $config
      *
-     * @return  self
+     * @return  $this
      */
     public function setResourceConfig(array $config)
     {
@@ -77,27 +78,10 @@ EOT;
         $html = str_replace('{user_attribute}', $backend['user_name_attribute'], $html);
         $html = str_replace('{user_class}', $backend['user_class'], $html);
 
-        $this->addElement(
-            'note',
-            'title',
-            array(
-                'value'         => $this->translate('LDAP Discovery Results', 'setup.page.title'),
-                'decorators'    => array(
-                    'ViewHelper',
-                    array('HtmlTag', array('tag' => 'h2'))
-                )
-            )
-        );
-        $this->addElement(
-            'note',
-            'description',
-            array(
-                'value' => sprintf(
-                    $this->translate('The following directory service has been found on domain "%s":'),
-                    $this->config['domain']
-                )
-            )
-        );
+        $this->addDescription(sprintf(
+            $this->translate('The following directory service has been found on domain "%s".'),
+            $this->config['domain']
+        ));
 
         $this->addElement(
             'note',

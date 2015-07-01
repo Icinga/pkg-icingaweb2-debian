@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web;
 
@@ -92,7 +92,7 @@ class Wizard
      *
      * @param   Wizard  $wizard     The parent wizard
      *
-     * @return  self
+     * @return  $this
      */
     public function setParent(Wizard $wizard)
     {
@@ -144,7 +144,7 @@ class Wizard
      *
      * @param   Form|Wizard     $page   The page or wizard to add to the wizard
      *
-     * @return  self
+     * @return  $this
      */
     public function addPage($page)
     {
@@ -166,7 +166,7 @@ class Wizard
      *
      * @param   array   $pages      The pages or wizards to add to the wizard
      *
-     * @return  self
+     * @return  $this
      */
     public function addPages(array $pages)
     {
@@ -221,7 +221,7 @@ class Wizard
      *
      * @param   Form    $page   The page to set as current page
      *
-     * @return  self
+     * @return  $this
      */
     public function setCurrentPage(Form $page)
     {
@@ -504,7 +504,7 @@ class Wizard
      *
      * @param   bool    $state      Whether this wizard has been completed
      *
-     * @return  self
+     * @return  $this
      */
     public function setIsFinished($state = true)
     {
@@ -612,10 +612,11 @@ class Wizard
                 'button',
                 static::BTN_PREV,
                 array(
-                    'type'          => 'submit',
-                    'value'         => $pages[$index - 1]->getName(),
-                    'label'         => t('Back'),
-                    'decorators'    => array('ViewHelper')
+                    'type'              => 'submit',
+                    'value'             => $pages[$index - 1]->getName(),
+                    'label'             => t('Back'),
+                    'decorators'        => array('ViewHelper'),
+                    'formnovalidate'    => 'formnovalidate'
                 )
             );
             $page->addElement(
@@ -633,10 +634,11 @@ class Wizard
                 'button',
                 static::BTN_PREV,
                 array(
-                    'type'          => 'submit',
-                    'value'         => $pages[$index - 1]->getName(),
-                    'label'         => t('Back'),
-                    'decorators'    => array('ViewHelper')
+                    'type'              => 'submit',
+                    'value'             => $pages[$index - 1]->getName(),
+                    'label'             => t('Back'),
+                    'decorators'        => array('ViewHelper'),
+                    'formnovalidate'    => 'formnovalidate'
                 )
             );
             $page->addElement(

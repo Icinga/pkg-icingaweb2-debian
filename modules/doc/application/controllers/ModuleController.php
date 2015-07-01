@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 use \Zend_Controller_Action_Exception;
 use Icinga\Application\Icinga;
@@ -49,10 +49,10 @@ class Doc_ModuleController extends DocController
     {
         $moduleManager = Icinga::app()->getModuleManager();
         $modules = array();
-        foreach (Icinga::app()->getModuleManager()->listEnabledModules() as $module) {
+        foreach ($moduleManager->listEnabledModules() as $module) {
             $path = $this->getPath($module, $moduleManager->getModuleDir($module, '/doc'), true);
             if ($path !== null) {
-                $modules[] = $module;
+                $modules[] = $moduleManager->getModule($module);
             }
         }
         $this->view->modules = $modules;
@@ -122,10 +122,10 @@ class Doc_ModuleController extends DocController
     {
         $module = $this->getParam('moduleName');
         $this->assertModuleEnabled($module);
-        $chapterId = $this->getParam('chapterId');
-        if ($chapterId === null) {
+        $chapter = $this->getParam('chapter');
+        if ($chapter === null) {
             throw new Zend_Controller_Action_Exception(
-                sprintf($this->translate('Missing parameter \'%s\''), 'chapterId'),
+                sprintf($this->translate('Missing parameter %s'), 'chapter'),
                 404
             );
         }
@@ -133,8 +133,7 @@ class Doc_ModuleController extends DocController
         try {
             $this->renderChapter(
                 $this->getPath($module, Icinga::app()->getModuleManager()->getModuleDir($module, '/doc')),
-                $chapterId,
-                $this->_helper->url->url(array('moduleName' => $module), 'doc/module/toc'),
+                $chapter,
                 'doc/module/chapter',
                 array('moduleName' => $module)
             );

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web\Session;
 
@@ -77,7 +77,7 @@ class PhpSession extends Session
             }
         }
 
-        $sessionSavePath = session_save_path();
+        $sessionSavePath = session_save_path() ?: sys_get_temp_dir();
         if (session_module_name() === 'files' && !is_writable($sessionSavePath)) {
             throw new ConfigurationError("Can't save session, path '$sessionSavePath' is not writable.");
         }

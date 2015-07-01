@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | http://www.gnu.org/licenses/gpl-2.0.txt */
+/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
 namespace Tests\Icinga\Data;
 
@@ -60,14 +60,6 @@ class ConfigObjectTest extends BaseTestCase
         );
     }
 
-    public function testWhetherConfigObjectsAreCountable()
-    {
-        $config = new ConfigObject(array('a' => 'b', 'c' => array('d' => 'e')));
-
-        $this->assertInstanceOf('Countable', $config, 'ConfigObject objects do not implement interface `Countable\'');
-        $this->assertEquals(2, count($config), 'ConfigObject objects do not count properties and sections correctly');
-    }
-
     public function testWhetherConfigObjectsAreTraversable()
     {
         $config = new ConfigObject(array('a' => 'b', 'c' => 'd'));
@@ -124,7 +116,7 @@ class ConfigObjectTest extends BaseTestCase
     }
 
     /**
-     * @expectedException LogicException
+     * @expectedException \Icinga\Exception\ProgrammingError
      */
     public function testWhetherItIsNotPossibleToAppendProperties()
     {
@@ -142,9 +134,6 @@ class ConfigObjectTest extends BaseTestCase
         $this->assertFalse(isset($config->c), 'ConfigObjects do not allow to unset sections');
     }
 
-    /**
-     * @depends testWhetherConfigObjectsAreCountable
-     */
     public function testWhetherOneCanCheckIfAConfigObjectHasAnyPropertiesOrSections()
     {
         $config = new ConfigObject();
