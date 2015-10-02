@@ -5,7 +5,7 @@
    <?php endif ?>
 
   <?php if (isset($serviceStates)): ?>
-    <?= $this->render('list/components/servicesummary.phtml') ?>
+    <?= $this->render('list/components/servicesummary.phtml'); ?>
     <?= $this->render('partials/service/objects-header.phtml'); ?>
   <?php else: ?>
     <?= $this->render('list/components/hostssummary.phtml') ?>

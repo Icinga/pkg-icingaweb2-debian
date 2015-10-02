@@ -13,6 +13,7 @@
         this.icinga = icinga;
 
         this.searchValue = '';
+        this.initializeModules = true;
     };
 
     Icinga.Events.prototype = {
@@ -30,53 +31,63 @@
         },
 
         // TODO: What's this?
-        applyHandlers: function (evt) {
-            var el = $(evt.target), self = evt.data.self;
+        applyHandlers: function (event) {
+            var $target = $(event.target);
+            var self = event.data.self;
             var icinga = self.icinga;
 
-            $('.dashboard > div', el).each(function(idx, el) {
-                var url = $(el).data('icingaUrl');
-                if (typeof url === 'undefined') return;
-                icinga.loader.loadUrl(url, $(el)).autorefresh = true;
-            });
-
-            // Set first links href in a action table tr as row href:
-            $('table.action tr', el).each(function(idx, el) {
-                var $a = $('a[href].rowaction', el).first();
-                if ($a.length) {
-                    // TODO: Find out whether we leak memory on IE with this:
-                    $(el).attr('href', $a.attr('href'));
-                    return;
+            if (self.initializeModules) {
+                var loaded = false;
+                var moduleName = $target.data('icingaModule');
+                if (moduleName) {
+                    if (icinga.hasModule(moduleName) && !icinga.isLoadedModule(moduleName)) {
+                        loaded |= icinga.loadModule(moduleName);
+                    }
                 }
-                $a = $('a[href]', el).first();
-                if ($a.length) {
-                    $(el).attr('href', $a.attr('href'));
-                }
-            });
 
-            $('td.state span.timesince').attr('title', null);
+                $('.icinga-module', $target).each(function(idx, mod) {
+                    moduleName = $(mod).data('icingaModule');
+                    if (icinga.hasModule(moduleName) && !icinga.isLoadedModule(moduleName)) {
+                        loaded |= icinga.loadModule(moduleName);
+                    }
+                });
 
-            var moduleName = el.data('icingaModule');
-            if (moduleName) {
-                if (icinga.hasModule(moduleName)) {
-                    var module = icinga.module(moduleName);
-                    // NOT YET, the applyOnloadDings: module.applyEventHandlers(mod);
+                if (loaded) {
+                    // Modules may register their own handler for the 'renderend' event
+                    // so we need to ensure that it is called the first time they are
+                    // initialized
+                    event.stopImmediatePropagation();
+                    self.initializeModules = false;
+
+                    var $container = $target.closest('.container');
+                    if (! $container.length) {
+                        // The page obviously got loaded for the first time,
+                        // so we'll trigger the event for all containers
+                        $container = $('.container');
+                    }
+
+                    $container.trigger('rendered');
+
+                    // But since we're listening on this event by ourself, we'll have
+                    // to abort our own processing as we'll process it twice otherwise
+                    return false;
                 }
+            } else {
+                self.initializeModules = true;
             }
 
-            $('.icinga-module', el).each(function(idx, mod) {
-                var $mod = $(mod);
-                moduleName = $mod.data('icingaModule');
-                if (icinga.hasModule(moduleName)) {
-                    var module = icinga.module(moduleName);
-                    // NOT YET, the applyOnloadDings: module.applyEventHandlers(mod);
+            $('.dashboard > div', $target).each(function(idx, el) {
+                var $element = $(el);
+                var $url = $element.data('icingaUrl');
+                if (typeof $url !== 'undefined') {
+                    icinga.loader.loadUrl($url, $element).autorefresh = true;
                 }
             });
 
-            var searchField = $('#menu input.search', el);
+            var $searchField = $('#menu input.search', $target);
             // Remember initial search field value if any
-            if (searchField.length && searchField.val().length) {
-                self.searchValue = searchField.val();
+            if ($searchField.length && $searchField.val().length) {
+                self.searchValue = $searchField.val();
             }
 
             if (icinga.ui.isOneColLayout()) {
@@ -90,12 +101,13 @@
          * Global default event handlers
          */
         applyGlobalDefaults: function () {
+            // Apply element-specific behavior whenever the layout is rendered
+            // Note: It is important that this is the first handler for this event!
+            $(document).on('rendered', { self: this }, this.applyHandlers);
+
             $.each(self.icinga.behaviors, function (name, behavior) {
                 behavior.bind($(document));
             });
-
-            // Apply element-specific behavior whenever the layout is rendered
-            $(document).on('rendered', { self: this }, this.applyHandlers);
 
             // We catch resize events
             $(window).on('resize', { self: this.icinga.ui }, this.icinga.ui.onWindowResize);
@@ -116,9 +128,6 @@
             // We want to catch each link click
             $(document).on('click', 'a', { self: this }, this.linkClicked);
             $(document).on('click', 'tr[href]', { self: this }, this.linkClicked);
-
-            // Select a table row
-            $(document).on('click', 'table.multiselect tr[href]', { self: this }, this.rowSelected);
 
             // We catch all form submit events
             $(document).on('submit', 'form', { self: this }, this.submitForm);
@@ -195,15 +204,15 @@
          *
          */
         submitForm: function (event, autosubmit) {
-            //return false;
             var self   = event.data.self;
             var icinga = self.icinga;
             // .closest is not required unless subelements to trigger this
             var $form = $(event.currentTarget).closest('form');
-            var regex = new RegExp('&amp;', 'g');
-            var url = $form.attr('action').replace(regex, '&'); // WHY??
+            var url = $form.attr('action');
             var method = $form.attr('method');
+            var encoding = $form.attr('enctype');
             var $button = $('input[type=submit]:focus', $form).add('button[type=submit]:focus', $form);
+            var progressTimer;
             var $target;
             var data;
 
@@ -234,12 +243,17 @@
                 method = method.toUpperCase();
             }
 
+            if (typeof encoding === 'undefined') {
+                encoding = 'application/x-www-form-urlencoded';
+            }
+
+            if (typeof autosubmit === 'undefined') {
+                autosubmit = false;
+            }
+
             if ($button.length === 0) {
                 $button = $('input[type=submit]', $form).add('button[type=submit]', $form).first();
             }
-
-            event.stopPropagation();
-            event.preventDefault();
 
             if ($button.length) {
                 // Activate spinner
@@ -262,7 +276,7 @@
             if (method === 'GET') {
                 var dataObj = $form.serializeObject();
 
-                if (typeof autosubmit === 'undefined' || ! autosubmit) {
+                if (! autosubmit) {
                     if ($button.length && $button.attr('name') !== 'undefined') {
                         dataObj[$button.attr('name')] = $button.attr('value');
                     }
@@ -270,24 +284,111 @@
 
                 url = icinga.utils.addUrlParams(url, dataObj);
             } else {
-                data = $form.serializeArray();
+                if (encoding === 'multipart/form-data') {
+                    if (typeof window.FormData === 'undefined') {
+                        icinga.loader.submitFormToIframe($form, url, $target);
 
-                if (typeof autosubmit === 'undefined' || ! autosubmit) {
+                        // Disable all form controls to prevent resubmission as early as possible.
+                        // (This relies on native form submission, so using setTimeout is the only possible solution)
+                        setTimeout(function () {
+                            if ($target.attr('id') == $form.closest('.container').attr('id')) {
+                                $form.find(':input:not(:disabled)').prop('disabled', true);
+                            }
+                        }, 0);
+
+                        if (autosubmit) {
+                            if ($button.length) {
+                                // We're autosubmitting the form so the button has not been clicked, however,
+                                // to be really safe, we're disabling the button explicitly, just in case..
+                                $button.prop('disabled', true);
+                            }
+
+                            $form[0].submit(); // This should actually not trigger the onSubmit event, let's hope that this is true for all browsers..
+                            event.stopPropagation();
+                            event.preventDefault();
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    }
+
+                    data = new window.FormData($form[0]);
+                } else {
+                    data = $form.serializeArray();
+                }
+
+                if (! autosubmit) {
                     if ($button.length && $button.attr('name') !== 'undefined') {
-                        data.push({
-                            name: $button.attr('name'),
-                            value: $button.attr('value')
-                        });
+                        if (encoding === 'multipart/form-data') {
+                            data.append($button.attr('name'), $button.attr('value'));
+                        } else {
+                            data.push({
+                                name: $button.attr('name'),
+                                value: $button.attr('value')
+                            });
+                        }
                     }
                 }
             }
 
             // Disable all form controls to prevent resubmission except for our search input
             // Note that disabled form inputs will not be enabled via JavaScript again
-            $form.find(':input:not(#search):not(:disabled)').prop('disabled', true);
+            if ($target.attr('id') == $form.closest('.container').attr('id')) {
+                $form.find(':input:not(#search):not(:disabled)').prop('disabled', true);
+            }
 
-            icinga.loader.loadUrl(url, $target, data, method);
+            // Show a spinner depending on how the form is being submitted
+            if (autosubmit && typeof $el !== 'undefined' && $el.next().hasClass('spinner')) {
+                $el.next().addClass('active');
+            } else if ($button.length && $button.is('button') && $button.hasClass('animated')) {
+                $button.addClass('active');
+            } else if ($button.length && $button.attr('data-progress-label')) {
+                var isInput = $button.is('input');
+                if (isInput) {
+                    $button.prop('value', $button.attr('data-progress-label') + '...');
+                } else {
+                    $button.html($button.attr('data-progress-label') + '...');
+                }
 
+                // Use a fixed width to prevent the button from wobbling
+                $button.css('width', $button.css('width'));
+
+                progressTimer = icinga.timer.register(function () {
+                    var label = isInput ? $button.prop('value') : $button.html();
+                    var dots = label.substr(-3);
+
+                    // Using empty spaces here to prevent centered labels from wobbling
+                    if (dots === '...') {
+                        label = label.slice(0, -2) + '  ';
+                    } else if (dots === '.. ') {
+                        label = label.slice(0, -1) + '.';
+                    } else if (dots === '.  ') {
+                        label = label.slice(0, -2) + '. ';
+                    }
+
+                    if (isInput) {
+                        $button.prop('value', label);
+                    } else {
+                        $button.html(label);
+                    }
+                }, null, 100);
+            } else if ($button.length && $button.next().hasClass('spinner')) {
+                $('i', $button.next()).addClass('active');
+            } else if ($form.attr('data-progress-element')) {
+                var $progressElement = $('#' + $form.attr('data-progress-element'));
+                if ($progressElement.length) {
+                    if ($progressElement.hasClass('spinner')) {
+                        $('i', $progressElement).addClass('active');
+                    } else {
+                        $('i.spinner', $progressElement).addClass('active');
+                    }
+                }
+            }
+
+            icinga.loader.loadUrl(url, $target, data, method).progressTimer = progressTimer;
+
+            event.stopPropagation();
+            event.preventDefault();
             return false;
         },
 
@@ -302,89 +403,6 @@
                 return true;
             }
             return false;
-        },
-
-        /**
-         * Handle table selection.
-         */
-        rowSelected: function(event) {
-            var self     = event.data.self;
-            var icinga   = self.icinga;
-            var $tr      = $(this);
-            var $table   = $tr.closest('table.multiselect');
-            var data     = self.icinga.ui.getSelectionKeys($table);
-            var url      = $table.data('icinga-multiselect-url');
-
-            if ($(event.target).closest('form').length) {
-                // allow form actions in table rows to pass through
-                return;
-            }
-            event.stopPropagation();
-            event.preventDefault();
-
-            if (!data) {
-                icinga.logger.error('multiselect table has no data-icinga-multiselect-data');
-                return;
-            }
-            if (!url) {
-                icinga.logger.error('multiselect table has no data-icinga-multiselect-url');
-                return;
-            }
-
-            // update selection
-            if (event.ctrlKey || event.metaKey) {
-                icinga.ui.toogleTableRowSelection($tr);
-                // multi selection
-            } else if (event.shiftKey) {
-                // range selection
-                icinga.ui.addTableRowRangeSelection($tr);
-            } else {
-                // single selection
-                icinga.ui.setTableRowSelection($tr);
-            }
-            // focus only the current table.
-            icinga.ui.focusTable($table[0]);
-
-            var $target = self.getLinkTargetFor($tr);
-
-            var $trs = $table.find('tr[href].active');
-            if ($trs.length > 1) {
-                var selectionData = icinga.ui.getSelectionSetData($trs, data);
-                var query = icinga.ui.selectionDataToQuery(selectionData);
-                icinga.loader.loadUrl(url + '?' + query, $target);
-                icinga.ui.storeSelectionData(selectionData);
-                icinga.ui.provideSelectionCount();
-            } else if ($trs.length === 1) {
-                // display a single row
-                $tr = $trs.first();
-                icinga.loader.loadUrl($tr.attr('href'), $target);
-                icinga.ui.storeSelectionData($tr.attr('href'));
-                icinga.ui.provideSelectionCount();
-            } else {
-                // display nothing
-                if ($target.attr('id') === 'col2') {
-                    icinga.ui.layout1col();
-                }
-                icinga.ui.storeSelectionData(null);
-                icinga.ui.provideSelectionCount();
-            }
-
-            return false;
-        },
-
-        /**
-         * Handle anchor, i.e. focus the element which is referenced by the anchor
-         *
-         * @param {string} query jQuery selector
-         */
-        handleAnchor: function(query) {
-            var $element = $(query);
-            if ($element.length > 0) {
-                if (typeof $element.attr('tabindex') === 'undefined') {
-                    $element.attr('tabindex', -1);
-                }
-                $element.focus();
-            }
         },
 
         /**
@@ -404,19 +422,17 @@
                 return true;
             }
 
-            // Special checks for link clicks in multiselect rows
-            if (! $a.is('tr[href]') && $a.closest('tr[href]').length > 0 && $a.closest('table.multiselect').length > 0) {
+            // Special checks for link clicks in action tables
+            if (! $a.is('tr[href]') && $a.closest('table.action').length > 0) {
 
-                // Forward clicks to ANY link with special key pressed to rowSelected
-                if (event.ctrlKey || event.metaKey || event.shiftKey)
-                {
-                    return self.rowSelected.call($a.closest('tr[href]'), event);
+                // ignoray clicks to ANY link with special key pressed
+                if ($a.closest('table.multiselect').length > 0 && (event.ctrlKey || event.metaKey || event.shiftKey)) {
+                    return true;
                 }
 
-                // Forward inner links matching the row URL to rowSelected
-                if ($a.attr('href') === $a.closest('tr[href]').attr('href'))
-                {
-                    return self.rowSelected.call($a.closest('tr[href]'), event);
+                // ignore inner links matching the row URL
+                if ($a.attr('href') === $a.closest('tr[href]').attr('href')) {
+                    return true;
                 }
             }
 
@@ -456,7 +472,7 @@
             // This is an anchor only
             if (href.substr(0, 1) === '#' && href.length > 1
                 && href.substr(1, 1) !== '!') {
-                self.handleAnchor(href);
+                icinga.ui.focusElement(href.substr(1), $a.closest('.container'));
                 return;
             }
 
@@ -477,9 +493,6 @@
                             } else {
                                 icinga.ui.layout1col();
                             }
-                            $('table tr[href].active').removeClass('active');
-                            icinga.ui.storeSelectionData(null);
-                            icinga.ui.loadSelectionData();
                             icinga.history.pushCurrentState();
                         }
                     }
@@ -489,7 +502,7 @@
 
                 formerUrl = $target.data('icingaUrl');
                 if (typeof formerUrl !== 'undefined' && formerUrl.split(/#/)[0] === href.split(/#/)[0]) {
-                    icinga.ui.scrollContainerToAnchor($target, href.split(/#/)[1]);
+                    icinga.ui.focusElement(href.split(/#/)[1], $target);
                     $target.data('icingaUrl', href);
                     if (formerUrl !== href) {
                         icinga.history.pushCurrentState();
@@ -553,6 +566,9 @@
                     self.icinga.ui.layout1col();
                 } else {
                     $target = $('#' + targetId);
+                    if (! $target.length) {
+                        self.icinga.logger.warn('Link target "#' + targetId + '" does not exist in DOM.');
+                    }
                 }
 
             }
@@ -575,8 +591,6 @@
             $(window).off('beforeunload', this.onUnload);
             $(document).off('scroll', '.container', this.onContainerScroll);
             $(document).off('click', 'a', this.linkClicked);
-            $(document).off('click', 'table.action tr[href]', this.rowSelected);
-            $(document).off('click', 'table.action tr a', this.rowSelected);
             $(document).off('submit', 'form', this.submitForm);
             $(document).off('change', 'form select.autosubmit', this.submitForm);
             $(document).off('change', 'form input.autosubmit', this.submitForm);

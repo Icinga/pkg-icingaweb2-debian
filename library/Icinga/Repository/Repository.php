@@ -64,21 +64,45 @@ abstract class Repository implements Selectable
      *          'alias2' => 'column3'
      *      )
      *  )
-     * <pre><code>
+     * </code></pre>
      *
      * @var array
      */
     protected $queryColumns;
 
     /**
-     * The columns (or aliases) which are not permitted to be queried. (by design)
+     * The columns (or aliases) which are not permitted to be queried
+     *
+     * Blacklisted query columns can still occur in a filter expression or sort rule.
      *
      * @var array   An array of strings
+     */
+    protected $blacklistedQueryColumns;
+
+    /**
+     * The filter columns being provided
+     *
+     * This may be intialized by concrete repository implementations, in the following format
+     * <pre><code>
+     *  array(
+     *      'alias_or_column_name',
+     *      'label_to_show_in_the_filter_editor' => 'alias_or_column_name'
+     *  )
+     * </code></pre>
+     *
+     * @var array
      */
     protected $filterColumns;
 
     /**
-     * The default sort rules to be applied on a query
+     * The search columns (or aliases) being provided
+     *
+     * @var array   An array of strings
+     */
+    protected $searchColumns;
+
+    /**
+     * The sort rules to be applied on a query
      *
      * This may be initialized by concrete repository implementations, in the following format
      * <pre><code>
@@ -98,7 +122,7 @@ abstract class Repository implements Selectable
      *          // Ascendant sort by default
      *      )
      *  )
-     * <pre><code>
+     * </code></pre>
      * Note that it's mandatory to supply the alias name in case there is one.
      *
      * @var array
@@ -135,6 +159,20 @@ abstract class Repository implements Selectable
     protected $aliasColumnMap;
 
     /**
+     * An array to map table names to query columns
+     *
+     * @var array
+     */
+    protected $columnTableMap;
+
+    /**
+     * A flattened array to map aliases to query columns
+     *
+     * @var array
+     */
+    protected $columnAliasMap;
+
+    /**
      * Create a new repository object
      *
      * @param   Selectable  $ds     The datasource to use
@@ -144,6 +182,8 @@ abstract class Repository implements Selectable
         $this->ds = $ds;
         $this->aliasTableMap = array();
         $this->aliasColumnMap = array();
+        $this->columnTableMap = array();
+        $this->columnAliasMap = array();
 
         $this->init();
     }
@@ -244,6 +284,33 @@ abstract class Repository implements Selectable
     /**
      * Return the columns (or aliases) which are not permitted to be queried
      *
+     * Calls $this->initializeBlacklistedQueryColumns() in case $this->blacklistedQueryColumns is null.
+     *
+     * @return  array
+     */
+    public function getBlacklistedQueryColumns()
+    {
+        if ($this->blacklistedQueryColumns === null) {
+            $this->blacklistedQueryColumns = $this->initializeBlacklistedQueryColumns();
+        }
+
+        return $this->blacklistedQueryColumns;
+    }
+
+    /**
+     * Overwrite this in your repository implementation in case you
+     * need to initialize the blacklisted query columns lazily
+     *
+     * @return  array
+     */
+    protected function initializeBlacklistedQueryColumns()
+    {
+        return array();
+    }
+
+    /**
+     * Return the filter columns being provided
+     *
      * Calls $this->initializeFilterColumns() in case $this->filterColumns is null.
      *
      * @return  array
@@ -268,7 +335,33 @@ abstract class Repository implements Selectable
     }
 
     /**
-     * Return the default sort rules to be applied on a query
+     * Return the search columns being provided
+     *
+     * Calls $this->initializeSearchColumns() in case $this->searchColumns is null.
+     *
+     * @return  array
+     */
+    public function getSearchColumns()
+    {
+        if ($this->searchColumns === null) {
+            $this->searchColumns = $this->initializeSearchColumns();
+        }
+
+        return $this->searchColumns;
+    }
+
+    /**
+     * Overwrite this in your repository implementation in case you need to initialize the search columns lazily
+     *
+     * @return  array
+     */
+    protected function initializeSearchColumns()
+    {
+        return array();
+    }
+
+    /**
+     * Return the sort rules to be applied on a query
      *
      * Calls $this->initializeSortRules() in case $this->sortRules is null.
      *
@@ -348,6 +441,34 @@ abstract class Repository implements Selectable
     }
 
     /**
+     * Return an array to map table names to query columns
+     *
+     * @return  array
+     */
+    protected function getColumnTableMap()
+    {
+        if (empty($this->columnTableMap)) {
+            $this->initializeAliasMaps();
+        }
+
+        return $this->columnTableMap;
+    }
+
+    /**
+     * Return a flattened array to map aliases to query columns
+     *
+     * @return  array
+     */
+    protected function getColumnAliasMap()
+    {
+        if (empty($this->columnAliasMap)) {
+            $this->initializeAliasMaps();
+        }
+
+        return $this->columnAliasMap;
+    }
+
+    /**
      * Initialize $this->aliasTableMap and $this->aliasColumnMap
      *
      * @throws  ProgrammingError    In case $this->queryColumns does not provide any column information
@@ -384,6 +505,23 @@ abstract class Repository implements Selectable
                     $this->aliasTableMap[$key] = $table;
                     $this->aliasColumnMap[$key] = $column;
                 }
+
+                if (array_key_exists($column, $this->columnTableMap)) {
+                    if ($this->columnTableMap[$column] !== null) {
+                        $existingTable = $this->columnTableMap[$column];
+                        $existingAlias = $this->columnAliasMap[$column];
+                        $this->columnTableMap[$existingTable . '.' . $column] = $existingTable;
+                        $this->columnAliasMap[$existingTable . '.' . $column] = $existingAlias;
+                        $this->columnTableMap[$column] = null;
+                        $this->columnAliasMap[$column] = null;
+                    }
+
+                    $this->columnTableMap[$table . '.' . $column] = $table;
+                    $this->columnAliasMap[$table . '.' . $column] = $key;
+                } else {
+                    $this->columnTableMap[$column] = $table;
+                    $this->columnAliasMap[$column] = $key;
+                }
             }
         }
     }
@@ -403,30 +541,45 @@ abstract class Repository implements Selectable
     }
 
     /**
-     * Return whether this repository is capable of converting values for the given table
+     * Return whether this repository is capable of converting values for the given table and optional column
      *
      * @param   string  $table
+     * @param   string  $column
      *
      * @return  bool
      */
-    public function providesValueConversion($table)
+    public function providesValueConversion($table, $column = null)
     {
         $conversionRules = $this->getConversionRules();
-        return !empty($conversionRules) && isset($conversionRules[$table]);
+        if (empty($conversionRules)) {
+            return false;
+        }
+
+        if (! isset($conversionRules[$table])) {
+            return false;
+        } elseif ($column === null) {
+            return true;
+        }
+
+        $alias = $this->reassembleQueryColumnAlias($table, $column) ?: $column;
+        return array_key_exists($alias, $conversionRules[$table]) || in_array($alias, $conversionRules[$table]);
     }
 
     /**
      * Convert a value supposed to be transmitted to the data source
      *
-     * @param   string  $table      The table where to persist the value
-     * @param   string  $name       The alias or column name
-     * @param   mixed   $value      The value to convert
+     * @param   string              $table      The table where to persist the value
+     * @param   string              $name       The alias or column name
+     * @param   mixed               $value      The value to convert
+     * @param   RepositoryQuery     $query      An optional query to pass as context
+     *                                          (Directly passed through to $this->getConverter)
      *
-     * @return  mixed               If conversion was possible, the converted value, otherwise the unchanged value
+     * @return  mixed                           If conversion was possible, the converted value,
+     *                                          otherwise the unchanged value
      */
-    public function persistColumn($table, $name, $value)
+    public function persistColumn($table, $name, $value, RepositoryQuery $query = null)
     {
-        $converter = $this->getConverter($table, $name, 'persist');
+        $converter = $this->getConverter($table, $name, 'persist', $query);
         if ($converter !== null) {
             $value = $this->$converter($value);
         }
@@ -437,15 +590,18 @@ abstract class Repository implements Selectable
     /**
      * Convert a value which was fetched from the data source
      *
-     * @param   string  $table      The table the value has been fetched from
-     * @param   string  $name       The alias or column name
-     * @param   mixed   $value      The value to convert
+     * @param   string              $table      The table the value has been fetched from
+     * @param   string              $name       The alias or column name
+     * @param   mixed               $value      The value to convert
+     * @param   RepositoryQuery     $query      An optional query to pass as context
+     *                                          (Directly passed through to $this->getConverter)
      *
-     * @return  mixed               If conversion was possible, the converted value, otherwise the unchanged value
+     * @return  mixed                           If conversion was possible, the converted value,
+     *                                          otherwise the unchanged value
      */
-    public function retrieveColumn($table, $name, $value)
+    public function retrieveColumn($table, $name, $value, RepositoryQuery $query = null)
     {
-        $converter = $this->getConverter($table, $name, 'retrieve');
+        $converter = $this->getConverter($table, $name, 'retrieve', $query);
         if ($converter !== null) {
             $value = $this->$converter($value);
         }
@@ -456,15 +612,17 @@ abstract class Repository implements Selectable
     /**
      * Return the name of the conversion method for the given alias or column name and context
      *
-     * @param   string  $table      The datasource's table
-     * @param   string  $name       The alias or column name for which to return a conversion method
-     * @param   string  $context    The context of the conversion: persist or retrieve
+     * @param   string              $table      The datasource's table
+     * @param   string              $name       The alias or column name for which to return a conversion method
+     * @param   string              $context    The context of the conversion: persist or retrieve
+     * @param   RepositoryQuery     $query      An optional query to pass as context
+     *                                          (unused by the base implementation)
      *
      * @return  string
      *
      * @throws  ProgrammingError    In case a conversion rule is found but not any conversion method
      */
-    protected function getConverter($table, $name, $context)
+    protected function getConverter($table, $name, $context, RepositoryQuery $query = null)
     {
         $conversionRules = $this->getConversionRules();
         if (! isset($conversionRules[$table])) {
@@ -472,32 +630,35 @@ abstract class Repository implements Selectable
         }
 
         $tableRules = $conversionRules[$table];
+        if (($alias = $this->reassembleQueryColumnAlias($table, $name)) === null) {
+            $alias = $name;
+        }
 
         // Check for a conversion method for the alias/column first
-        if (array_key_exists($name, $tableRules) || in_array($name, $tableRules)) {
-            $methodName = $context . join('', array_map('ucfirst', explode('_', $name)));
+        if (array_key_exists($alias, $tableRules) || in_array($alias, $tableRules)) {
+            $methodName = $context . join('', array_map('ucfirst', explode('_', $alias)));
             if (method_exists($this, $methodName)) {
                 return $methodName;
             }
         }
 
         // The conversion method for the type is just a fallback, but it is required to exist if defined
-        if (isset($tableRules[$name])) {
-            $identifier = join('', array_map('ucfirst', explode('_', $tableRules[$name])));
+        if (isset($tableRules[$alias])) {
+            $identifier = join('', array_map('ucfirst', explode('_', $tableRules[$alias])));
             if (! method_exists($this, $context . $identifier)) {
                 // Do not throw an error in case at least one conversion method exists
                 if (! method_exists($this, ($context === 'persist' ? 'retrieve' : 'persist') . $identifier)) {
                     throw new ProgrammingError(
                         'Cannot find any conversion method for type "%s"'
                         . '. Add a proper conversion method or remove the type definition',
-                        $tableRules[$name]
+                        $tableRules[$alias]
                     );
                 }
 
                 Logger::debug(
                     'Conversion method "%s" for type definition "%s" does not exist in repository "%s".',
                     $context . $identifier,
-                    $tableRules[$name],
+                    $tableRules[$alias],
                     $this->getName()
                 );
             } else {
@@ -697,10 +858,10 @@ abstract class Repository implements Selectable
             throw new ProgrammingError('Table name "%s" not found', $table);
         }
 
-        $filterColumns = $this->getFilterColumns();
+        $blacklist = $this->getBlacklistedQueryColumns();
         $columns = array();
         foreach ($queryColumns[$table] as $alias => $column) {
-            if (! in_array(is_string($alias) ? $alias : $column, $filterColumns)) {
+            if (! in_array(is_string($alias) ? $alias : $column, $blacklist)) {
                 $columns[$alias] = $column;
             }
         }
@@ -730,6 +891,27 @@ abstract class Repository implements Selectable
     }
 
     /**
+     * Return the alias for the given query column name or null in case the query column name does not exist
+     *
+     * @param   string  $table
+     * @param   string  $column
+     *
+     * @return  string|null
+     */
+    public function reassembleQueryColumnAlias($table, $column)
+    {
+        $columnAliasMap = $this->getColumnAliasMap();
+        if (isset($columnAliasMap[$column])) {
+            return $columnAliasMap[$column];
+        }
+
+        $prefixedColumn = $table . '.' . $column;
+        if (isset($columnAliasMap[$prefixedColumn])) {
+            return $columnAliasMap[$prefixedColumn];
+        }
+    }
+
+    /**
      * Return whether the given alias or query column name is available in the given table
      *
      * @param   string  $table
@@ -744,8 +926,13 @@ abstract class Repository implements Selectable
             return $aliasTableMap[$alias] === $table;
         }
 
+        $columnTableMap = $this->getColumnTableMap();
+        if (isset($columnTableMap[$alias])) {
+            return $columnTableMap[$alias] === $table;
+        }
+
         $prefixedAlias = $table . '.' . $alias;
-        return isset($aliasTableMap[$prefixedAlias]);
+        return isset($aliasTableMap[$prefixedAlias]) || isset($columnTableMap[$prefixedAlias]);
     }
 
     /**
@@ -758,11 +945,13 @@ abstract class Repository implements Selectable
      */
     public function hasQueryColumn($table, $name)
     {
-        if (in_array($name, $this->getFilterColumns())) {
+        if ($this->resolveQueryColumnAlias($table, $name) !== null) {
+            $alias = $name;
+        } elseif (($alias = $this->reassembleQueryColumnAlias($table, $name)) === null) {
             return false;
         }
 
-        return $this->resolveQueryColumnAlias($table, $name) !== null
+        return !in_array($alias, $this->getBlacklistedQueryColumns())
             && $this->validateQueryColumnAssociation($table, $name);
     }
 
@@ -779,15 +968,19 @@ abstract class Repository implements Selectable
      */
     public function requireQueryColumn($table, $name, RepositoryQuery $query = null)
     {
-        if (in_array($name, $this->getFilterColumns())) {
-            throw new QueryException(t('Filter column "%s" cannot be queried'), $name);
-        }
-
-        if (($column = $this->resolveQueryColumnAlias($table, $name)) === null) {
+        if (($column = $this->resolveQueryColumnAlias($table, $name)) !== null) {
+            $alias = $name;
+        } elseif (($alias = $this->reassembleQueryColumnAlias($table, $name)) !== null) {
+            $column = $name;
+        } else {
             throw new QueryException(t('Query column "%s" not found'), $name);
         }
 
-        if (! $this->validateQueryColumnAssociation($table, $name)) {
+        if (in_array($alias, $this->getBlacklistedQueryColumns())) {
+            throw new QueryException(t('Column "%s" cannot be queried'), $name);
+        }
+
+        if (! $this->validateQueryColumnAssociation($table, $alias)) {
             throw new QueryException(t('Query column "%s" not found in table "%s"'), $name, $table);
         }
 
@@ -804,7 +997,8 @@ abstract class Repository implements Selectable
      */
     public function hasFilterColumn($table, $name)
     {
-        return $this->resolveQueryColumnAlias($table, $name) !== null
+        return ($this->resolveQueryColumnAlias($table, $name) !== null
+            || $this->reassembleQueryColumnAlias($table, $name) !== null)
             && $this->validateQueryColumnAssociation($table, $name);
     }
 
@@ -821,11 +1015,15 @@ abstract class Repository implements Selectable
      */
     public function requireFilterColumn($table, $name, RepositoryQuery $query = null)
     {
-        if (($column = $this->resolveQueryColumnAlias($table, $name)) === null) {
+        if (($column = $this->resolveQueryColumnAlias($table, $name)) !== null) {
+            $alias = $name;
+        } elseif (($alias = $this->reassembleQueryColumnAlias($table, $name)) !== null) {
+            $column = $name;
+        } else {
             throw new QueryException(t('Filter column "%s" not found'), $name);
         }
 
-        if (! $this->validateQueryColumnAssociation($table, $name)) {
+        if (! $this->validateQueryColumnAssociation($table, $alias)) {
             throw new QueryException(t('Filter column "%s" not found in table "%s"'), $name, $table);
         }
 
@@ -857,15 +1055,19 @@ abstract class Repository implements Selectable
      */
     public function requireStatementColumn($table, $name)
     {
-        if (in_array($name, $this->filterColumns)) {
-            throw new StatementException('Filter column "%s" cannot be referenced in a statement', $name);
-        }
-
-        if (($column = $this->resolveQueryColumnAlias($table, $name)) === null) {
+        if (($column = $this->resolveQueryColumnAlias($table, $name)) !== null) {
+            $alias = $name;
+        } elseif (($alias = $this->reassembleQueryColumnAlias($table, $name)) !== null) {
+            $column = $name;
+        } else {
             throw new StatementException('Statement column "%s" not found', $name);
         }
 
-        if (! $this->validateQueryColumnAssociation($table, $name)) {
+        if (in_array($alias, $this->getBlacklistedQueryColumns())) {
+            throw new StatementException('Column "%s" cannot be referenced in a statement', $name);
+        }
+
+        if (! $this->validateQueryColumnAssociation($table, $alias)) {
             throw new StatementException('Statement column "%s" not found in table "%s"', $name, $table);
         }
 

@@ -3,6 +3,9 @@
 
 namespace Icinga\Data\Db;
 
+use Exception;
+use Icinga\Data\Inspectable;
+use Icinga\Data\Inspection;
 use PDO;
 use Iterator;
 use Zend_Db;
@@ -23,7 +26,7 @@ use Icinga\Exception\ProgrammingError;
 /**
  * Encapsulate database connections and query creation
  */
-class DbConnection implements Selectable, Extensible, Updatable, Reducible
+class DbConnection implements Selectable, Extensible, Updatable, Reducible, Inspectable
 {
     /**
      * Connection config
@@ -40,7 +43,7 @@ class DbConnection implements Selectable, Extensible, Updatable, Reducible
     private $dbType;
 
     /**
-     * @var Zend_Db_Adapter_Abstract
+     * @var \Zend_Db_Adapter_Abstract
      */
     private $dbAdapter;
 
@@ -59,8 +62,7 @@ class DbConnection implements Selectable, Extensible, Updatable, Reducible
     private static $driverOptions = array(
         PDO::ATTR_TIMEOUT    => 10,
         PDO::ATTR_CASE       => PDO::CASE_LOWER,
-        PDO::ATTR_ERRMODE    => PDO::ERRMODE_EXCEPTION,
-        // TODO: allow configurable PDO::ATTR_PERSISTENT => true
+        PDO::ATTR_ERRMODE    => PDO::ERRMODE_EXCEPTION
     );
 
     /**
@@ -71,9 +73,6 @@ class DbConnection implements Selectable, Extensible, Updatable, Reducible
     public function __construct(ConfigObject $config = null)
     {
         $this->config = $config;
-        if (isset($config->prefix)) {
-            $this->tablePrefix = $config->prefix;
-        }
         $this->connect();
     }
 
@@ -112,7 +111,7 @@ class DbConnection implements Selectable, Extensible, Updatable, Reducible
     /**
      * Getter for the Zend_Db_Adapter
      *
-     * @return Zend_Db_Adapter_Abstract
+     * @return \Zend_Db_Adapter_Abstract
      */
     public function getDbAdapter()
     {
@@ -131,11 +130,16 @@ class DbConnection implements Selectable, Extensible, Updatable, Reducible
             'username'          => $this->config->username,
             'password'          => $this->config->password,
             'dbname'            => $this->config->dbname,
+            'persistent'        => (bool) $this->config->get('persistent', false),
             'options'           => & $genericAdapterOptions,
             'driver_options'    => & $driverOptions
         );
         $this->dbType = strtolower($this->config->get('db', 'mysql'));
         switch ($this->dbType) {
+            case 'mssql':
+                $adapter = 'Pdo_Mssql';
+                $adapterParamaters['pdoType'] = $this->config->get('pdoType', 'dblib');
+                break;
             case 'mysql':
                 $adapter = 'Pdo_Mysql';
                 /*
@@ -150,19 +154,21 @@ class DbConnection implements Selectable, Extensible, Updatable, Reducible
                     . 'NO_AUTO_CREATE_USER,ANSI_QUOTES,PIPES_AS_CONCAT,NO_ENGINE_SUBSTITUTION\';';
                 $adapterParamaters['port'] = $this->config->get('port', 3306);
                 break;
+            case 'oci':
+                $adapter = 'Oracle';
+                unset($adapterParamaters['options']);
+                unset($adapterParamaters['driver_options']);
+                $adapterParamaters['driver_options'] = array(
+                    'lob_as_string' => true
+                );
+                break;
+            case 'oracle':
+                $adapter = 'Pdo_Oci';
+                break;
             case 'pgsql':
                 $adapter = 'Pdo_Pgsql';
                 $adapterParamaters['port'] = $this->config->get('port', 5432);
                 break;
-            /*case 'oracle':
-                if ($this->dbtype === 'oracle') {
-                    $attributes['persistent'] = true;
-                }
-                $this->db = ZfDb::factory($adapter, $attributes);
-                if ($adapter === 'Oracle') {
-                    $this->db->setLobAsString(false);
-                }
-                break;*/
             default:
                 throw new ConfigurationError(
                     'Backend "%s" is not supported',
@@ -437,5 +443,43 @@ class DbConnection implements Selectable, Extensible, Updatable, Reducible
         } else {
             return $column . ' ' . $sign . ' ' . $this->dbAdapter->quote($value);
         }
+    }
+
+    public function inspect()
+    {
+        $insp = new Inspection('Db Connection');
+        try {
+            $this->getDbAdapter()->getConnection();
+            $config = $this->dbAdapter->getConfig();
+            $insp->write(sprintf(
+                'Connection to %s as %s on %s:%s successful',
+                $config['dbname'],
+                $config['username'],
+                $config['host'],
+                $config['port']
+            ));
+            switch ($this->dbType) {
+                case 'mysql':
+                    $rows = $this->dbAdapter->query(
+                        'SHOW VARIABLES WHERE variable_name ' .
+                        'IN (\'version\', \'protocol_version\', \'version_compile_os\');'
+                    )->fetchAll();
+                    $sqlinsp = new Inspection('MySQL');
+                    foreach ($rows as $row) {
+                        $sqlinsp->write($row->variable_name . ': ' . $row->value);
+                    }
+                    $insp->write($sqlinsp);
+                    break;
+                case 'pgsql':
+                    $row = $this->dbAdapter->query('SELECT version();')->fetchAll();
+                    $sqlinsp = new Inspection('PostgreSQL');
+                    $sqlinsp->write($row[0]->version);
+                    $insp->write($sqlinsp);
+                    break;
+            }
+        } catch (Exception $e) {
+            return $insp->error(sprintf('Connection failed %s', $e->getMessage()));
+        }
+        return $insp;
     }
 }

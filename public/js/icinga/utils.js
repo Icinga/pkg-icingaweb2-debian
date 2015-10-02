@@ -76,20 +76,19 @@
         * @param   {selector}   element     The element to check
         * @returns {Boolean}
         */
-        isVisible: function(element)
-        {
-          var $element = $(element);
-          if (!$element.length) {
-            return false;
-          }
+        isVisible: function(element) {
+            var $element = $(element);
+            if (!$element.length) {
+                return false;
+            }
 
-          var docViewTop = $(window).scrollTop();
-          var docViewBottom = docViewTop + $(window).height();
-          var elemTop = $element.offset().top;
-          var elemBottom = elemTop + $element.height();
+            var docViewTop = $(window).scrollTop();
+            var docViewBottom = docViewTop + $(window).height();
+            var elemTop = $element.offset().top;
+            var elemBottom = elemTop + $element.height();
 
-          return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom) &&
-              (elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+            return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom) &&
+                 (elemBottom <= docViewBottom) && (elemTop >= docViewTop));
         },
 
         getUrlHelper: function () {
@@ -293,12 +292,33 @@
             return $element[0];
         },
 
+        objectKeys: Object.keys || function (obj) {
+            var keys = [];
+            $.each(obj, function (key) {
+                keys.push(key);
+            });
+            return keys;
+        },
+
         /**
          * Cleanup
          */
         destroy: function () {
             this.urlHelper = null;
             this.icinga = null;
+        },
+
+        /**
+         * Encode the parenthesis too
+         *
+         * @param str {String} A component of a URI
+         *
+         * @returns {String} Encoded component
+         */
+        fixedEncodeURIComponent: function (str) {
+            return encodeURIComponent(str).replace(/[()]/g, function(c) {
+                return '%' + c.charCodeAt(0).toString(16);
+            });
         }
     };
 

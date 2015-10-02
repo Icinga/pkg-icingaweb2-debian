@@ -6,6 +6,7 @@ namespace Icinga\Module\Monitoring;
 use Exception;
 use Icinga\Module\Setup\Step;
 use Icinga\Application\Config;
+use Icinga\Exception\IcingaException;
 
 class SecurityStep extends Step
 {
@@ -63,15 +64,21 @@ class SecurityStep extends Step
     public function getReport()
     {
         if ($this->error === false) {
-            $message = mt('monitoring', 'Monitoring security configuration has been successfully created: %s');
-            return '<p>' . sprintf($message, Config::resolvePath('modules/monitoring/config.ini')) . '</p>';
+            return array(sprintf(
+                mt('monitoring', 'Monitoring security configuration has been successfully created: %s'),
+                Config::resolvePath('modules/monitoring/config.ini')
+            ));
         } elseif ($this->error !== null) {
-            $message = mt(
-                'monitoring',
-                'Monitoring security configuration could not be written to: %s; An error occured:'
+            return array(
+                sprintf(
+                    mt(
+                        'monitoring',
+                        'Monitoring security configuration could not be written to: %s. An error occured:'
+                    ),
+                    Config::resolvePath('modules/monitoring/config.ini')
+                ),
+                sprintf(mt('setup', 'ERROR: %s'), IcingaException::describe($this->error))
             );
-            return '<p class="error">' . sprintf($message, Config::resolvePath('modules/monitoring/config.ini'))
-                . '</p><p>' . $this->error->getMessage() . '</p>';
         }
     }
 }

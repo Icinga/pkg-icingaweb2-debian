@@ -12,9 +12,18 @@ p code {
   padding: 0.3em;
 }
 
-a {
-  color: #39a;
+pre.log-output {
+  padding: 0.5em;
+  margin-top: 0;
+  margin-bottom: 2em;
+  max-height: 12em;
+  overflow: auto;
+  border: 1px solid #ddd;
 }
+
+//a {
+//  color: #39a;
+//}
 
 img.icon {
   width: 16px;
@@ -104,7 +113,7 @@ table.benchmark {
 .info-box {
   padding: 0.5em;
   border: 1px solid lightgrey;
-  background-color: #fbfcc5;
+  background-color: #f2f4fd;
 }
 
 /* Action table */
@@ -179,14 +188,28 @@ table.alternating {
 
 
 /* HOVER colors */
- 
+
 tr[href]:hover {
   color: black;
   background-color: #DDDDDD;
 }
 /* END of HOVER colors */
 
-/* TODO: get rid of most if not all styles below this line */
+div.controls table.user-header {
+  th {
+    width: 9em;
+    line-height: 1.5em;
+    font-size: 0.9em;
+  }
+
+  td {
+    line-height: 1.5em;
+    font-size: 0.9em;
+  }
+}
+
+/* TODO: get rid of most if not all styles below this line,
+         by ensuring to not to make everything look ugly... */
 div.content.users {
   table.user-list {
     th.user-remove {
@@ -257,19 +280,6 @@ div.content.groups {
   a.group-add {
     display: block;
     margin-top: 1em;
-  }
-}
-
-div.controls div.group-header {
-  .group-name {
-    display: inline-block;
-    margin: 0 0 0.3em;
-    font-size: 2em;
-  }
-
-  .group-parent, .group-created, .group-modified {
-    margin: 0 0 0.2em;
-    font-size: 0.8em;
   }
 }
 

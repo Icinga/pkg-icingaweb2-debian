@@ -22,7 +22,7 @@ class Zend_View_Helper_Perfdata extends Zend_View_Helper_Abstract
         $pieChartData = PerfdataSet::fromString($perfdataStr)->asArray();
         uasort(
             $pieChartData,
-            function($a, $b) {
+            function ($a, $b) {
                 return $a->worseThan($b) ? -1 : ($b->worseThan($a) ? 1 : 0);
             }
         );
@@ -89,12 +89,15 @@ class Zend_View_Helper_Perfdata extends Zend_View_Helper_Abstract
             }
         }
         if ($limit > 0) {
-            $count = max(count($table), count($results));
-            $table = array_slice($table, 0, $limit);
-            $results = array_slice($results, 0, $limit);
+            $count = $compact ? count($results) : count($table);
             if ($count > $limit) {
-                $mess = sprintf($this->view->translate('%d more ...'), $count - $limit);
-                $results[] = '<span title="' . $mess . '">...</span>';
+                if ($compact) {
+                    $results = array_slice($results, 0, $limit);
+                    $title = sprintf($this->view->translate('%d more ...'), $count - $limit);
+                    $results[] = '<span title="' . $title . '">...</span>';
+                } else {
+                    $table = array_slice($table, 0, $limit);
+                }
             }
         }
         if ($compact) {

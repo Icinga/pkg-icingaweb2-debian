@@ -3,7 +3,7 @@
 
 namespace Icinga\Repository;
 
-use Icinga\Protocol\Ldap\Connection;
+use Icinga\Protocol\Ldap\LdapConnection;
 
 /**
  * Abstract base class for concrete LDAP repository implementations
@@ -18,7 +18,7 @@ abstract class LdapRepository extends Repository
     /**
      * The datasource being used
      *
-     * @var Connection
+     * @var LdapConnection
      */
     protected $ds;
 
@@ -28,21 +28,35 @@ abstract class LdapRepository extends Repository
      * @var array
      */
     protected $normedAttributes = array(
-        'uid'               => 'uid',
-        'gid'               => 'gid',
-        'user'              => 'user',
-        'group'             => 'group',
-        'member'            => 'member',
-        'inetorgperson'     => 'inetOrgPerson',
-        'samaccountname'    => 'sAMAccountName'
+        'uid'                   => 'uid',
+        'gid'                   => 'gid',
+        'user'                  => 'user',
+        'group'                 => 'group',
+        'member'                => 'member',
+        'memberuid'             => 'memberUid',
+        'posixgroup'            => 'posixGroup',
+        'uniquemember'          => 'uniqueMember',
+        'groupofnames'          => 'groupOfNames',
+        'inetorgperson'         => 'inetOrgPerson',
+        'samaccountname'        => 'sAMAccountName',
+        'groupofuniquenames'    => 'groupOfUniqueNames'
+    );
+
+    /**
+     * Object attributes whose value is not distinguished name
+     *
+     * @var array
+     */
+    protected $ambiguousAttributes = array(
+        'posixGroup' => 'memberUid'
     );
 
     /**
      * Create a new LDAP repository object
      *
-     * @param   Connection  $ds     The data source to use
+     * @param   LdapConnection  $ds     The data source to use
      */
-    public function __construct(Connection $ds)
+    public function __construct(LdapConnection $ds)
     {
         parent::__construct($ds);
     }
@@ -62,5 +76,18 @@ abstract class LdapRepository extends Repository
         }
 
         return $name;
+    }
+
+    /**
+     * Return whether the given object attribute's value is not a distinguished name
+     *
+     * @param   string  $objectClass
+     * @param   string  $attributeName
+     *
+     * @return  bool
+     */
+    protected function isAmbiguous($objectClass, $attributeName)
+    {
+        return isset($this->ambiguousAttributes[$objectClass][$attributeName]);
     }
 }

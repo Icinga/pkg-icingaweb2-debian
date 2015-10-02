@@ -3,11 +3,8 @@
 
 namespace Icinga\Forms\Config\Resource;
 
-use Exception;
 use Icinga\Web\Form;
-use Icinga\Data\ConfigObject;
-use Icinga\Data\ResourceFactory;
-use Icinga\Protocol\Ldap\Connection;
+use Icinga\Protocol\Ldap\LdapConnection;
 
 /**
  * Form class for adding/modifying ldap resources
@@ -23,11 +20,13 @@ class LdapResourceForm extends Form
     }
 
     /**
-     * @see Form::createElements()
+     * Create and add elements to this form
+     *
+     * @param   array   $formData   The data sent by the user
      */
     public function createElements(array $formData)
     {
-        $defaultPort = ! array_key_exists('encryption', $formData) || $formData['encryption'] !== Connection::LDAPS
+        $defaultPort = ! array_key_exists('encryption', $formData) || $formData['encryption'] !== LdapConnection::LDAPS
             ? 389
             : 636;
 
@@ -75,28 +74,12 @@ class LdapResourceForm extends Form
                     . ' none for unencrypted communication'
                 ),
                 'multiOptions'  => array(
-                    'none'                  => $this->translate('None', 'resource.ldap.encryption'),
-                    Connection::STARTTLS    => 'STARTTLS',
-                    Connection::LDAPS       => 'LDAPS'
+                    'none'                      => $this->translate('None', 'resource.ldap.encryption'),
+                    LdapConnection::STARTTLS    => 'STARTTLS',
+                    LdapConnection::LDAPS       => 'LDAPS'
                 )
             )
         );
-
-        if (isset($formData['encryption']) && $formData['encryption'] !== 'none') {
-            // TODO(jom): Do not show this checkbox unless the connection is actually failing due to certificate errors
-            $this->addElement(
-                'checkbox',
-                'reqcert',
-                array(
-                    'required'      => true,
-                    'label'         => $this->translate('Require Certificate'),
-                    'description'   => $this->translate(
-                        'When checked, the LDAP server must provide a valid and known (trusted) certificate.'
-                    ),
-                    'value'         => 1
-                )
-            );
-        }
 
         $this->addElement(
             'text',
@@ -131,48 +114,5 @@ class LdapResourceForm extends Form
         );
 
         return $this;
-    }
-
-    /**
-     * Validate that the current configuration points to a valid resource
-     *
-     * @see Form::onSuccess()
-     */
-    public function onSuccess()
-    {
-        if (false === static::isValidResource($this)) {
-            return false;
-        }
-    }
-
-    /**
-     * Validate the resource configuration by trying to connect with it
-     *
-     * @param   Form    $form   The form to fetch the configuration values from
-     *
-     * @return  bool            Whether validation succeeded or not
-     */
-    public static function isValidResource(Form $form)
-    {
-        try {
-            $resource = ResourceFactory::createResource(new ConfigObject($form->getValues()));
-            if (false === $resource->testCredentials(
-                $form->getElement('bind_dn')->getValue(),
-                $form->getElement('bind_pw')->getValue()
-                )
-            ) {
-                throw new Exception(); // TODO: Get the exact error message
-            }
-        } catch (Exception $e) {
-            $msg = $form->translate('Connectivity validation failed, connection to the given resource not possible.');
-            if (($error = $e->getMessage())) {
-                $msg .= ' (' . $error . ')';
-            }
-
-            $form->addError($msg);
-            return false;
-        }
-
-        return true;
     }
 }
