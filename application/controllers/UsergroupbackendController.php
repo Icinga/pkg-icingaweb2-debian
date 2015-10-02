@@ -1,13 +1,15 @@
 <?php
 /* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
+namespace Icinga\Controllers;
+
+use Exception;
 use Icinga\Application\Config;
 use Icinga\Exception\NotFoundError;
-use Icinga\Forms\ConfirmRemovalForm;
 use Icinga\Forms\Config\UserGroup\UserGroupBackendForm;
+use Icinga\Forms\ConfirmRemovalForm;
 use Icinga\Web\Controller;
 use Icinga\Web\Notification;
-use Icinga\Web\Url;
 
 /**
  * Controller to configure user group backends
@@ -35,7 +37,7 @@ class UsergroupbackendController extends Controller
      */
     public function listAction()
     {
-        $this->view->backendNames = Config::app('groups')->keys();
+        $this->view->backendNames = Config::app('groups');
         $this->createListTabs()->activate('usergroupbackend');
     }
 
@@ -46,7 +48,6 @@ class UsergroupbackendController extends Controller
     {
         $form = new UserGroupBackendForm();
         $form->setRedirectUrl('usergroupbackend/list');
-        $form->setTitle($this->translate('Create New User Group Backend'));
         $form->addDescription($this->translate('Create a new backend to associate users and groups with.'));
         $form->setIniConfig(Config::app('groups'));
         $form->setOnSuccess(function (UserGroupBackendForm $form) {
@@ -66,8 +67,7 @@ class UsergroupbackendController extends Controller
         });
         $form->handleRequest();
 
-        $this->view->form = $form;
-        $this->render('form');
+        $this->renderForm($form, $this->translate('New User Group Backend'));
     }
 
     /**
@@ -78,9 +78,7 @@ class UsergroupbackendController extends Controller
         $backendName = $this->params->getRequired('backend');
 
         $form = new UserGroupBackendForm();
-        $form->setAction(Url::fromRequest());
         $form->setRedirectUrl('usergroupbackend/list');
-        $form->setTitle(sprintf($this->translate('Edit User Group Backend %s'), $backendName));
         $form->setIniConfig(Config::app('groups'));
         $form->setOnSuccess(function (UserGroupBackendForm $form) use ($backendName) {
             try {
@@ -110,8 +108,7 @@ class UsergroupbackendController extends Controller
             $this->httpNotFound(sprintf($this->translate('User group backend "%s" not found'), $backendName));
         }
 
-        $this->view->form = $form;
-        $this->render('form');
+        $this->renderForm($form, $this->translate('Update User Group Backend'));
     }
 
     /**
@@ -125,7 +122,6 @@ class UsergroupbackendController extends Controller
         $backendForm->setIniConfig(Config::app('groups'));
         $form = new ConfirmRemovalForm();
         $form->setRedirectUrl('usergroupbackend/list');
-        $form->setTitle(sprintf($this->translate('Remove User Group Backend %s'), $backendName));
         $form->setOnSuccess(function (ConfirmRemovalForm $form) use ($backendName, $backendForm) {
             try {
                 $backendForm->delete($backendName);
@@ -143,8 +139,7 @@ class UsergroupbackendController extends Controller
         });
         $form->handleRequest();
 
-        $this->view->form = $form;
-        $this->render('form');
+        $this->renderForm($form, $this->translate('Remove User Group Backend'));
     }
 
     /**
@@ -153,35 +148,16 @@ class UsergroupbackendController extends Controller
     protected function createListTabs()
     {
         $tabs = $this->getTabs();
-        if ($this->hasPermission('config/application/general')) {
-            $tabs->add('general', array(
-                'title' => $this->translate('Adjust the general configuration of Icinga Web 2'),
-                'label' => $this->translate('General'),
-                'url'   => 'config/general'
-            ));
-        }
-        if ($this->hasPermission('config/application/resources')) {
-            $tabs->add('resource', array(
-                'title' => $this->translate('Configure which resources are being utilized by Icinga Web 2'),
-                'label' => $this->translate('Resources'),
-                'url'   => 'config/resource'
-            ));
-        }
-        if ($this->hasPermission('config/application/userbackend')) {
-            $tabs->add('userbackend', array(
-                'title' => $this->translate('Configure how users authenticate with and log into Icinga Web 2'),
-                'label' => $this->translate('Authentication'),
-                'url'   => 'config/userbackend'
-            ));
-        }
-        if ($this->hasPermission('config/application/usergroupbackend')) {
-            $tabs->add('usergroupbackend', array(
-                'title' => $this->translate('Configure how users are associated with groups by Icinga Web 2'),
-                'label' => $this->translate('User Groups'),
-                'url'   => 'usergroupbackend/list'
-            ));
-        }
-
+        $tabs->add('userbackend', array(
+            'title' => $this->translate('Configure how users authenticate with and log into Icinga Web 2'),
+            'label' => $this->translate('Users'),
+            'url'   => 'config/userbackend'
+        ));
+        $tabs->add('usergroupbackend', array(
+            'title' => $this->translate('Configure how users are associated with groups by Icinga Web 2'),
+            'label' => $this->translate('User Groups'),
+            'url'   => 'usergroupbackend/list'
+        ));
         return $tabs;
     }
 }

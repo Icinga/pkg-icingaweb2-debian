@@ -13,6 +13,7 @@ use Icinga\Module\Monitoring\Forms\Command\Object\ToggleObjectFeaturesCommandFor
 use Icinga\Web\Hook;
 use Icinga\Web\Url;
 use Icinga\Web\Widget\Tabextension\DashboardAction;
+use Icinga\Web\Widget\Tabextension\MenuAction;
 
 /**
  * Base class for the host and service controller
@@ -76,6 +77,7 @@ abstract class MonitoredObjectController extends Controller
         $this->object->populate();
         $toggleFeaturesForm = new ToggleObjectFeaturesCommandForm();
         $toggleFeaturesForm
+            ->setBackend($this->backend)
             ->load($this->object)
             ->setObjects($this->object)
             ->handleRequest();
@@ -90,6 +92,7 @@ abstract class MonitoredObjectController extends Controller
             $delDowntimeForm->handleRequest();
             $this->view->delDowntimeForm = $delDowntimeForm;
         }
+        $this->view->showInstance = $this->backend->select()->from('instance')->count() > 1;
         $this->view->object = $this->object;
     }
 
@@ -230,6 +233,6 @@ abstract class MonitoredObjectController extends Controller
                 )
             );
         }
-        $tabs->extend(new DashboardAction());
+        $tabs->extend(new DashboardAction())->extend(new MenuAction());
     }
 }

@@ -2,25 +2,37 @@
 use Icinga\Module\Monitoring\Object\Host;
 use Icinga\Module\Monitoring\Object\Service;
 
+$url = $this->url();
+$limit = (int) $url->getParam('limit', 25);
+if (! $url->hasParam('page') || ($page = (int) $url->getParam('page')) < 1) {
+    $page = 1;
+}
+
+$history->limit($limit * $page);
+
 if (! $this->compact): ?>
-<div class="controls">
+<div class="controls dont-print separated">
   <?= $this->tabs; ?>
-  <?= $this->sortBox; ?>
-  <?= $this->limiter; ?>
-  <?= $this->paginator; ?>
+  <div class="grid">
+    <div class="col-1-3 text-left">
+      <?= $this->limiter ?>
+    </div>
+    <div class="col-1-3">
+      <a class="action-link" href="#load-more">
+        <?= $this->translate('Scroll to the bottom of this page to load additional events'); ?>
+      </a>
+    </div>
+    <div class="col-1-3 text-right">
+      <?= $this->sortBox ?>
+    </div>
+  </div>
   <?= $this->filterEditor; ?>
 </div>
 <?php endif ?>
 <div class="content">
-<?php
-if (count($history) === 0) {
-    echo $this->translate('No history events found matching the filter') . '</div>';
-    return;
-}
-?>
-  <table data-base-target="_next" class="action">
+  <table data-base-target="_next" class="action action-table">
     <tbody>
-    <?php foreach ($history as $event): ?>
+    <?php foreach ($history->peekAhead() as $event): ?>
     <?php
       $icon = 'help';
       $msg = $event->output;
@@ -73,27 +85,56 @@ if (count($history) === 0) {
           break;
         }
       ?>
-      <tr class="state <?= $stateName; ?>">
-        <td class="state">
+      <tr>
+        <td class="state-col state-<?= $stateName; ?>">
+        <?php if ($history->getIteratorPosition() % $limit === 0): ?>
+          <a id="page-<?= $history->getIteratorPosition() / $limit + 1; ?>"></a>
+        <?php endif ?>
           <strong><?= $this->escape($title); ?></strong>
-          <br>
-          <?= $this->timeAgo($event->timestamp, $this->compact); ?>
+          <p><?= $this->timeAgo($event->timestamp, $this->compact); ?></p>
         </td>
         <td>
-        <?php if ($isService): ?>
+          <?= $this->icon($icon, $title); ?>
+          <?php if ($isService): ?>
           <?= $this->link()->service(
-              $event->service_description, $event->service_display_name, $event->host_name, $event->host_display_name
+              $event->service_description, $event->service_display_name, $event->host_name, $event->host_display_name, 'rowaction'
           ) ?>
         <?php else: ?>
           <?= $this->link()->host($event->host_name, $event->host_display_name) ?>
         <?php endif ?>
-          <br>
-          <div>
-            <?= $this->icon($icon, $title); ?> <?= empty($msg) ? '' : $this->escape($msg) ?>
-          </div>
+          <p class="plugin-output">
+            <?= empty($msg) ? '' : $this->escape($msg) ?>
+          </p>
         </td>
       </tr>
     <?php endforeach ?>
     </tbody>
   </table>
+<?php if (! $history->hasResult()): ?>
+  <?= $this->translate('No history events found matching the filter'); ?>
+<?php elseif ($history->hasMore()): ?>
+ <?php if ($this->compact): ?>
+  <?= $this->qlink(
+    $this->translate('Show More'),
+    $url->without(array('view', 'limit')),
+    null,
+    array(
+      'data-base-target'    => '_next',
+      'class'               => 'pull-right action-link'
+    )
+  ); ?>
+ <?php else: ?>
+  <?= $this->qlink(
+    $this->translate('Load More'),
+    $url->setAnchor('page-' . ($page + 1)),
+    array(
+      'page'    => $page + 1,
+    ),
+    array(
+      'id'      => 'load-more',
+      'class'   => 'pull-right action-link'
+    )
+  ); ?>
+ <?php endif ?>
+<?php endif ?>
 </div>

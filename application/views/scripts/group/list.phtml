@@ -6,9 +6,17 @@ use Icinga\Data\Reducible;
 if (! $this->compact): ?>
 <div class="controls">
   <?= $this->tabs; ?>
-  <?= $this->sortBox; ?>
-  <?= $this->limiter; ?>
-  <?= $this->paginator; ?>
+  <div class="grid dont-print">
+    <div class="col-1-3 text-left">
+      <?= $this->limiter ?>
+    </div>
+    <div class="col-1-3">
+      <?= $this->paginator ?>
+    </div>
+    <div class="col-1-3 text-right">
+      <?= $this->sortBox ?>
+    </div>
+  </div>
   <div>
     <?= $this->backendSelection; ?>
     <?= $this->filterEditor; ?>
@@ -25,9 +33,29 @@ if (! isset($backend)) {
     $extensible = $this->hasPermission('config/authentication/groups/add') && $backend instanceof Extensible;
     $reducible = $this->hasPermission('config/authentication/groups/remove') && $backend instanceof Reducible;
 }
+?>
 
-if (count($groups) > 0): ?>
-<table data-base-target="_next" class="action group-list alternating">
+<?php if ($extensible): ?>
+    <?= $this->qlink(
+        $this->translate('Add a New User Group') ,
+        'group/add',
+        array('backend' => $backend->getName()),
+        array(
+            'class'             => 'button-link',
+            'data-base-target'  => '_next',
+            'icon'              => 'plus',
+            'title'             => $this->translate('Create a new user group')
+        )
+    ) ?>
+<?php endif ?>
+
+<?php
+// @TODO(el): Remove $firstRow stuff
+$firstRow = true;
+foreach ($groups as $group): ?>
+  <?php if ($firstRow): ?>
+    <?php $firstRow = false; ?>
+<table data-base-target="_next" class="action-table listing-table">
   <thead>
     <tr>
       <th class="group-name"><?= $this->translate('Group'); ?></th>
@@ -37,7 +65,7 @@ if (count($groups) > 0): ?>
     </tr>
   </thead>
   <tbody>
-  <?php foreach ($groups as $group): ?>
+  <?php endif ?>
     <tr>
       <td class="group-name"><?= $this->qlink($group->group_name, 'group/show', array(
         'backend'   => $backend->getName(),
@@ -62,17 +90,11 @@ if (count($groups) > 0): ?>
       </td>
      <?php endif ?>
     </tr>
-  <?php endforeach ?>
+<?php endforeach ?>
+<?php if ($groups->hasResult()): ?>
   </tbody>
 </table>
 <?php else: ?>
 <p><?= $this->translate('No groups found matching the filter'); ?></p>
-<?php endif ?>
-<?php if ($extensible): ?>
-<?= $this->qlink($this->translate('Add a new group'), 'group/add', array('backend' => $backend->getName()), array(
-  'icon'                => 'plus',
-  'data-base-target'    => '_next',
-  'class'               => 'group-add'
-)); ?>
 <?php endif ?>
 </div>

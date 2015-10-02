@@ -1,8 +1,13 @@
-icingaweb2 (2.0.0~rc1-1~debmon80+1) debmon-jessie; urgency=medium
+icingaweb2 (2.0.0-1~debmon80+1) debmon-jessie; urgency=medium
 
-  * Rebuild for debmon
+  [ Markus Frosch ]
+  * [bd9e401] Ship empty modules directory in main package
+  * [8a9396a] Move setup code into core module
 
- -- Alexander Wirt <formorer@debian.org>  Thu, 19 Mar 2015 21:20:19 +0100
+  [ Alexander Wirt ]
+  * [a42beb9] Imported Upstream version 2.0.0
+
+ -- Alexander Wirt <formorer@debian.org>  Fri, 02 Oct 2015 14:35:07 +0200
 
 icingaweb2 (2.0.0~rc1-1) unstable; urgency=medium
 

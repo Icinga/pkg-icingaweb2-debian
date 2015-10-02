@@ -20,7 +20,7 @@ class Tabs extends AbstractWidget implements Countable
      * @var string
      */
     private $baseTpl = <<< 'EOT'
-<ul class="tabs">
+<ul class="tabs primary-nav">
   {TABS}
   {DROPDOWN}
   {REFRESH}
@@ -242,7 +242,7 @@ EOT;
     {
         if ($this->has($name)) {
             unset($this->tabs[$name]);
-            if (($dropdownIndex = array_search($name, $this->dropdownTabs)) !== false) {
+            if (($dropdownIndex = array_search($name, $this->dropdownTabs, true)) !== false) {
                 array_splice($this->dropdownTabs, $dropdownIndex, 2);
             }
         }
@@ -309,14 +309,13 @@ EOT;
 
     private function renderRefreshTab()
     {
+        $url = Icinga::app()->getRequest()->getUrl();
         $tab = $this->get($this->getActiveName());
+
         if ($tab !== null) {
-            $url = Url::fromRequest($tab->getUrl()->getParams()->toArray(false))->without('renderLayout');
             $label = $this->view()->escape(
                 $tab->getLabel()
             );
-        } else {
-            $url = Url::fromRequest()->without('renderLayout');
         }
 
         if (! empty($label)) {

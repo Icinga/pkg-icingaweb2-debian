@@ -4,7 +4,7 @@
 namespace Icinga\Module\Monitoring\Forms\Command\Object;
 
 use Icinga\Module\Monitoring\Command\Object\DeleteDowntimeCommand;
-use \Icinga\Module\Monitoring\Forms\Command\CommandForm;
+use Icinga\Module\Monitoring\Forms\Command\CommandForm;
 use Icinga\Web\Notification;
 
 /**
@@ -13,17 +13,39 @@ use Icinga\Web\Notification;
 class DeleteDowntimeCommandForm extends CommandForm
 {
     /**
-     * (non-PHPDoc)
-     * @see \Zend_Form::init() For the method documentation.
+     * {@inheritdoc}
      */
     public function init()
     {
         $this->setAttrib('class', 'inline');
     }
-    
+
     /**
-     * (non-PHPDoc)
-     * @see \Icinga\Web\Form::createElements() For the method documentation.
+     * {@inheritdoc}
+     */
+    public function addSubmitButton()
+    {
+        $this->addElement(
+            'button',
+            'btn_submit',
+            array(
+                'class'         => 'link-button spinner',
+                'decorators'    => array(
+                    'ViewHelper',
+                    array('HtmlTag', array('tag' => 'div', 'class' => 'control-group form-controls'))
+                ),
+                'escape'        => false,
+                'ignore'        => true,
+                'label'         => $this->getView()->icon('cancel'),
+                'title'         => $this->translate('Delete this downtime'),
+                'type'          => 'submit'
+            )
+        );
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function createElements(array $formData = array())
     {
@@ -33,17 +55,17 @@ class DeleteDowntimeCommandForm extends CommandForm
                     'hidden',
                     'downtime_id',
                     array(
-                        'required' => true,
-                        'validators' => array('NotEmpty'),
-                        'decorators' => array('ViewHelper')
+                        'decorators'    => array('ViewHelper'),
+                        'required'      => true,
+                        'validators'    => array('NotEmpty')
                     )
                 ),
                 array(
                     'hidden',
                     'downtime_is_service',
                     array(
-                        'filters' => array('Boolean'),
-                        'decorators' => array('ViewHelper')
+                        'decorators'    => array('ViewHelper'),
+                        'filters'       => array('Boolean')
                     )
                 ),
                 array(
@@ -57,32 +79,9 @@ class DeleteDowntimeCommandForm extends CommandForm
         );
         return $this;
     }
-    
+
     /**
-     * (non-PHPDoc)
-     * @see \Icinga\Web\Form::addSubmitButton() For the method documentation.
-     */
-    public function addSubmitButton()
-    {
-        $this->addElement(
-            'button',
-            'btn_submit',
-            array(
-                'ignore'        => true,
-                'escape'        => false,
-                'type'          => 'submit',
-                'class'         => 'link-like',
-                'label'         => $this->getView()->icon('trash'),
-                'title'         => $this->translate('Delete this downtime'),
-                'decorators'    => array('ViewHelper')
-            )
-        );
-        return $this;
-    }
-   
-    /**
-     * (non-PHPDoc)
-     * @see \Icinga\Web\Form::onSuccess() For  the method documentation.
+     * {@inheritdoc}
      */
     public function onSuccess()
     {
@@ -90,7 +89,7 @@ class DeleteDowntimeCommandForm extends CommandForm
         $cmd->setDowntimeId($this->getElement('downtime_id')->getValue());
         $cmd->setIsService($this->getElement('downtime_is_service')->getValue());
         $this->getTransport($this->request)->send($cmd);
-    
+
         $redirect = $this->getElement('redirect')->getValue();
         if (! empty($redirect)) {
             $this->setRedirectUrl($redirect);

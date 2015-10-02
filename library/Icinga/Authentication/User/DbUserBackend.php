@@ -4,13 +4,15 @@
 namespace Icinga\Authentication\User;
 
 use Exception;
+use Icinga\Data\Inspectable;
+use Icinga\Data\Inspection;
 use PDO;
 use Icinga\Data\Filter\Filter;
 use Icinga\Exception\AuthenticationException;
 use Icinga\Repository\DbRepository;
 use Icinga\User;
 
-class DbUserBackend extends DbRepository implements UserBackendInterface
+class DbUserBackend extends DbRepository implements UserBackendInterface, Inspectable
 {
     /**
      * The algorithm to use when hashing passwords
@@ -59,7 +61,14 @@ class DbUserBackend extends DbRepository implements UserBackendInterface
      *
      * @var array
      */
-    protected $filterColumns = array('user');
+    protected $blacklistedQueryColumns = array('user');
+
+    /**
+     * The search columns being provided
+     *
+     * @var array
+     */
+    protected $searchColumns = array('user');
 
     /**
      * The default sort rules to be applied on a query
@@ -94,6 +103,23 @@ class DbUserBackend extends DbRepository implements UserBackendInterface
         if (! $this->ds->getTablePrefix()) {
             $this->ds->setTablePrefix('icingaweb_');
         }
+    }
+
+    /**
+     * Initialize this repository's filter columns
+     *
+     * @return  array
+     */
+    protected function initializeFilterColumns()
+    {
+        $userLabel = t('Username') . ' ' . t('(Case insensitive)');
+        return array(
+            $userLabel          => 'user',
+            t('Username')       => 'user_name',
+            t('Active')         => 'is_active',
+            t('Created At')     => 'created_at',
+            t('Last Modified')  => 'last_modified'
+        );
     }
 
     /**
@@ -245,5 +271,27 @@ class DbUserBackend extends DbRepository implements UserBackendInterface
     protected function hashPassword($password, $salt = null)
     {
         return crypt($password, self::HASH_ALGORITHM . ($salt !== null ? $salt : $this->generateSalt()));
+    }
+
+    /**
+     * Inspect this object to gain extended information about its health
+     *
+     * @return Inspection           The inspection result
+     */
+    public function inspect()
+    {
+        $insp = new Inspection('Db User Backend');
+        $insp->write($this->ds->inspect());
+        try {
+            $users = $this->select()->where('is_active', true)->count();
+            if ($users > 0) {
+                $insp->write(sprintf('%s active users', $users));
+            } else {
+                return $insp->error('0 active users', $users);
+            }
+        } catch (Exception $e) {
+            $insp->error(sprintf('Query failed: %s', $e->getMessage()));
+        }
+        return $insp;
     }
 }

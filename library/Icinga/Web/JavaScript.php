@@ -26,7 +26,9 @@ class JavaScript
         'js/icinga/behavior/sparkline.js',
         'js/icinga/behavior/tristate.js',
         'js/icinga/behavior/navigation.js',
-        'js/icinga/behavior/form.js'
+        'js/icinga/behavior/form.js',
+        'js/icinga/behavior/actiontable.js',
+        'js/icinga/behavior/selectable.js'
     );
 
     protected static $vendorFiles = array(
@@ -40,17 +42,6 @@ class JavaScript
         'js/vendor/jquery.sparkline',
         'js/vendor/jquery.tipsy'
     );
-
-    public static function listModuleFiles()
-    {
-        $list = array();
-        foreach (Icinga::app()->getModuleManager()->getLoadedModules() as $name => $module) {
-            if ($module->hasJs()) {
-                $list[] = 'js/' . $name . '/module.js';
-            }
-        }
-        return $list;
-    }
 
     public static function sendMinified()
     {
@@ -85,7 +76,11 @@ class JavaScript
 
         foreach (Icinga::app()->getModuleManager()->getLoadedModules() as $name => $module) {
             if ($module->hasJs()) {
-                $jsFiles[] = $module->getJsFilename();
+                foreach ($module->getJsFiles() as $path) {
+                    if (file_exists($path)) {
+                        $jsFiles[] = $path;
+                    }
+                }
             }
         }
         $files = array_merge($vendorFiles, $jsFiles);
@@ -113,7 +108,7 @@ class JavaScript
         }
 
         foreach ($jsFiles as $file) {
-            $js .= file_get_contents($file);
+            $js .= file_get_contents($file) . "\n\n\n";
         }
 
         if ($minified) {

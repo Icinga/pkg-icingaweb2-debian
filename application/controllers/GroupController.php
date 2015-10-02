@@ -1,10 +1,13 @@
 <?php
 /* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
 
+namespace Icinga\Controllers;
+
+use Exception;
 use Icinga\Application\Logger;
 use Icinga\Data\DataArray\ArrayDatasource;
-use Icinga\Data\Reducible;
 use Icinga\Data\Filter\Filter;
+use Icinga\Data\Reducible;
 use Icinga\Exception\NotFoundError;
 use Icinga\Forms\Config\UserGroup\AddMemberForm;
 use Icinga\Forms\Config\UserGroup\UserGroupForm;
@@ -54,19 +57,12 @@ class GroupController extends AuthBackendController
         }
 
         $query = $backend->select(array('group_name'));
-        $filterEditor = Widget::create('filterEditor')
-            ->setQuery($query)
-            ->setSearchColumns(array('group', 'user'))
-            ->preserveParams('limit', 'sort', 'dir', 'view', 'backend')
-            ->ignoreParams('page')
-            ->handleRequest($this->getRequest());
-        $query->applyFilter($filterEditor->getFilter());
-        $this->setupFilterControl($filterEditor);
 
         $this->view->groups = $query;
         $this->view->backend = $backend;
 
         $this->setupPaginationControl($query);
+        $this->setupFilterControl($query);
         $this->setupLimitControl();
         $this->setupSortControl(
             array(
@@ -101,15 +97,7 @@ class GroupController extends AuthBackendController
             ->from('group_membership', array('user_name'))
             ->where('group_name', $groupName);
 
-        $filterEditor = Widget::create('filterEditor')
-            ->setQuery($members)
-            ->setSearchColumns(array('user'))
-            ->preserveParams('limit', 'sort', 'dir', 'view', 'backend', 'group')
-            ->ignoreParams('page')
-            ->handleRequest($this->getRequest());
-        $members->applyFilter($filterEditor->getFilter());
-
-        $this->setupFilterControl($filterEditor);
+        $this->setupFilterControl($members, null, array('user'));
         $this->setupPaginationControl($members);
         $this->setupLimitControl();
         $this->setupSortControl(
@@ -146,7 +134,7 @@ class GroupController extends AuthBackendController
             $removeForm->addElement('button', 'btn_submit', array(
                 'escape'        => false,
                 'type'          => 'submit',
-                'class'         => 'link-like',
+                'class'         => 'link-like spinner',
                 'value'         => 'btn_submit',
                 'decorators'    => array('ViewHelper'),
                 'label'         => $this->view->icon('trash'),
@@ -168,8 +156,7 @@ class GroupController extends AuthBackendController
         $form->setRepository($backend);
         $form->add()->handleRequest();
 
-        $this->view->form = $form;
-        $this->render('form');
+        $this->renderForm($form, $this->translate('New User Group'));
     }
 
     /**
@@ -193,8 +180,7 @@ class GroupController extends AuthBackendController
             $this->httpNotFound(sprintf($this->translate('Group "%s" not found'), $groupName));
         }
 
-        $this->view->form = $form;
-        $this->render('form');
+        $this->renderForm($form, $this->translate('Update User Group'));
     }
 
     /**
@@ -216,8 +202,7 @@ class GroupController extends AuthBackendController
             $this->httpNotFound(sprintf($this->translate('Group "%s" not found'), $groupName));
         }
 
-        $this->view->form = $form;
-        $this->render('form');
+        $this->renderForm($form, $this->translate('Remove User Group'));
     }
 
     /**
@@ -244,8 +229,7 @@ class GroupController extends AuthBackendController
             $this->httpNotFound(sprintf($this->translate('Group "%s" not found'), $groupName));
         }
 
-        $this->view->form = $form;
-        $this->render('form');
+        $this->renderForm($form, $this->translate('New User Group Member'));
     }
 
     /**
@@ -345,6 +329,45 @@ class GroupController extends AuthBackendController
             )
         );
 
+        return $tabs;
+    }
+
+    /**
+     * Create the tabs to display when listing groups
+     */
+    protected function createListTabs()
+    {
+        $tabs = $this->getTabs();
+        $tabs->add(
+            'role/list',
+            array(
+                'baseTarget'    => '_main',
+                'label'         => $this->translate('Roles'),
+                'title'         => $this->translate(
+                    'Configure roles to permit or restrict users and groups accessing Icinga Web 2'
+                ),
+                'url'           => 'role/list'
+
+            )
+        );
+        $tabs->add(
+            'user/list',
+            array(
+                'title'     => $this->translate('List users of authentication backends'),
+                'label'     => $this->translate('Users'),
+                'icon'      => 'user',
+                'url'       => 'user/list'
+            )
+        );
+        $tabs->add(
+            'group/list',
+            array(
+                'title'     => $this->translate('List groups of user group backends'),
+                'label'     => $this->translate('User Groups'),
+                'icon'      => 'users',
+                'url'       => 'group/list'
+            )
+        );
         return $tabs;
     }
 }

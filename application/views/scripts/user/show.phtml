@@ -5,7 +5,7 @@ use Icinga\Data\Reducible;
 use Icinga\Data\Selectable;
 
 $editLink = null;
-if (true || $this->hasPermission('config/authentication/users/edit') && $backend instanceof Updatable) {
+if ($this->hasPermission('config/authentication/users/edit') && $backend instanceof Updatable) {
     $editLink = $this->qlink(
         null,
         'user/edit',
@@ -23,38 +23,55 @@ if (true || $this->hasPermission('config/authentication/users/edit') && $backend
 
 ?>
 <div class="controls">
- <?php if (! $this->compact): ?>
- <?= $tabs ?>
- <?php endif ?>
-
- <h1><?= $this->escape($user->user_name); ?><span class="pull-right"><?= $editLink ?></span></h1>
+<?php if (! $this->compact): ?>
+  <?= $tabs; ?>
+<?php endif ?>
+  <h2 class="clearfix"><?= $this->escape($user->user_name) ?><span class="pull-right"><?= $editLink ?></span></h2>
+  <table class="name-value-table">
+    <tr>
+      <th><?= $this->translate('State'); ?></th>
+      <td><?= $user->is_active === null ? '-' : ($user->is_active ? $this->translate('Active') : $this->translate('Inactive')); ?></td>
+    </tr>
+    <tr>
+      <th><?= $this->translate('Created at'); ?></th>
+      <td><?= $user->created_at === null ? '-' : $this->formatDateTime($user->created_at); ?></td>
+    </tr>
+    <tr>
+      <th><?= $this->translate('Last modified'); ?></th>
+      <td><?= $user->last_modified === null ? '-' : $this->formatDateTime($user->last_modified); ?></td>
+    </tr>
+  </table>
+  <h2><?= $this->translate('Group Memberships'); ?></h2>
+<?php if (! $this->compact): ?>
+  <?= $this->sortBox; ?>
+<?php endif ?>
+  <?= $this->limiter; ?>
+  <?= $this->paginator; ?>
+<?php if (! $this->compact): ?>
+  <?= $this->filterEditor; ?>
+<?php endif ?>
 </div>
-<div class="content">
- <table class="avp">
-  <tr>
-   <th><?= $this->translate('State'); ?>:</th>
-   <td><?= $user->is_active === null ? '-' : ($user->is_active ? $this->translate('Active') : $this->translate('Inactive')); ?></td>
-  </tr>
-  <tr>
-   <th><?= $this->translate('Created at'); ?>:</th>
-   <td><?= $user->created_at === null ? '-' : $this->formatDateTime($user->created_at); ?></td>
-  </tr>
-  <tr>
-   <th><?= $this->translate('Last modified'); ?>:</th>
-   <td><?= $user->last_modified === null ? '-' : $this->formatDateTime($user->last_modified); ?></td>
-  </tr>
- </table>
- <h3><?= $this->translate('Group Memberships'); ?></h3>
-    <?php if (! $this->compact): ?>
-     <?= $this->sortBox ?>
+<div class="content memberships">
+    <?php if ($showCreateMembershipLink): ?>
+    <?= $this->qlink(
+        $this->translate('Add User to Group') ,
+        'user/createmembership',
+        array('backend' => $backend->getName()),
+        array(
+            'class'             => 'button-link',
+            'data-base-target'  => '_next',
+            'icon'              => 'plus',
+            'title'             => $this->translate('Add user to user group')
+        )
+    ) ?>
     <?php endif ?>
-     <?= $this->limiter ?>
-     <?= $this->paginator ?>
-    <?php if (! $this->compact): ?>
-     <?= $this->filterEditor ?>
-    <?php endif ?>
-<?php if (count($memberships) > 0): ?>
-  <table data-base-target="_next" class="action membership-list">
+<?php
+// @TODO(el): Remove that $firstRow thingy
+$firstRow = true;
+foreach ($memberships as $membership): ?>
+<?php if ($firstRow): ?>
+  <?php $firstRow = false; ?>
+  <table data-base-target="_next" class="action-table listing-table">
     <thead>
       <tr>
         <th class="membership-group"><?= $this->translate('Group'); ?></th>
@@ -62,7 +79,7 @@ if (true || $this->hasPermission('config/authentication/users/edit') && $backend
       </tr>
     </thead>
     <tbody>
-    <?php foreach ($memberships as $membership): ?>
+<?php endif ?>
       <tr>
         <td class="membership-group">
          <?php if ($this->hasPermission('config/authentication/groups/show') && $membership->backend instanceof Selectable): ?>
@@ -87,25 +104,11 @@ if (true || $this->hasPermission('config/authentication/users/edit') && $backend
        <?php endif ?>
         </td>
       </tr>
-    <?php endforeach ?>
+<?php endforeach ?>
+<?php if ($memberships->hasResult()): ?>
     </tbody>
   </table>
 <?php else: ?>
   <p><?= $this->translate('No memberships found matching the filter'); ?></p>
-<?php endif ?>
-<?php if ($showCreateMembershipLink): ?>
-<?= $this->qlink(
-    $this->translate('Create new membership'),
-    'user/createmembership',
-    array(
-        'backend'             => $backend->getName(),
-        'user'                => $user->user_name
-    ),
-    array(
-        'icon'                => 'plus',
-        'data-base-target'    => '_next',
-        'class'               => 'membership-create'
-    )
-) ?>
 <?php endif ?>
 </div>

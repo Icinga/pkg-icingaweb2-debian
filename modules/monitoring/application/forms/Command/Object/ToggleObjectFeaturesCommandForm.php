@@ -19,9 +19,7 @@ class ToggleObjectFeaturesCommandForm extends ObjectsCommandForm
     public function init()
     {
         $this->setUseFormAutosubmit();
-        $this->setTitle('Feature Commands');
         $this->setAttrib('class', 'inline object-features');
-        $this->loadDefaultDecorators()->getDecorator('description')->setTag('h2');
     }
 
     /**
@@ -31,26 +29,28 @@ class ToggleObjectFeaturesCommandForm extends ObjectsCommandForm
     public function createElements(array $formData = array())
     {
         $toggleDisabled = $this->hasPermission('monitoring/command/feature/object')  ? null : '';
-        $this->addElements(array(
+
+        $this->addElement(
+            'checkbox',
+            ToggleObjectFeatureCommand::FEATURE_ACTIVE_CHECKS,
             array(
-                'checkbox',
-                ToggleObjectFeatureCommand::FEATURE_ACTIVE_CHECKS,
-                array(
-                    'label'         => $this->translate('Active Checks'),
-                    'autosubmit'    => true,
-                    'disabled'      => $toggleDisabled
-                )
-            ),
+                'label'         => $this->translate('Active Checks'),
+                'autosubmit'    => true,
+                'disabled'      => $toggleDisabled
+            )
+        );
+        $this->addElement(
+            'checkbox',
+            ToggleObjectFeatureCommand::FEATURE_PASSIVE_CHECKS,
             array(
-                'checkbox',
-                ToggleObjectFeatureCommand::FEATURE_PASSIVE_CHECKS,
-                array(
-                    'label'         => $this->translate('Passive Checks'),
-                    'autosubmit'    => true,
-                    'disabled'      => $toggleDisabled
-                )
-            ),
-            array(
+                'label'         => $this->translate('Passive Checks'),
+                'autosubmit'    => true,
+                'disabled'      => $toggleDisabled
+            )
+        );
+
+        if (! preg_match('~^v2\.\d+\.\d+.*$~', $this->getIcingaVersion())) {
+            $this->addElement(
                 'checkbox',
                 ToggleObjectFeatureCommand::FEATURE_OBSESSING,
                 array(
@@ -58,36 +58,36 @@ class ToggleObjectFeaturesCommandForm extends ObjectsCommandForm
                     'autosubmit'    => true,
                     'disabled'      => $toggleDisabled
                 )
-            ),
+            );
+        }
+
+        $this->addElement(
+            'checkbox',
+            ToggleObjectFeatureCommand::FEATURE_NOTIFICATIONS,
             array(
-                'checkbox',
-                ToggleObjectFeatureCommand::FEATURE_NOTIFICATIONS,
-                array(
-                    'label'         => $this->translate('Notifications'),
-                    'autosubmit'    => true,
-                    'disabled'      => $toggleDisabled
-                )
-            ),
-            array(
-                'checkbox',
-                ToggleObjectFeatureCommand::FEATURE_EVENT_HANDLER,
-                array(
-                    'label'         => $this->translate('Event Handler'),
-                    'autosubmit'    => true,
-                    'disabled'      => $toggleDisabled
-                )
-            ),
-            array(
-                'checkbox',
-                ToggleObjectFeatureCommand::FEATURE_FLAP_DETECTION,
-                array(
-                    'label'         => $this->translate('Flap Detection'),
-                    'autosubmit'    => true,
-                    'disabled'      => $toggleDisabled
-                )
+                'label'         => $this->translate('Notifications'),
+                'autosubmit'    => true,
+                'disabled'      => $toggleDisabled
             )
-        ));
-        return $this;
+        );
+        $this->addElement(
+            'checkbox',
+            ToggleObjectFeatureCommand::FEATURE_EVENT_HANDLER,
+            array(
+                'label'         => $this->translate('Event Handler'),
+                'autosubmit'    => true,
+                'disabled'      => $toggleDisabled
+            )
+        );
+        $this->addElement(
+            'checkbox',
+            ToggleObjectFeatureCommand::FEATURE_FLAP_DETECTION,
+            array(
+                'label'         => $this->translate('Flap Detection'),
+                'autosubmit'    => true,
+                'disabled'      => $toggleDisabled
+            )
+        );
     }
 
     /**
@@ -107,6 +107,7 @@ class ToggleObjectFeaturesCommandForm extends ObjectsCommandForm
                 $element->setDescription($this->translate('changed'));
             }
         }
+
         return $this;
     }
 
@@ -162,6 +163,17 @@ class ToggleObjectFeaturesCommandForm extends ObjectsCommandForm
                 }
             }
         }
+
         return true;
+    }
+
+    /**
+     * Fetch and return the program version of the current instance
+     *
+     * @return  string
+     */
+    protected function getIcingaVersion()
+    {
+        return $this->getBackend()->select()->from('programstatus', array('program_version'))->fetchOne();
     }
 }

@@ -5,6 +5,7 @@ namespace Icinga\Module\Setup\Utils;
 
 use Exception;
 use Icinga\Application\Icinga;
+use Icinga\Exception\IcingaException;
 use Icinga\Module\Setup\Step;
 
 class EnableModuleStep extends Step
@@ -53,13 +54,13 @@ class EnableModuleStep extends Step
         $okMessage = mt('setup', 'Module "%s" has been successfully enabled.');
         $failMessage = mt('setup', 'Module "%s" could not be enabled. An error occured:');
 
-        $report = '';
+        $report = array();
         foreach ($this->moduleNames as $moduleName) {
             if (isset($this->errors[$moduleName])) {
-                $report .= '<p class="error">' . sprintf($failMessage, $moduleName) . '</p>'
-                    . '<p>' . $this->errors[$moduleName]->getMessage() . '</p>';
+                $report[] = sprintf($failMessage, $moduleName);
+                $report[] = sprintf(mt('setup', 'ERROR: %s'), IcingaException::describe($this->errors[$moduleName]));
             } else {
-                $report .= '<p>' . sprintf($okMessage, $moduleName) . '</p>';
+                $report[] = sprintf($okMessage, $moduleName);
             }
         }
 
