@@ -48,16 +48,6 @@ class DbQuery extends SimpleQuery
     protected $useSubqueryCount = false;
 
     /**
-     * Set the count maximum
-     *
-     * If the count maximum is set, count queries will not count more than that many rows. You should set this
-     * property only for really heavy queries.
-     *
-     * @var int
-     */
-    protected $maxCount;
-
-    /**
      * Count query result
      *
      * Count queries are only executed once
@@ -126,6 +116,16 @@ class DbQuery extends SimpleQuery
     }
 
     /**
+     * Return the underlying select
+     *
+     * @return  Zend_Db_Select
+     */
+    public function select()
+    {
+        return $this->select;
+    }
+
+    /**
      * Get the select query
      *
      * Applies order and limit if any
@@ -140,7 +140,7 @@ class DbQuery extends SimpleQuery
             && $this->getDatasource()->getDbType() === 'pgsql'
             && $select->getPart(Zend_Db_Select::DISTINCT) === true) {
             foreach ($this->getOrder() as $fieldAndDirection) {
-                if (array_search($fieldAndDirection[0], $this->columns) === false) {
+                if (array_search($fieldAndDirection[0], $this->columns, true) === false) {
                     $this->columns[] = $fieldAndDirection[0];
                 }
             }
@@ -323,18 +323,15 @@ class DbQuery extends SimpleQuery
     {
         // TODO: there may be situations where we should clone the "select"
         $count = $this->dbSelect();
-        $group = $this->getGroup();
-        if ($group) {
-            $count->group($group);
-        }
         $this->applyFilterSql($count);
-        if ($this->useSubqueryCount || $this->group) {
+        $group = $this->getGroup();
+        if ($this->useSubqueryCount || $group) {
             $count->columns($this->columns);
+            if ($group) {
+                $count->group($group);
+            }
             $columns = array('cnt' => 'COUNT(*)');
             return $this->db->select()->from($count, $columns);
-        }
-        if ($this->maxCount !== null) {
-            return $this->db->select()->from($count->limit($this->maxCount));
         }
 
         $count->columns(array('cnt' => 'COUNT(*)'));
@@ -371,6 +368,7 @@ class DbQuery extends SimpleQuery
 
     public function __clone()
     {
+        parent::__clone();
         $this->select = clone $this->select;
     }
 

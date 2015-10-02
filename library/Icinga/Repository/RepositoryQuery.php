@@ -5,16 +5,19 @@ namespace Icinga\Repository;
 
 use Iterator;
 use IteratorAggregate;
+use Traversable;
 use Icinga\Application\Benchmark;
 use Icinga\Application\Logger;
 use Icinga\Data\QueryInterface;
 use Icinga\Data\Filter\Filter;
+use Icinga\Data\FilterColumns;
+use Icinga\Data\SortRules;
 use Icinga\Exception\QueryException;
 
 /**
  * Query class supposed to mediate between a repository and its datasource's query
  */
-class RepositoryQuery implements QueryInterface, Iterator
+class RepositoryQuery implements QueryInterface, SortRules, FilterColumns, Iterator
 {
     /**
      * The repository being used
@@ -140,6 +143,26 @@ class RepositoryQuery implements QueryInterface, Iterator
     }
 
     /**
+     * Return this query's available filter columns with their optional label as key
+     *
+     * @return  array
+     */
+    public function getFilterColumns()
+    {
+        return $this->repository->getFilterColumns();
+    }
+
+    /**
+     * Return this query's available search columns
+     *
+     * @return  array
+     */
+    public function getSearchColumns()
+    {
+        return $this->repository->getSearchColumns();
+    }
+
+    /**
      * Filter this query using the given column and value
      *
      * This notifies the repository about the required filter column.
@@ -153,7 +176,7 @@ class RepositoryQuery implements QueryInterface, Iterator
     {
         $this->query->where(
             $this->repository->requireFilterColumn($this->target, $column, $this),
-            $this->repository->persistColumn($this->target, $column, $value)
+            $this->repository->persistColumn($this->target, $column, $value, $this)
         );
         return $this;
     }
@@ -213,19 +236,30 @@ class RepositoryQuery implements QueryInterface, Iterator
     }
 
     /**
+     * Return the sort rules being applied on this query
+     *
+     * @return  array
+     */
+    public function getSortRules()
+    {
+        return $this->repository->getSortRules();
+    }
+
+    /**
      * Add a sort rule for this query
      *
      * If called without a specific column, the repository's defaul sort rules will be applied.
      * This notifies the repository about each column being required as filter column.
      *
-     * @param   string  $field      The name of the column by which to sort the query's result
-     * @param   string  $direction  The direction to use when sorting (asc or desc, default is asc)
+     * @param   string  $field          The name of the column by which to sort the query's result
+     * @param   string  $direction      The direction to use when sorting (asc or desc, default is asc)
+     * @param   bool    $ignoreDefault  Whether to ignore any default sort rules if $field is given
      *
      * @return  $this
      */
-    public function order($field = null, $direction = null)
+    public function order($field = null, $direction = null, $ignoreDefault = false)
     {
-        $sortRules = $this->repository->getSortRules();
+        $sortRules = $this->getSortRules();
         if ($field === null) {
             // Use first available sort rule as default
             if (empty($sortRules)) {
@@ -240,25 +274,38 @@ class RepositoryQuery implements QueryInterface, Iterator
             if ($direction !== null || !array_key_exists('order', $sortColumns)) {
                 $sortColumns['order'] = $direction ?: static::SORT_ASC;
             }
-        } elseif (array_key_exists($field, $sortRules)) {
-            $sortColumns = $sortRules[$field];
-            if (! array_key_exists('columns', $sortColumns)) {
-                $sortColumns['columns'] = array($field);
-            }
-            if ($direction !== null || !array_key_exists('order', $sortColumns)) {
-                $sortColumns['order'] = $direction ?: static::SORT_ASC;
-            }
         } else {
-            $sortColumns = array(
-                'columns'   => array($field),
-                'order'     => $direction
-            );
-        };
+            $alias = $this->repository->reassembleQueryColumnAlias($this->target, $field) ?: $field;
+            if (! $ignoreDefault && array_key_exists($alias, $sortRules)) {
+                $sortColumns = $sortRules[$alias];
+                if (! array_key_exists('columns', $sortColumns)) {
+                    $sortColumns['columns'] = array($alias);
+                }
+                if ($direction !== null || !array_key_exists('order', $sortColumns)) {
+                    $sortColumns['order'] = $direction ?: static::SORT_ASC;
+                }
+            } else {
+                $sortColumns = array(
+                    'columns'   => array($alias),
+                    'order'     => $direction
+                );
+            }
+        }
 
         $baseDirection = strtoupper($sortColumns['order']) === static::SORT_DESC ? static::SORT_DESC : static::SORT_ASC;
 
         foreach ($sortColumns['columns'] as $column) {
             list($column, $specificDirection) = $this->splitOrder($column);
+
+            if ($this->hasLimit() && $this->repository->providesValueConversion($this->target, $column)) {
+                Logger::debug(
+                    'Cannot order by column "%s" in repository "%s". The query is'
+                    . ' limited and applies value conversion rules on the column',
+                    $column,
+                    $this->repository->getName()
+                );
+                continue;
+            }
 
             try {
                 $this->query->order(
@@ -316,6 +363,39 @@ class RepositoryQuery implements QueryInterface, Iterator
     public function getOrder()
     {
         return $this->query->getOrder();
+    }
+
+    /**
+     * Set whether this query should peek ahead for more results
+     *
+     * Enabling this causes the current query limit to be increased by one. The potential extra row being yielded will
+     * be removed from the result set. Note that this only applies when fetching multiple results of limited queries.
+     *
+     * @return  $this
+     */
+    public function peekAhead($state = true)
+    {
+        return $this->query->peekAhead($state);
+    }
+
+    /**
+     * Return whether this query did not yield all available results
+     *
+     * @return  bool
+     */
+    public function hasMore()
+    {
+        return $this->query->hasMore();
+    }
+
+    /**
+     * Return whether this query will or has yielded any result
+     *
+     * @return  bool
+     */
+    public function hasResult()
+    {
+        return $this->query->hasResult();
     }
 
     /**
@@ -387,7 +467,7 @@ class RepositoryQuery implements QueryInterface, Iterator
         if ($result !== false && $this->repository->providesValueConversion($this->target)) {
             $columns = $this->getColumns();
             $column = isset($columns[0]) ? $columns[0] : key($columns);
-            return $this->repository->retrieveColumn($this->target, $column, $result);
+            return $this->repository->retrieveColumn($this->target, $column, $result, $this);
         }
 
         return $result;
@@ -411,7 +491,7 @@ class RepositoryQuery implements QueryInterface, Iterator
                     $alias = $column;
                 }
 
-                $result->$alias = $this->repository->retrieveColumn($this->target, $alias, $result->$alias);
+                $result->$alias = $this->repository->retrieveColumn($this->target, $alias, $result->$alias, $this);
             }
         }
 
@@ -434,8 +514,10 @@ class RepositoryQuery implements QueryInterface, Iterator
             $columns = $this->getColumns();
             $aliases = array_keys($columns);
             $column = is_int($aliases[0]) ? $columns[0] : $aliases[0];
-            foreach ($results as & $value) {
-                $value = $this->repository->retrieveColumn($this->target, $column, $value);
+            if ($this->repository->providesValueConversion($this->target, $column)) {
+                foreach ($results as & $value) {
+                    $value = $this->repository->retrieveColumn($this->target, $column, $value, $this);
+                }
             }
         }
 
@@ -459,15 +541,25 @@ class RepositoryQuery implements QueryInterface, Iterator
         if (! empty($results) && $this->repository->providesValueConversion($this->target)) {
             $columns = $this->getColumns();
             $aliases = array_keys($columns);
-            $newResults = array();
-            foreach ($results as $colOneValue => $colTwoValue) {
-                $colOne = $aliases[0] !== 0 ? $aliases[0] : $columns[0];
-                $colTwo = count($aliases) < 2 ? $colOne : ($aliases[1] !== 1 ? $aliases[1] : $columns[1]);
-                $colOneValue = $this->repository->retrieveColumn($this->target, $colOne, $colOneValue);
-                $newResults[$colOneValue] = $this->repository->retrieveColumn($this->target, $colTwo, $colTwoValue);
-            }
+            $colOne = $aliases[0] !== 0 ? $aliases[0] : $columns[0];
+            $colTwo = count($aliases) < 2 ? $colOne : ($aliases[1] !== 1 ? $aliases[1] : $columns[1]);
+            if (
+                $this->repository->providesValueConversion($this->target, $colOne)
+                || $this->repository->providesValueConversion($this->target, $colTwo)
+            ) {
+                $newResults = array();
+                foreach ($results as $colOneValue => $colTwoValue) {
+                    $colOneValue = $this->repository->retrieveColumn($this->target, $colOne, $colOneValue, $this);
+                    $newResults[$colOneValue] = $this->repository->retrieveColumn(
+                        $this->target,
+                        $colTwo,
+                        $colTwoValue,
+                        $this
+                    );
+                }
 
-            $results = $newResults;
+                $results = $newResults;
+            }
         }
 
         return $results;
@@ -486,15 +578,38 @@ class RepositoryQuery implements QueryInterface, Iterator
 
         $results = $this->query->fetchAll();
         if (! empty($results) && $this->repository->providesValueConversion($this->target)) {
+            $updateOrder = false;
             $columns = $this->getColumns();
+            $flippedColumns = array_flip($columns);
             foreach ($results as $row) {
                 foreach ($columns as $alias => $column) {
                     if (! is_string($alias)) {
                         $alias = $column;
                     }
 
-                    $row->$alias = $this->repository->retrieveColumn($this->target, $alias, $row->$alias);
+                    $row->$alias = $this->repository->retrieveColumn($this->target, $alias, $row->$alias, $this);
                 }
+
+                foreach (($this->getOrder() ?: array()) as $rule) {
+                    if (! array_key_exists($rule[0], $flippedColumns) && property_exists($row, $rule[0])) {
+                        if ($this->repository->providesValueConversion($this->target, $rule[0])) {
+                            $updateOrder = true;
+                            $row->{$rule[0]} = $this->repository->retrieveColumn(
+                                $this->target,
+                                $rule[0],
+                                $row->{$rule[0]}
+                            );
+                        }
+                    } elseif (array_key_exists($rule[0], $flippedColumns)) {
+                        if ($this->repository->providesValueConversion($this->target, $rule[0])) {
+                            $updateOrder = true;
+                        }
+                    }
+                }
+            }
+
+            if ($updateOrder) {
+                uasort($results, array($this->query, 'compare'));
             }
         }
 
@@ -512,6 +627,16 @@ class RepositoryQuery implements QueryInterface, Iterator
     }
 
     /**
+     * Return the current position of this query's iterator
+     *
+     * @return  int
+     */
+    public function getIteratorPosition()
+    {
+        return $this->query->getIteratorPosition();
+    }
+
+    /**
      * Start or rewind the iteration
      */
     public function rewind()
@@ -521,7 +646,12 @@ class RepositoryQuery implements QueryInterface, Iterator
                 $this->order();
             }
 
-            $iterator = $this->repository->getDataSource()->query($this->query);
+            if ($this->query instanceof Traversable) {
+                $iterator = $this->query;
+            } else {
+                $iterator = $this->repository->getDataSource()->query($this->query);
+            }
+
             if ($iterator instanceof IteratorAggregate) {
                 $this->iterator = $iterator->getIterator();
             } else {
@@ -547,7 +677,7 @@ class RepositoryQuery implements QueryInterface, Iterator
                     $alias = $column;
                 }
 
-                $row->$alias = $this->repository->retrieveColumn($this->target, $alias, $row->$alias);
+                $row->$alias = $this->repository->retrieveColumn($this->target, $alias, $row->$alias, $this);
             }
         }
 

@@ -1,25 +1,47 @@
 <?php
 
-// add warning to links that open in new tabs to improve accessibility, as recommended by WCAG20 G201
-$newTabInfo = sprintf('<span class="info-box display-on-hover"> %s </span>', $this->translate('opens in new window'));
+use Icinga\Web\Navigation\Navigation;
 
-$links = $object->getActionUrls();
-foreach ($links as $i => $link) {
-    $links[$i] = sprintf('<a href="%s" target="_blank">%s ' . $newTabInfo . '</a>', $link, 'Action');
+$navigation = new Navigation();
+$navigation->load($object->getType() . '-action');
+foreach ($navigation as $item) {
+    $item->setObject($object);
+}
+
+
+
+foreach ($object->getActionUrls() as $i => $link) {
+    $navigation->addItem(
+
+        // add warning to links that open in new tabs to improve accessibility, as recommended by WCAG20 G201
+        $this->icon(
+            'forward',
+            $this->translate('Link opens in new window'),
+            array('aria-label' => $this->translate('Link opens in new window'))
+        ) . ' Action ' . ($i + 1),
+        array(
+            'url'       => $link,
+            'target'    => '_blank',
+            'renderer'  => array(
+                'NavigationItemRenderer',
+                'escape_label' => false
+            )
+        )
+    );
 }
 
 if (isset($this->actions)) {
     foreach ($this->actions as $id => $action) {
-        $links[] = sprintf('<a href="%s">%s</a>', $action, $id);
+        $navigation->addItem($id, array('url' => $action));
     }
 }
 
-if (empty($links)) {
+if ($navigation->isEmpty() || !$navigation->hasRenderableItems()) {
     return;
 }
 
 ?>
 <tr>
-  <th><?= $this->translate('Actions') ?></th>
-  <td><?= implode("<br>", $links) ?></td>
+    <th><?= $this->translate('Actions'); ?></th>
+    <?= $navigation->getRenderer()->setElementTag('td')->setCssClass('actions'); ?>
 </tr>

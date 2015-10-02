@@ -1,25 +1,132 @@
-<div class="content">
-    <h1>Icinga Web 2</h1>
-    <?php
-    $versionInfo = array();
-    if ($version !== false) {
-        foreach (array(
-            'appVersion'    => $this->translate('Version: %s'),
-            'gitCommitID'   => $this->translate('Git commit ID: %s'),
-            'gitCommitDate' => $this->translate('Git commit date: %s')
-        ) as $key => $label) {
-            if (array_key_exists($key, $version) && null !== ($value = $version[$key])) {
-                $versionInfo[] = sprintf($label, htmlspecialchars($value));
-            }
-        }
-    }
-
-    echo (
-        0 === count($versionInfo)
-            ? '<p class="message-error">' . $this->translate(
-                'Can\'t determine Icinga Web 2\'s version'
+<div class="controls">
+    <?= $tabs ?>
+</div>
+<div class="content content-centered">
+    <?= $this->img(
+        'img/logo_icinga_big_dark.png',
+        null,
+        array(
+            'width' => 320
+        )
+    ) ?>
+    <dl class="name-value-list">
+    <?php if (isset($version['appVersion'])): ?>
+        <dt><?= $this->translate('Version') ?></dt>
+        <dd><?= $this->escape($version['appVersion']) ?></dd>
+    <?php endif ?>
+    <?php if (isset($version['gitCommitID'])): ?>
+        <dt><?= $this->translate('Git commit') ?></dt>
+        <dd><?= $this->escape($version['gitCommitID']) ?></dd>
+    <?php endif ?>
+    <?php if (isset($version['gitCommitDate'])): ?>
+        <dt><?= $this->translate('Git commit date') ?></dt>
+        <dd><?= $this->escape($version['gitCommitDate']) ?></dd>
+    <?php endif ?>
+        <dt><?= $this->translate('Copyright') ?></dt>
+        <dd>
+            <span>&copy; 2013-<?= date('Y') ?></span>
+            <?= $this->qlink(
+                $this->translate('The Icinga Project'),
+                'https://www.icinga.org',
+                null,
+                array(
+                    'target' => '_blank'
+                )
+            ) ?>
+        </dd>
+    </dl>
+    <div>
+        <?= $this->qlink(
+            null,
+            'https://www.twitter.com/icinga',
+            null,
+            array(
+                'target'    => '_blank',
+                'icon'      => 'twitter',
+                'title'     => $this->translate('Icinga on Twitter')
             )
-            : '<p>' . nl2br(implode("\n", $versionInfo), false)
-    ) . '</p>';
-    ?>
+        ) ?> <?= $this->qlink(
+            null,
+            'https://www.facebook.com/icinga',
+            null,
+            array(
+                'target'    => '_blank',
+                'icon'      => 'facebook-squared',
+                'title'     => $this->translate('Icinga on Facebook')
+            )
+        ) ?>
+    </div>
+    <div>
+    <?= $this->qlink(
+        null,
+        'https://dev.icinga.org/projects/icingaweb2',
+        null,
+        array(
+            'target'    => '_blank',
+            'img'       => 'img/bugreport.png',
+            'title'     => $this->translate('Report a bug')
+        )
+    ) ?>
+    <?= $this->qlink(
+        null,
+        'https://www.icinga.org/services/support',
+        null,
+        array(
+            'target'    => '_blank',
+            'img'       => 'img/support.png',
+            'title'     => $this->translate('Support / Mailinglists')
+        )
+    ) ?>
+    </div>
+    <div>
+        <?= $this->qlink(
+            null,
+            'https://wiki.icinga.org',
+            null,
+            array(
+                'target'    => '_blank',
+                'img'       => 'img/wiki.png',
+                'title'     => $this->translate('Icinga Wiki')
+            )
+        ) ?>
+        <?= $this->qlink(
+            null,
+            'https://docs.icinga.org/',
+            null,
+            array(
+                'target'    => '_blank',
+                'img'       => 'img/docs.png',
+                'title'     => $this->translate('Icinga Documentation')
+            )
+        ) ?>
+    </div>
+    <h2><?= $this->translate('Loaded modules') ?></h2>
+    <table class="action-table listing-table" data-base-target="_next">
+    <thead>
+        <tr>
+            <th><?= $this->translate('Name') ?></th>
+            <th><?= $this->translate('Version') ?></th>
+        </tr>
+    </thead>
+    <tbody>
+<?php foreach ($modules as $module): ?>
+    <tr>
+        <td>
+        <?php if ($this->hasPermission('config/modules')): ?>
+            <?= $this->qlink(
+                $module->getName(),
+                'config/module/',
+                array('name' => $module->getName()),
+                array('title' => sprintf($this->translate('Show the overview of the %s module'), $module->getName()))
+            ) ?>
+        <?php else: ?>
+            <?= $this->escape($module->getName()) ?>
+        <?php endif ?>
+        <td>
+            <?= $this->escape($module->getVersion()) ?>
+        </td>
+    </tr>
+<?php endforeach ?>
+    </tbody>
+    </table>
 </div>

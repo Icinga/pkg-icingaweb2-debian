@@ -12,8 +12,10 @@ $i = 0;
             continue;
         }
         ?>
-        <tr class="state <?= Service::getStateText($service->service_state); ?><?= $service->service_handled ? ' handled' : '' ?>">
-            <td class="state"><?= Service::getStateText($service->service_state, true); ?><br /></td>
+        <tr>
+            <td class="state-col state-<?= Service::getStateText($service->service_state); ?><?= $service->service_handled ? ' handled' : '' ?>"?>
+                <?= Service::getStateText($service->service_state, true); ?><br />
+            </td>
             <td>
             <?= $this->iconImage()->service($service) ?>
             <?= implode(' ', $this->serviceFlags($service)) ?>
@@ -30,7 +32,7 @@ $i = 0;
     <div class="hbox-item multi-commands">
         <?php if ($i > 5): ?>
         <?= $this->qlink(
-            sprintf($this->translate('show all %d services'), $i),
+            sprintf($this->translate('List all %d services'), $i),
             $listAllLink,
             null,
             array(

@@ -32,9 +32,11 @@ class UserGroupBackendForm extends ConfigForm
     /**
      * Return a form object for the given backend type
      *
-     * @param   string      $type   The backend type for which to return a form
+     * @param   string  $type               The backend type for which to return a form
      *
      * @return  Form
+     *
+     * @throws  InvalidArgumentException    In case the given backend type is invalid
      */
     public function getBackendForm($type)
     {
@@ -73,6 +75,8 @@ class UserGroupBackendForm extends ConfigForm
 
     /**
      * Add a new user group backend
+     *
+     * The backend to add is identified by the array-key `name'.
      *
      * @param   array   $data
      *
@@ -154,32 +158,6 @@ class UserGroupBackendForm extends ConfigForm
      */
     public function createElements(array $formData)
     {
-        $this->addElement(
-            'text',
-            'name',
-            array(
-                'required'      => true,
-                'label'         => $this->translate('Backend Name'),
-                'description'   => $this->translate(
-                    'The name of this user group backend that is used to differentiate it from others'
-                ),
-                'validators'    => array(
-                    array(
-                        'Regex',
-                        false,
-                        array(
-                            'pattern'  => '/^[^\\[\\]:]+$/',
-                            'messages' => array(
-                                'regexNotMatch' => $this->translate(
-                                    'The backend name cannot contain \'[\', \']\' or \':\'.'
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        );
-
         // TODO(jom): We did not think about how to configure custom group backends yet!
         $backendTypes = array(
             'db'        => $this->translate('Database'),
@@ -191,15 +169,6 @@ class UserGroupBackendForm extends ConfigForm
         if ($backendType === null) {
             $backendType = key($backendTypes);
         }
-
-        $this->addElement(
-            'hidden',
-            'backend',
-            array(
-                'disabled'  => true, // Prevents the element from being submitted, see #7717
-                'value'     => $backendType
-            )
-        );
 
         $this->addElement(
             'select',

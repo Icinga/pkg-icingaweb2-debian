@@ -6,6 +6,7 @@ namespace Icinga\Module\Monitoring;
 use Exception;
 use Icinga\Module\Setup\Step;
 use Icinga\Application\Config;
+use Icinga\Exception\IcingaException;
 
 class BackendStep extends Step
 {
@@ -136,28 +137,35 @@ class BackendStep extends Step
 
     public function getReport()
     {
-        $report = '';
+        $report = array();
+
         if ($this->backendIniError === false) {
-            $message = mt('monitoring', 'Monitoring backend configuration has been successfully written to: %s');
-            $report .= '<p>' . sprintf($message, Config::resolvePath('modules/monitoring/backends.ini')) . '</p>';
-        } elseif ($this->backendIniError !== null) {
-            $message = mt(
-                'monitoring',
-                'Monitoring backend configuration could not be written to: %s; An error occured:'
-            );
-            $report .= '<p class="error">' . sprintf(
-                $message,
+            $report[] = sprintf(
+                mt('monitoring', 'Monitoring backend configuration has been successfully written to: %s'),
                 Config::resolvePath('modules/monitoring/backends.ini')
-            ) . '</p><p>' . $this->backendIniError->getMessage() . '</p>';
+            );
+        } elseif ($this->backendIniError !== null) {
+            $report[] = sprintf(
+                mt(
+                    'monitoring',
+                    'Monitoring backend configuration could not be written to: %s. An error occured:'
+                ),
+                Config::resolvePath('modules/monitoring/backends.ini')
+            );
+            $report[] = sprintf(mt('setup', 'ERROR: %s'), IcingaException::describe($this->backendIniError));
         }
 
         if ($this->resourcesIniError === false) {
-            $message = mt('monitoring', 'Resource configuration has been successfully updated: %s');
-            $report .= '<p>' . sprintf($message, Config::resolvePath('resources.ini')) . '</p>';
+            $report[] = sprintf(
+                mt('monitoring', 'Resource configuration has been successfully updated: %s'),
+                Config::resolvePath('resources.ini')
+            );
         } elseif ($this->resourcesIniError !== null) {
-            $message = mt('monitoring', 'Resource configuration could not be udpated: %s; An error occured:');
-            $report .= '<p class="error">' . sprintf($message, Config::resolvePath('resources.ini')) . '</p>'
-                . '<p>' . $this->resourcesIniError->getMessage() . '</p>';
+            $report[] = sprintf(
+                mt('monitoring', 'Resource configuration could not be udpated: %s. An error occured:'),
+                Config::resolvePath('resources.ini')
+            );
+            $report[] = sprintf(mt('setup', 'ERROR: %s'), IcingaException::describe($this->resourcesIniError));
         }
 
         return $report;

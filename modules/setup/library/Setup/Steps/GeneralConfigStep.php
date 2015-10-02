@@ -6,6 +6,7 @@ namespace Icinga\Module\Setup\Steps;
 use Exception;
 use Icinga\Application\Logger;
 use Icinga\Application\Config;
+use Icinga\Exception\IcingaException;
 use Icinga\Module\Setup\Step;
 
 class GeneralConfigStep extends Step
@@ -23,13 +24,12 @@ class GeneralConfigStep extends Step
     {
         $config = array();
         foreach ($this->data['generalConfig'] as $sectionAndPropertyName => $value) {
-            list($section, $property) = explode('_', $sectionAndPropertyName);
+            list($section, $property) = explode('_', $sectionAndPropertyName, 2);
             $config[$section][$property] = $value;
         }
 
-        $config['preferences']['store'] = $this->data['preferencesStore'];
-        if (isset($this->data['preferencesResource'])) {
-            $config['preferences']['resource'] = $this->data['preferencesResource'];
+        if ($config['global']['config_backend'] === 'db') {
+            $config['global']['config_resource'] = $this->data['resourceName'];
         }
 
         try {
@@ -53,15 +53,15 @@ class GeneralConfigStep extends Step
 
         $generalHtml = ''
             . '<ul>'
+            . '<li>' . ($this->data['generalConfig']['global_show_stacktraces']
+                ? t('An exception\'s stacktrace is shown to every user by default.')
+                : t('An exception\'s stacktrace is hidden from every user by default.')
+            ) . '</li>'
             . '<li>' . sprintf(
-                $this->data['preferencesStore'] === 'ini' ? sprintf(
+                $this->data['generalConfig']['global_config_backend'] === 'ini' ? sprintf(
                     t('Preferences will be stored per user account in INI files at: %s'),
                     Config::resolvePath('preferences')
-                ) : (
-                    $this->data['preferencesStore'] === 'db' ? t('Preferences will be stored using a database.') : (
-                        t('Preferences will not be persisted across browser sessions.')
-                    )
-                )
+                ) : t('Preferences will be stored using a database.')
             ) . '</li>'
             . '</ul>';
 
@@ -107,12 +107,18 @@ class GeneralConfigStep extends Step
     public function getReport()
     {
         if ($this->error === false) {
-            $message = mt('setup', 'General configuration has been successfully written to: %s');
-            return '<p>' . sprintf($message, Config::resolvePath('config.ini')) . '</p>';
+            return array(sprintf(
+                mt('setup', 'General configuration has been successfully written to: %s'),
+                Config::resolvePath('config.ini')
+            ));
         } elseif ($this->error !== null) {
-            $message = mt('setup', 'General configuration could not be written to: %s; An error occured:');
-            return '<p class="error">' . sprintf($message, Config::resolvePath('config.ini')) . '</p>'
-                . '<p>' . $this->error->getMessage() . '</p>';
+            return array(
+                sprintf(
+                    mt('setup', 'General configuration could not be written to: %s. An error occured:'),
+                    Config::resolvePath('config.ini')
+                ),
+                sprintf(mt('setup', 'ERROR: %s'), IcingaException::describe($this->error))
+            );
         }
     }
 }
