@@ -36,7 +36,7 @@ Conflicts: icingaweb2-module-setup
 Description: simple and responsive web interface for Icinga
  Icinga Web 2 is a very modular, fast and simple web interface for your Icinga
  monitoring environment.
- .
+ n
  The software will give you a web frontend for your monitoring solution, and
  can run additional modules, extending monitoring data, or even supplying
  something new to the webinterface.
@@ -73,7 +73,7 @@ Section: php
 Architecture: all
 Depends:
  php5 (>= 5.3.2),
- zendframework,
+ zendframework | zend-framework,
  ${misc:Depends}
 Recommends:
  php5-mysql | php5-mysqlnd | php5-pgsql,
