@@ -73,7 +73,7 @@ Section: php
 Architecture: all
 Depends:
  php5 (>= 5.3.2),
- zendframework | zend-framework,
+ zendframework,
  ${misc:Depends}
 Recommends:
  php5-mysql | php5-mysqlnd | php5-pgsql,
