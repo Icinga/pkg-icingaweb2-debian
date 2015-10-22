@@ -18,8 +18,8 @@ Depends:
  adduser,
  php-icinga (= ${source:Version}),
 # 4.4 in wheezy - TODO: test
- php-htmlpurifier (>= 4.4),
- php-dompdf (>= 0.6.1),
+# php-htmlpurifier (>= 4.4),
+# php-dompdf (>= 0.6.1),
 # php-parsedown,
 # php-lessphp,
 # php-jshrink,
@@ -73,7 +73,6 @@ Section: php
 Architecture: all
 Depends:
  php5 (>= 5.3.2),
- zendframework | zend-framework,
  ${misc:Depends}
 Recommends:
  php5-mysql | php5-mysqlnd | php5-pgsql,
