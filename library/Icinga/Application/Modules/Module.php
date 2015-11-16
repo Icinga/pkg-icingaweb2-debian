@@ -19,7 +19,7 @@ use Icinga\Module\Setup\SetupWizard;
 use Icinga\Util\File;
 use Icinga\Util\Translator;
 use Icinga\Web\Controller\Dispatcher;
-use Icinga\Web\Hook;
+use Icinga\Application\Hook;
 use Icinga\Web\Navigation\Navigation;
 use Icinga\Web\Widget;
 
@@ -50,6 +50,13 @@ class Module
      * @var string
      */
     private $cssdir;
+
+    /**
+     * Base application directory
+     *
+     * @var string
+     */
+    private $appdir;
 
     /**
      * Library directory
@@ -244,6 +251,7 @@ class Module
         $this->jsdir          = $basedir . '/public/js';
         $this->libdir         = $basedir . '/library';
         $this->configdir      = $app->getConfigDir('modules/' . $name);
+        $this->appdir         = $basedir . '/application';
         $this->localedir      = $basedir . '/application/locale';
         $this->formdir        = $basedir . '/application/forms';
         $this->controllerdir  = $basedir . '/application/controllers';
@@ -583,6 +591,16 @@ class Module
     }
 
     /**
+     * Get the module namespace
+     *
+     * @return string
+     */
+    public function getNamespace()
+    {
+        return 'Icinga\\Module\\' . ucfirst($this->getName());
+    }
+
+    /**
      * Get the module version
      *
      * @return string
@@ -737,6 +755,16 @@ class Module
     public function getBaseDir()
     {
         return $this->basedir;
+    }
+
+    /**
+     * Get the module's application directory
+     *
+     * @return string
+     */
+    public function getApplicationDir()
+    {
+        return $this->appdir;
     }
 
     /**
@@ -1043,18 +1071,13 @@ class Module
             return $this;
         }
 
-        $loader = $this->app->getLoader();
         $moduleName = ucfirst($this->getName());
 
-        $moduleLibraryDir = $this->getLibDir(). '/'. $moduleName;
-        if (is_dir($moduleLibraryDir)) {
-            $loader->registerNamespace('Icinga\\Module\\' . $moduleName, $moduleLibraryDir);
-        }
-
-        $moduleFormDir = $this->getFormDir();
-        if (is_dir($moduleFormDir)) {
-            $loader->registerNamespace('Icinga\\Module\\' . $moduleName. '\\Forms', $moduleFormDir);
-        }
+        $this->app->getLoader()->registerNamespace(
+            'Icinga\\Module\\' . $moduleName,
+            $this->getLibDir() . '/'. $moduleName,
+            $this->getApplicationDir()
+        );
 
         $this->registeredAutoloader = true;
 
@@ -1118,21 +1141,10 @@ class Module
         if (! $this->app->isWeb()) {
             return $this;
         }
-        $moduleControllerDir = $this->getControllerDir();
-        if (is_dir($moduleControllerDir)) {
-            $this->app->getfrontController()->addControllerDirectory(
-                $moduleControllerDir,
-                $this->getName()
-            );
-            $this->app->getLoader()->registerNamespace(
-                'Icinga\\Module\\' . ucfirst($this->getName()) . '\\' . Dispatcher::CONTROLLER_NAMESPACE,
-                $moduleControllerDir
-            );
-        }
-        $this
+
+        return $this
             ->registerLocales()
             ->registerRoutes();
-        return $this;
     }
 
     /**
@@ -1143,6 +1155,13 @@ class Module
     protected function registerRoutes()
     {
         $router = $this->app->getFrontController()->getRouter();
+
+        // TODO: We should not be required to do this. Please check dispatch()
+        $this->app->getfrontController()->addControllerDirectory(
+            $this->getControllerDir(),
+            $this->getName()
+        );
+
         /** @var \Zend_Controller_Router_Rewrite $router */
         foreach ($this->routes as $name => $route) {
             $router->addRoute($name, $route);
@@ -1229,12 +1248,35 @@ class Module
      */
     protected function registerHook($name, $class, $key = null)
     {
-        if ($key === null) {
-            $key = $this->name;
+        return $this->provideHook($name, $class, $key);
+    }
+
+    protected function slashesToNamespace($class)
+    {
+        $list = explode('/', $class);
+        foreach ($list as &$part) {
+            $part = ucfirst($part);
         }
 
-        Hook::register($name, $key, $class);
+        return implode('\\', $list);
+    }
 
+    // deprecate $key
+    protected function provideHook($name, $implementation = null, $key = null)
+    {
+        if ($implementation === null) {
+            $implementation = $name;
+        }
+
+        if (strpos($implementation, '\\') === false) {
+            $class = $this->getNamespace()
+                   . '\\ProvidedHook\\'
+                   . $this->slashesToNamespace($implementation);
+        } else {
+            $class = $implementation;
+        }
+
+        Hook::register($name, $implementation, $class);
         return $this;
     }
 

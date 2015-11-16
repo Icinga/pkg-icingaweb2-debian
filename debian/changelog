@@ -1,3 +1,15 @@
+icingaweb2 (2.1.0-1) unstable; urgency=medium
+
+  [ Alexander Wirt ]
+  * [44344a0] Its zend-framework on precise
+  * [1b1956d] zend version on precise is too old, remove the alternative
+
+  [ Markus Frosch ]
+  * [58169fb] Imported Upstream version 2.1.0
+  * [f65e92d] Add iframe module
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Mon, 16 Nov 2015 16:29:42 +0100
+
 icingaweb2 (2.0.0-1) unstable; urgency=medium
 
   [ Markus Frosch ]
