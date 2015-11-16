@@ -23,3 +23,4 @@ library/vendor/Parsedown/*.php   usr/share/icingaweb2/library/vendor/Parsedown
 library/vendor/lessphp/*.php     usr/share/icingaweb2/library/vendor/lessphp
 
 modules/setup  usr/share/icingaweb2/modules
+modules/iframe usr/share/icingaweb2/modules
