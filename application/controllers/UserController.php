@@ -44,7 +44,7 @@ class UserController extends AuthBackendController
             'backend',
             array(
                 'autosubmit'    => true,
-                'label'         => $this->translate('Authentication Backend'),
+                'label'         => $this->translate('User Backend'),
                 'multiOptions'  => array_combine($backendNames, $backendNames),
                 'value'         => $this->params->get('backend')
             )
@@ -99,7 +99,8 @@ class UserController extends AuthBackendController
         $this->setupFilterControl(
             $memberships,
             array('group_name' => t('User Group')),
-            array('group_name')
+            array('group'),
+            array('user')
         );
         $this->setupPaginationControl($memberships);
         $this->setupLimitControl();
@@ -140,7 +141,7 @@ class UserController extends AuthBackendController
             $removeForm->addElement('button', 'btn_submit', array(
                 'escape'        => false,
                 'type'          => 'submit',
-                'class'         => 'link-like spinner',
+                'class'         => 'link-button spinner',
                 'value'         => 'btn_submit',
                 'decorators'    => array('ViewHelper'),
                 'label'         => $this->view->icon('trash'),
@@ -259,6 +260,7 @@ class UserController extends AuthBackendController
                     $alreadySeen[$groupName] = null;
                     $groups[] = (object) array(
                         'group_name'    => $groupName,
+                        'group'         => $groupName,
                         'backend'       => $backend
                     );
                 }
@@ -288,7 +290,6 @@ class UserController extends AuthBackendController
             array(
                 'title'     => sprintf($this->translate('Show user %s'), $userName),
                 'label'     => $this->translate('User'),
-                'icon'      => 'user',
                 'url'       => Url::fromPath('user/show', array('backend' => $backendName, 'user' => $userName))
             )
         );
@@ -319,7 +320,6 @@ class UserController extends AuthBackendController
             array(
                 'title'     => $this->translate('List users of authentication backends'),
                 'label'     => $this->translate('Users'),
-                'icon'      => 'user',
                 'url'       => 'user/list'
             )
         );
@@ -328,7 +328,6 @@ class UserController extends AuthBackendController
             array(
                 'title'     => $this->translate('List groups of user group backends'),
                 'label'     => $this->translate('User Groups'),
-                'icon'      => 'users',
                 'url'       => 'group/list'
             )
         );

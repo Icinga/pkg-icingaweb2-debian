@@ -137,6 +137,16 @@ class Logger
     }
 
     /**
+     * Return the logging level being used
+     *
+     * @return  int
+     */
+    public function getLevel()
+    {
+        return $this->level;
+    }
+
+    /**
      * Register the given message as config error
      *
      * Config errors are logged every time a log message is being logged.
@@ -239,7 +249,9 @@ class Logger
             array_shift($arguments),
             array_map(
                 function ($a) {
-                    return is_string($a) ? $a : ($a instanceof Exception ? $a->getMessage() : json_encode($a));
+                    return is_string($a) ? $a : ($a instanceof Exception
+                        ? IcingaException::describe($a)
+                        : json_encode($a));
                 },
                 $arguments
             )

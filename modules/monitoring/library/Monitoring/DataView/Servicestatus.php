@@ -10,11 +10,12 @@ class ServiceStatus extends DataView
      */
     public function getColumns()
     {
-        return array(
+        return array_merge($this->getHookedColumns(), array(
             'instance_name',
             'host_name',
             'host_display_name',
             'host_state',
+            'host_hard_state',
             'host_state_type',
             'host_last_state_change',
             'host_address',
@@ -24,6 +25,7 @@ class ServiceStatus extends DataView
             'service_description',
             'service_display_name',
             'service_state',
+            'service_hard_state',
             'service_in_downtime',
             'service_acknowledged',
             'service_handled',
@@ -96,7 +98,7 @@ class ServiceStatus extends DataView
             'service_modified_service_attributes',
             'service_host_name',
             'service_acknowledgement_type',
-        );
+        ));
     }
 
     /**

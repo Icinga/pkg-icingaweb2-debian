@@ -10,7 +10,7 @@ class HostStatus extends DataView
      */
     public function getColumns()
     {
-        return array(
+        return array_merge($this->getHookedColumns(), array(
             'instance_name',
             'host_name',
             'host_display_name',
@@ -18,6 +18,7 @@ class HostStatus extends DataView
             'host_address',
             'host_address6',
             'host_state',
+            'host_hard_state',
             'host_state_type',
             'host_handled',
             'host_unhandled',
@@ -62,7 +63,7 @@ class HostStatus extends DataView
             'host_problem',
             'host_ipv4',
             'host_acknowledgement_type'
-        );
+        ));
     }
 
     /**
