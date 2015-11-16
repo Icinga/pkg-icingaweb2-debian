@@ -3,10 +3,9 @@
 
 namespace Icinga\Module\Monitoring\Backend\Ido\Query;
 
-use AppendIterator;
-use ArrayIterator;
 use Zend_Db_Expr;
 use Icinga\Application\Icinga;
+use Icinga\Application\Hook;
 use Icinga\Application\Logger;
 use Icinga\Data\Db\DbQuery;
 use Icinga\Data\Filter\Filter;
@@ -14,8 +13,8 @@ use Icinga\Data\Filter\FilterExpression;
 use Icinga\Exception\IcingaException;
 use Icinga\Exception\ProgrammingError;
 use Icinga\Exception\QueryException;
-use Icinga\Module\Monitoring\Data\ColumnFilterIterator;
 use Icinga\Web\Session;
+use Icinga\Module\Monitoring\Data\ColumnFilterIterator;
 
 /**
  * Base class for Ido Queries
@@ -55,14 +54,14 @@ abstract class IdoQuery extends DbQuery
     protected $prefix;
 
     /**
-     * An array to map aliases to table names
+     * An array to map aliases to column names
      *
      * @var array
      */
     protected $idxAliasColumn;
 
     /**
-     * An array to map aliases to column names
+     * An array to map aliases to table names
      *
      * @var array
      */
@@ -122,7 +121,16 @@ abstract class IdoQuery extends DbQuery
     protected $joinedVirtualTables = array();
 
     /**
-     * Unresolved order columns
+     * A map of virtual table names and corresponding hook instances
+     *
+     * Joins for those tables will be delegated to them
+     *
+     * @var array
+     */
+    protected $hookedVirtualTables = array();
+
+    /**
+     * List of column aliases used for sorting the result
      *
      * @var array
      */
@@ -400,14 +408,14 @@ abstract class IdoQuery extends DbQuery
     protected static $idoVersion;
 
     /**
-     * List of columns where the COLLATE SQL-instruction has been removed
+     * List of column aliases mapped to their table where the COLLATE SQL-instruction has been removed
      *
      * This list is being populated in case of a PostgreSQL backend only,
      * to ensure case-insensitive string comparison in WHERE clauses.
      *
      * @var array
      */
-    protected $columnsWithoutCollation = array();
+    protected $caseInsensitiveColumns;
 
     /**
      * Return true when the column is an aggregate column
@@ -421,26 +429,32 @@ abstract class IdoQuery extends DbQuery
     }
 
     /**
-     * Order the result by the given column
+     * Order the result by the given alias
      *
-     * @param string $columnOrAlias         The column or column alias to order by
-     * @param int $dir                      The sort direction or null to use default direction
+     * @param   string  $alias  The column alias to order by
+     * @param   int     $dir    The sort direction or null to use the default direction
      *
-     * @return $this                         Fluent interface
+     * @return  $this
      */
-    public function order($columnOrAlias, $dir = null)
+    public function order($alias, $dir = null)
     {
-        $this->requireColumn($columnOrAlias);
-        $this->orderColumns[$columnOrAlias] = $columnOrAlias;
-        if ($this->isCustomvar($columnOrAlias)) {
-            $columnOrAlias = $this->getCustomvarColumnName($columnOrAlias);
-        } elseif ($this->hasAliasName($columnOrAlias)) {
-            $columnOrAlias = $this->aliasToColumnName($columnOrAlias);
+        $this->requireColumn($alias);
+
+        if ($this->isCustomvar($alias)) {
+            $column = $this->getCustomvarColumnName($alias);
+        } elseif ($this->hasAliasName($alias)) {
+            $column = $this->aliasToColumnName($alias);
+            $table = $this->aliasToTableName($alias);
+            if (isset($this->caseInsensitiveColumns[$table][$alias])) {
+                $column = 'LOWER(' . $column . ')';
+            }
         } else {
-            Logger::info('Can\'t order by column ' . $columnOrAlias);
+            Logger::info('Can\'t order by column ' . $alias);
             return $this;
         }
-        return parent::order($columnOrAlias, $dir);
+
+        $this->orderColumns[] = $alias;
+        return parent::order($column, $dir);
     }
 
     /**
@@ -485,22 +499,25 @@ abstract class IdoQuery extends DbQuery
             if ($filter->getExpression() === '*') {
                 return; // Wildcard only filters are ignored so stop early here to avoid joining a table for nothing
             }
+
             $alias = $filter->getColumn();
             $this->requireColumn($alias);
+
             if ($this->isCustomvar($alias)) {
                 $column = $this->getCustomvarColumnName($alias);
             } else {
                 $column = $this->aliasToColumnName($alias);
-            }
-            if (isset($this->columnsWithoutCollation[$alias])) {
-                $expression = $filter->getExpression();
-                if (is_array($expression)) {
-                    $filter->setExpression(array_map('strtolower', $expression));
-                } else {
-                    $filter->setExpression(strtolower($expression));
-
+                if (isset($this->caseInsensitiveColumns[$this->aliasToTableName($alias)][$alias])) {
+                    $column = 'LOWER(' . $column . ')';
+                    $expression = $filter->getExpression();
+                    if (is_array($expression)) {
+                        $filter->setExpression(array_map('strtolower', $expression));
+                    } else {
+                        $filter->setExpression(strtolower($expression));
+                    }
                 }
             }
+
             $filter->setColumn($column);
         } else {
             foreach ($filter->filters() as $filter) {
@@ -524,6 +541,7 @@ abstract class IdoQuery extends DbQuery
         if ($value === '*') {
             return $this; // Wildcard only filters are ignored so stop early here to avoid joining a table for nothing
         }
+
         $this->requireColumn($condition);
         $col = $this->getMappedField($condition);
         if ($col === null) {
@@ -538,40 +556,63 @@ abstract class IdoQuery extends DbQuery
     /**
      * Return true if an field contains an explicit timestamp
      *
-     * @param  String $field    The field to test for containing an timestamp
-     * @return bool             True when the field represents an timestamp
+     * @param   string  $field      The field to test for containing an timestamp
+     *
+     * @return  bool                True when the field represents an timestamp
      */
     public function isTimestamp($field)
     {
-        $mapped = $this->getMappedField($field);
-        if ($mapped === null) {
-            return stripos($field, 'UNIX_TIMESTAMP') !== false;
-        }
-        return stripos($mapped, 'UNIX_TIMESTAMP') !== false;
-    }
-
-    /**
-     * Return whether the given alias or column name provides case insensitive value comparison
-     *
-     * @param   string  $aliasOrColumn
-     *
-     * @return  bool
-     */
-    public function isCaseInsensitive($aliasOrColumn)
-    {
-        if ($this->isCustomVar($aliasOrColumn)) {
+        if ($this->isCustomVar($field)) {
             return false;
         }
 
-        $column = $this->getMappedField($aliasOrColumn) ?: $aliasOrColumn;
+        return stripos($this->getMappedField($field) ?: $field, 'UNIX_TIMESTAMP') !== false;
+    }
+
+    /**
+     * Return whether the given alias provides case insensitive value comparison
+     *
+     * @param   string  $alias
+     *
+     * @return  bool
+     */
+    public function isCaseInsensitive($alias)
+    {
+        if ($this->isCustomVar($alias)) {
+            return false;
+        }
+
+        $column = $this->getMappedField($alias);
         if (! $column) {
             return false;
         }
 
-        if (! empty($this->columnsWithoutCollation)) {
-            return in_array($column, $this->columnsWithoutCollation) || strpos($column, 'LOWER') !== 0;
+        if (empty($this->caseInsensitiveColumns)) {
+            return preg_match('/ COLLATE .+$/', $column) === 1;
         }
-        return preg_match('/ COLLATE .+$/', $column) === 1;
+
+        if (strpos($column, 'LOWER') === 0) {
+            return true;
+        }
+
+        $table = $this->aliasToTableName($alias);
+        if (! $table) {
+            return false;
+        }
+
+        return isset($this->caseInsensitiveColumns[$table][$alias]);
+    }
+
+    /**
+     * Return our column map
+     *
+     * Might be useful for hooks
+     *
+     * @return array
+     */
+    public function getColumnMap()
+    {
+        return $this->columnMap;
     }
 
     /**
@@ -601,12 +642,14 @@ abstract class IdoQuery extends DbQuery
     {
         $this->customVarsJoinTemplate =
             '%1$s = %2$s.object_id AND LOWER(%2$s.varname) = %3$s';
-        foreach ($this->columnMap as $table => &$columns) {
-            foreach ($columns as $alias => &$column) {
-                if (false !== $pos = strpos($column, ' COLLATE')) {
-                    $column = 'LOWER(' . substr($column, 0, $pos) . ')';
-                    $this->columnsWithoutCollation[$alias] = true;
+        foreach ($this->columnMap as $table => & $columns) {
+            foreach ($columns as $alias => & $column) {
+                // Using a regex here because COLLATE may occur anywhere in the string
+                $column = preg_replace('/ COLLATE .+$/', '', $column, -1, $count);
+                if ($count > 0) {
+                    $this->caseInsensitiveColumns[$table][$alias] = true;
                 }
+
                 $column = preg_replace(
                     '/inet_aton\(([[:word:].]+)\)/i',
                     '(CASE WHEN $1 ~ \'(?:[0-9]{1,3}\\\\.){3}[0-9]{1,3}\' THEN $1::inet - \'0.0.0.0\' ELSE NULL END)',
@@ -630,6 +673,23 @@ abstract class IdoQuery extends DbQuery
     {
         parent::init();
         $this->prefix = $this->ds->getTablePrefix();
+
+        foreach (Hook::all('monitoring/idoQueryExtension') as $hook) {
+            $extensions = $hook->extendColumnMap($this);
+            if (! is_array($extensions)) continue;
+
+            foreach ($extensions as $vTable => $cols) {
+                if (! array_key_exists($vTable, $this->columnMap)) {
+                    $this->hookedVirtualTables[$vTable] = $hook;
+                    $this->columMap[$vTable] = array();
+                }
+
+                foreach ($cols as $k => $v) {
+                    $this->columnMap[$vTable][$k] = $v;
+                }
+            }
+        }
+
         $dbType = $this->ds->getDbType();
         if ($dbType === 'oracle') {
             $this->initializeForOracle();
@@ -766,7 +826,24 @@ abstract class IdoQuery extends DbQuery
         if ($this->hasJoinedVirtualTable($name)) {
             return $this;
         }
-        return $this->joinVirtualTable($name);
+
+        if ($this->virtualTableIsHooked($name)) {
+            return $this->joinHookedVirtualTable($name);
+        } else {
+            return $this->joinVirtualTable($name);
+        }
+    }
+
+    /**
+     * Whether a given virtual table name has been provided by a hook
+     *
+     * @param string $name Virtual table name
+     *
+     * @return boolean
+     */
+    protected function virtualTableIsHooked($name)
+    {
+        return array_key_exists($name, $this->hookedVirtualTables);
     }
 
     protected function conflictsWithVirtualTable($name)
@@ -801,6 +878,19 @@ abstract class IdoQuery extends DbQuery
                 $table
             );
         }
+        $this->joinedVirtualTables[$table] = true;
+        return $this;
+    }
+
+    /**
+     * Tell a hook to join a virtual table
+     *
+     * @param  String $table
+     * @return $this
+     */
+    protected function joinHookedVirtualTable($table)
+    {
+        $this->hookedVirtualTables[$table]->joinVirtualTable($this, $table);
         $this->joinedVirtualTables[$table] = true;
         return $this;
     }
@@ -970,17 +1060,73 @@ abstract class IdoQuery extends DbQuery
         return $this;
     }
 
+    public function clearGroupingRules()
+    {
+        $this->groupBase = array();
+        $this->groupOrigin = array();
+        return $this;
+    }
+
     /**
-     * Handle grouping for special columns, e.g. when the column sources more than one table
+     * Register the GROUP BY columns required for the given alias
      *
-     * @param   string  $column         Column
-     * @param   array   $groupColumns   GROUP BY list
-     * @param   array   $groupedTables  Already grouped tables
-     *
-     * @return  bool    Whether the column was handled
+     * @param   string  $alias              The alias to register columns for
+     * @param   string  $table              The table the given alias is associated with
+     * @param   array   $groupedColumns     The grouping columns registered so far
+     * @param   array   $groupedTables      The tables for which columns were registered so far
      */
-    protected function handleGroupColumn($column, &$groupColumns, &$groupedTables) {
-        return false;
+    protected function registerGroupColumns($alias, $table, array &$groupedColumns, array &$groupedTables)
+    {
+        switch ($table) {
+            case 'checktimeperiods':
+                $groupedColumns[] = 'ctp.timeperiod_id';
+                break;
+            case 'contacts':
+                $groupedColumns[] = 'co.object_id';
+                $groupedColumns[] = 'c.contact_id';
+                break;
+            case 'hostobjects':
+                $groupedColumns[] = 'ho.object_id';
+                break;
+            case 'hosts':
+                $groupedColumns[] = 'h.host_id';
+                break;
+            case 'hostgroups':
+                $groupedColumns[] = 'hgo.object_id';
+                $groupedColumns[] = 'hg.hostgroup_id';
+                break;
+            case 'hoststatus':
+                $groupedColumns[] = 'hs.hoststatus_id';
+                break;
+            case 'instances':
+                $groupedColumns[] = 'i.instance_id';
+                break;
+            case 'servicegroups':
+                $groupedColumns[] = 'sgo.object_id';
+                $groupedColumns[] = 'sg.servicegroup_id';
+                break;
+            case 'serviceobjects':
+                $groupedColumns[] = 'so.object_id';
+                break;
+            case 'serviceproblemsummary':
+                $groupedColumns[] = 'sps.unhandled_services_count';
+                break;
+            case 'services':
+                $groupedColumns[] = 'so.object_id';
+                $groupedColumns[] = 's.service_id';
+                break;
+            case 'servicestatus':
+                $groupedColumns[] = 'ss.servicestatus_id';
+                break;
+            case 'timeperiods':
+                $groupedColumns[] = 'ht.timeperiod_id';
+                $groupedColumns[] = 'st.timeperiod_id';
+                break;
+            default:
+                return;
+        }
+
+        $groupedTables[$table] = true;
     }
 
     /**
@@ -992,82 +1138,38 @@ abstract class IdoQuery extends DbQuery
         if (! is_array($group)) {
             $group = array($group);
         }
-        foreach ($this->groupOrigin as $table) {
-            if ($this->hasJoinedVirtualTable($table)) {
-                $groupedTables = array();
-                foreach ($this->groupBase as $table => $columns) {
-                    foreach ($columns as $column) {
-                        $group[] = $column;
-                    }
-                    $groupedTables[$table] = true;
-                }
-                if ($this->getDatasource()->getDbType() !== 'pgsql') {
-                    return $group;
-                }
-                $columnIterator = new AppendIterator();
-                $columnIterator->append(new ColumnFilterIterator($this->columns));
-                $columnIterator->append(new ArrayIterator($this->orderColumns));
-                foreach ($columnIterator as $alias => $column) {
-                    $alias = $this->hasAliasName($alias) ? $alias : $this->customAliasToAlias($alias);
-                    if ($this->handleGroupColumn($alias, $group, $groupedTables) === true) {
-                        continue;
-                    }
-                    $tableName = $this->aliasToTableName($alias);
-                    if (isset($groupedTables[$tableName])) {
-                        continue;
-                    }
-                    switch ($tableName) {
-                        case 'checktimeperiods':
-                            $group[] = 'ctp.timeperiod_id';
-                            break;
-                        case 'contacts':
-                            $group[] = 'co.object_id';
-                            $group[] = 'c.contact_id';
-                            break;
-                        case 'hostobjects':
-                            $group[] = 'ho.object_id';
-                            break;
-                        case 'hosts':
-                            $group[] = 'h.host_id';
-                            break;
-                        case 'hostgroups':
-                            $group[] = 'hgo.object_id';
-                            $group[] = 'hg.hostgroup_id';
-                            break;
-                        case 'hoststatus':
-                            $group[] = 'hs.hoststatus_id';
-                            break;
-                        case 'instances':
-                            $group[] = 'i.instance_id';
-                            break;
-                        case 'servicegroups':
-                            $group[] = 'sgo.object_id';
-                            $group[] = 'sg.servicegroup_id';
-                            break;
-                        case 'serviceobjects':
-                            $group[] = 'so.object_id';
-                            break;
-                        case 'serviceproblemsummary':
-                            $group[] = 'sps.unhandled_services_count';
-                            break;
-                        case 'services':
-                            $group[] = 'so.object_id';
-                            $group[] = 's.service_id';
-                            break;
-                        case 'servicestatus':
-                            $group[] = 'ss.servicestatus_id';
-                            break;
-                        case 'timeperiods':
-                            $group[] = 'ht.timeperiod_id';
-                            $group[] = 'st.timeperiod_id';
-                            break;
-                        default:
-                            continue 2;
-                    }
-                    $groupedTables[$tableName] = true;
-                }
 
-                break;
+        $joinedOrigins = array_filter($this->groupOrigin, array($this, 'hasJoinedVirtualTable'));
+        if (empty($joinedOrigins)) {
+            return $group;
+        }
+
+        $groupedTables = array();
+        foreach ($this->groupBase as $baseTable => $aliasedPks) {
+            $groupedTables[$baseTable] = true;
+            foreach ($aliasedPks as $aliasedPk) {
+                $group[] = $aliasedPk;
+            }
+        }
+
+        foreach (new ColumnFilterIterator($this->columns) as $desiredAlias => $desiredColumn) {
+            $alias = is_string($desiredAlias) ? $this->customAliasToAlias($desiredAlias) : $desiredColumn;
+            $table = $this->aliasToTableName($alias);
+            if ($table && !isset($groupedTables[$table]) && (
+                in_array($table, $joinedOrigins, true) || $this->getDatasource()->getDbType() === 'pgsql')
+            ) {
+                $this->registerGroupColumns($alias, $table, $group, $groupedTables);
+            }
+        }
+
+        if (! empty($group) && $this->getDatasource()->getDbType() === 'pgsql') {
+            foreach (new ColumnFilterIterator($this->orderColumns) as $alias) {
+                $table = $this->aliasToTableName($alias);
+                if ($table && !isset($groupedTables[$table])
+                    && !in_array($this->getMappedField($alias), $this->columns, true)
+                ) {
+                    $this->registerGroupColumns($alias, $table, $group, $groupedTables);
+                }
             }
         }
 

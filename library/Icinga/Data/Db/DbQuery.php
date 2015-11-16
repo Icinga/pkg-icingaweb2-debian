@@ -3,7 +3,9 @@
 
 namespace Icinga\Data\Db;
 
+use Exception;
 use Zend_Db_Select;
+use Icinga\Application\Logger;
 use Icinga\Data\Filter\FilterAnd;
 use Icinga\Data\Filter\FilterChain;
 use Icinga\Data\Filter\FilterNot;
@@ -288,9 +290,14 @@ class DbQuery extends SimpleQuery
             $expression = $this->valueToTimestamp($expression);
         }
 
-        if (is_array($expression) && $sign === '=') {
-            // TODO: Should we support this? Doesn't work for blub*
-            return $col . ' IN (' . $this->escapeForSql($expression) . ')';
+        if (is_array($expression)) {
+            if ($sign === '=') {
+                return $col . ' IN (' . $this->escapeForSql($expression) . ')';
+            } elseif ($sign === '!=') {
+                return $col . ' NOT IN (' . $this->escapeForSql($expression) . ')';
+            }
+
+            throw new QueryException('Unable to render array expressions with operators other than equal or not equal');
         } elseif ($sign === '=' && strpos($expression, '*') !== false) {
             if ($expression === '*') {
                 // We'll ignore such filters as it prevents index usage and because "*" means anything, anything means
@@ -377,8 +384,13 @@ class DbQuery extends SimpleQuery
      */
     public function __toString()
     {
-        $select = (string) $this->getSelectQuery();
-        return $this->getIsSubQuery() ? ('(' . $select . ')') : $select;
+        try {
+            $select = (string) $this->getSelectQuery();
+            return $this->getIsSubQuery() ? ('(' . $select . ')') : $select;
+        } catch (Exception $e) {
+            Logger::debug('Failed to render DbQuery. An error occured: %s', $e);
+            return '';
+        }
     }
 
     /**

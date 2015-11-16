@@ -8,16 +8,16 @@ if (! $stats instanceof stdClass) {
 }
 ?>
 <div class="hosts-summary">
-<?= $this->qlink(
-    sprintf($this->translatePlural('%u Host', '%u Hosts', $stats->hosts_total), $stats->hosts_total),
-    // @TODO(el): Fix that
-    Url::fromPath('monitoring/list/hosts')->setParams(isset($baseFilter) ? $baseFilter->getUrlParams() : array()),
-    null,
-    array('title' => sprintf(
-        $this->translatePlural('List %u host', 'List all %u hosts', $stats->hosts_total),
-        $stats->hosts_total
-    ))
-) ?>&#58;
+    <span class="hosts-link"><?= $this->qlink(
+        sprintf($this->translatePlural('%u Host', '%u Hosts', $stats->hosts_total), $stats->hosts_total),
+        // @TODO(el): Fix that
+        Url::fromPath('monitoring/list/hosts')->setParams(isset($baseFilter) ? $baseFilter->getUrlParams() : array()),
+        null,
+        array('title' => sprintf(
+            $this->translatePlural('List %u host', 'List all %u hosts', $stats->hosts_total),
+            $stats->hosts_total
+        ))
+    ) ?>&#58;</span>
 <?php
 $stateBadges = new StateBadges();
 $stateBadges
@@ -73,8 +73,8 @@ $stateBadges
             'host_state'    => 2,
             'host_handled'  => 1
         ),
-        'List %u host that is currently in state UNREACHABLE (Acknowledged) in the host group "%s"',
-        'List %u hosts which are currently in state UNREACHABLE (Acknowledged) in the host group "%s"',
+        'List %u host that is currently in state UNREACHABLE (Acknowledged)',
+        'List %u hosts which are currently in state UNREACHABLE (Acknowledged)',
         array($stats->hosts_unreachable_handled)
     )
     ->add(
@@ -83,8 +83,8 @@ $stateBadges
         array(
             'host_state' => 99
         ),
-        'List %u host that is currently in state UNREACHABLE (Acknowledged)',
-        'List %u hosts which are currently in state UNREACHABLE (Acknowledged)',
+        'List %u host that is currently in state PENDING',
+        'List %u hosts which are currently in state PENDING',
         array($stats->hosts_pending)
     );
 echo $stateBadges->render();
