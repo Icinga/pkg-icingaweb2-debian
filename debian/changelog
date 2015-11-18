@@ -1,3 +1,10 @@
+icingaweb2 (2.1.0-2) unstable; urgency=medium
+
+  [ Markus Frosch ]
+  * [ac348b1] Add patch for HTMLPurifier path loading
+
+ -- Alexander Wirt <formorer@debian.org>  Wed, 18 Nov 2015 11:53:08 +0100
+
 icingaweb2 (2.1.0-1) unstable; urgency=medium
 
   [ Alexander Wirt ]
