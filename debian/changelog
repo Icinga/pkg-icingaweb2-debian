@@ -1,8 +1,15 @@
-icingaweb2 (2.1.0-1~debmon80+1) debmon-jessie; urgency=medium
+icingaweb2 (2.1.0-2~debmon80+1) debmon-jessie; urgency=medium
 
   * Rebuild for debmon-jessie
 
- -- Markus Frosch <lazyfrosch@debian.org>  Mon, 16 Nov 2015 16:47:50 +0100
+ -- Alexander Wirt <formorer@debian.org>  Wed, 18 Nov 2015 11:54:29 +0100
+
+icingaweb2 (2.1.0-2) unstable; urgency=medium
+
+  [ Markus Frosch ]
+  * [ac348b1] Add patch for HTMLPurifier path loading
+
+ -- Alexander Wirt <formorer@debian.org>  Wed, 18 Nov 2015 11:53:08 +0100
 
 icingaweb2 (2.1.0-1) unstable; urgency=medium
 
