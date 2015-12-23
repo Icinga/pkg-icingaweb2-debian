@@ -1081,7 +1081,7 @@ msgstr "Gruppenmitglieder wurden erfolgreich hinzugefügt"
 #: /vagrant/application/forms/Security/RoleForm.php:151
 #: /vagrant/application/views/scripts/role/list.phtml:24
 msgid "Groups"
-msgstr "Benutzergruppen"
+msgstr "Gruppen"
 
 #: /vagrant/application/views/scripts/search/hint.phtml:3
 msgid "Hint"
@@ -1303,7 +1303,7 @@ msgstr "Logging-Typ"
 
 #: /vagrant/application/forms/Authentication/LoginForm.php:30
 msgid "Logging in"
-msgstr "Anmelden…"
+msgstr "Anmelden"
 
 #: /vagrant/application/views/scripts/authentication/logout.phtml:12
 msgid "Logging out..."

@@ -41,21 +41,20 @@ class FileCache
     protected function __construct($name)
     {
         $this->name = $name;
-        $tmpdir = sys_get_temp_dir();
-        $basedir = $tmpdir . '/FileCache_' . $name;
-
-        if (file_exists($basedir) && is_writeable($basedir)) {
-
-            $this->basedir = $basedir;
-            $this->enabled = true;
-
-        } elseif (file_exists($tmpdir) && is_writeable($tmpdir)) {
-
-            if (mkdir($basedir, '0750', true)) {
+        $tmpDir = sys_get_temp_dir();
+        $runtimePath = $tmpDir . '/FileCache_' . $name;
+        if (is_dir($runtimePath)) {
+            // Don't combine the following if with the above because else the elseif path will be evaluated if the
+            // runtime path exists and is not writeable
+            if (is_writeable($runtimePath)) {
+                $this->basedir = $runtimePath;
                 $this->enabled = true;
-                $this->basedir = $basedir;
             }
-
+        } elseif (is_dir($tmpDir) && is_writeable($tmpDir) && @mkdir($runtimePath, octdec('1750'), true)) {
+            // Suppress mkdir errors because it may error w/ no such file directory if the systemd private tmp directory
+            // for the web server has been removed
+            $this->basedir = $runtimePath;
+            $this->enabled = true;
         }
     }
 
@@ -191,9 +190,6 @@ class FileCache
     /**
      * Whether the given ETag matchesspecific file(s) on disk
      *
-     * If no ETag is given we'll try to fetch the one from the current
-     * HTTP request. Respects HTTP Cache-Control: no-cache, if set.
-     *
      * @param string|array $files file(s) to check
      * @param string       $match ETag to match against
      *
@@ -207,9 +203,6 @@ class FileCache
                 : false;
         }
         if (! $match) {
-            return false;
-        }
-        if (isset($_SERVER['HTTP_CACHE_CONTROL']) &&  $_SERVER['HTTP_CACHE_CONTROL'] === 'no-cache') {
             return false;
         }
 
