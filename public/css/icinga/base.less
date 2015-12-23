@@ -31,6 +31,9 @@
 // Text color on <a>
 @link-color: @text-color;
 
+@tr-active-color: #E5F9FF;
+@tr-hover-color: #F5FDFF;
+
 // Font families
 @font-family: Calibri, Helvetica, sans-serif;
 @font-family-fixed: "Liberation Mono", "Lucida Console", Courier, monospace;
@@ -58,7 +61,9 @@ html {
 *,
 *:before,
 *:after {
-  .box-sizing(inherit);
+  -webkit-box-sizing: inherit;
+     -moz-box-sizing: inherit;
+          box-sizing: inherit;
 }
 
 a {
@@ -138,19 +143,21 @@ td, th {
   }
 }
 
-#layout {
-  background-color: @body-bg-color;
-  color: @text-color;
-  font-family: @font-family;
+// Styles for when the page is loading. JS will remove this class once the document is ready
+.loading * {
+  // Disable all transition on page load
+  -webkit-transition: none !important;
+     -moz-transition: none !important;
+       -o-transition: none !important;
+          transition: none !important;
 }
 
-#main > .container, #menu, #header {
-  font-size: @font-size;
-  line-height: @line-height;
-}
-
-@media print {
-  .dont-print {
-    display: none;
+// Styles for when containers are loading. JS will remove this once the containers are ready
+.impact {
+  .active > a, // Remove > a once .tabs layout has been fixed
+  .controls,
+  .content {
+    .transition(background-color 2s 1s linear !important);
+    background-color: @gray-lighter !important;
   }
 }

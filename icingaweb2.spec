@@ -3,7 +3,7 @@
 %define revision 1
 
 Name:           icingaweb2
-Version:        2.1.0
+Version:        2.1.1
 Release:        %{revision}%{?dist}
 Summary:        Icinga Web 2
 Group:          Applications/System
@@ -83,8 +83,9 @@ Requires:                   %{php}-gd %{php}-intl
 %{?rhel:Requires:           php-pecl-imagick}
 %{?suse_version:Requires:   %{php}-gettext %{php}-json %{php}-openssl %{php}-posix}
 Requires:                   %{zend}
-Requires:                   %{zend}-Db-Adapter-Pdo-Mysql
-Requires:                   %{zend}-Db-Adapter-Pdo-Pgsql
+%{?amzn:Requires:           %{zend}-Db-Adapter-Pdo-Mysql %{zend}-Db-Adapter-Pdo-Pgsql}
+%{?fedora:Requires:         %{zend}-Db-Adapter-Pdo-Mysql %{zend}-Db-Adapter-Pdo-Pgsql}
+%{?rhel:Requires:           %{zend}-Db-Adapter-Pdo-Mysql %{zend}-Db-Adapter-Pdo-Pgsql}
 
 %description -n php-Icinga
 Icinga Web 2 PHP library
@@ -117,7 +118,7 @@ Icinga Web 2 vendor library dompdf
 
 
 %package vendor-HTMLPurifier
-Version:    4.6.0
+Version:    4.7.0
 Release:    1%{?dist}
 Summary:    Icinga Web 2 vendor library HTMLPurifier
 Group:      Development/Libraries
@@ -176,7 +177,7 @@ cp -prv application doc %{buildroot}/%{basedir}
 cp -pv etc/bash_completion.d/icingacli %{buildroot}/%{_sysconfdir}/bash_completion.d/icingacli
 cp -prv modules/{monitoring,iframe,setup,doc,translation} %{buildroot}/%{basedir}/modules
 cp -prv library/Icinga %{buildroot}/%{phpdir}
-cp -prv library/vendor/{dompdf,HTMLPurifier,JShrink,lessphp,Parsedown} %{buildroot}/%{basedir}/library/vendor
+cp -prv library/vendor/{dompdf,HTMLPurifier*,JShrink,lessphp,Parsedown} %{buildroot}/%{basedir}/library/vendor
 cp -prv public/{css,img,js,error_norewrite.html} %{buildroot}/%{basedir}/public
 cp -pv packages/files/apache/icingaweb2.conf %{buildroot}/%{wwwconfigdir}/icingaweb2.conf
 cp -pv packages/files/bin/icingacli %{buildroot}/%{bindir}
@@ -249,6 +250,8 @@ exit 0
 %files vendor-HTMLPurifier
 %defattr(-,root,root)
 %{basedir}/library/vendor/HTMLPurifier
+%{basedir}/library/vendor/HTMLPurifier.autoload.php
+%{basedir}/library/vendor/HTMLPurifier.php
 
 
 %files vendor-JShrink
