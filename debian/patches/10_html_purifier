@@ -1,23 +1,23 @@
-Description: Fix HTMLPurifier loading for versions >= 4.7.0
+Description: Allow loading of HTMLPurifier in older Debian and Ubuntu version
+ (with php-htmlpurifier < 4.6)
 Author: Markus Frosch <lazyfrosch@debian.org>
-Forwarded: https://dev.icinga.org/issues/10652
-Last-Update: 2015-11-16
+Last-Update: 2015-12-23
 ---
 This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
---- a/modules/monitoring/application/views/helpers/PluginOutput.php
-+++ b/modules/monitoring/application/views/helpers/PluginOutput.php
-@@ -92,8 +92,15 @@
+Index: icingaweb2/modules/monitoring/application/views/helpers/PluginOutput.php
+===================================================================
+--- icingaweb2.orig/modules/monitoring/application/views/helpers/PluginOutput.php	2015-12-23 11:53:41.173910143 +0100
++++ icingaweb2/modules/monitoring/application/views/helpers/PluginOutput.php	2015-12-23 11:56:50.821703087 +0100
+@@ -92,8 +92,13 @@
      {
          if (self::$purifier === null) {
              require_once 'HTMLPurifier/Bootstrap.php';
--            require_once 'HTMLPurifier/HTMLPurifier.php';
--            require_once 'HTMLPurifier/HTMLPurifier.autoload.php';
-+            try {
-+                require_once 'HTMLPurifier.php';
-+                require_once 'HTMLPurifier.autoload.php';
-+
-+            } catch (ErrorException $e) {
-+                // loading failed, try to load old location
+-            require_once 'HTMLPurifier.php';
+-            require_once 'HTMLPurifier.autoload.php';
++            if (include_once 'HTMLPurifier.php') {
++                include_once 'HTMLPurifier.autoload.php';
++            } else {
++                // try to load the legacy location
 +                require_once 'HTMLPurifier/HTMLPurifier.php';
 +                require_once 'HTMLPurifier/HTMLPurifier.autoload.php';
 +            }
