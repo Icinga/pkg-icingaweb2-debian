@@ -1,3 +1,12 @@
+icingaweb2 (2.1.2-1) unstable; urgency=medium
+
+  * [92126c1] Imported Upstream version 2.1.1
+  * [bac2ae7] Update html_purifier patch for downwards compatibility
+  * [a488312] Update copyright
+  * [6abcf98] Imported Upstream version 2.1.2
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Wed, 23 Dec 2015 15:15:40 +0100
+
 icingaweb2 (2.1.0-2~debmon80+1) debmon-jessie; urgency=medium
 
   * Rebuild for debmon-jessie
