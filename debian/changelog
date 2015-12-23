@@ -1,3 +1,9 @@
+icingaweb2 (2.1.2-1~debmon70+1) debmon-wheezy; urgency=medium
+
+  * Rebuild for debmon-wheezy
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Wed, 23 Dec 2015 15:29:04 +0100
+
 icingaweb2 (2.1.2-1) unstable; urgency=medium
 
   * [92126c1] Imported Upstream version 2.1.1
