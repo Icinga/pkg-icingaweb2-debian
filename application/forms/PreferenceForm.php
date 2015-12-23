@@ -6,15 +6,18 @@ namespace Icinga\Forms;
 use Exception;
 use DateTimeZone;
 use Icinga\Application\Config;
+use Icinga\Application\Icinga;
 use Icinga\Application\Logger;
 use Icinga\Authentication\Auth;
 use Icinga\User\Preferences;
 use Icinga\User\Preferences\PreferencesStore;
 use Icinga\Util\TimezoneDetect;
 use Icinga\Util\Translator;
+use Icinga\Web\Cookie;
 use Icinga\Web\Form;
 use Icinga\Web\Notification;
 use Icinga\Web\Session;
+use Icinga\Web\StyleSheet;
 
 /**
  * Form class to adjust user preferences
@@ -89,9 +92,14 @@ class PreferenceForm extends Form
     {
         $this->preferences = new Preferences($this->store ? $this->store->load() : array());
 
+        $oldTheme = $this->preferences->getValue('icingaweb', 'theme');
+
         $webPreferences = $this->preferences->get('icingaweb', array());
         foreach ($this->getValues() as $key => $value) {
-            if ($value === null || $value === 'autodetect') {
+            if ($value === ''
+                || $value === 'autodetect'
+                || ($key === 'theme' && $value === Config::app()->get('themes', 'default', StyleSheet::DEFAULT_THEME))
+            ) {
                 if (isset($webPreferences[$key])) {
                     unset($webPreferences[$key]);
                 }
@@ -102,6 +110,12 @@ class PreferenceForm extends Form
         $this->preferences->icingaweb = $webPreferences;
 
         Session::getSession()->user->setPreferences($this->preferences);
+
+        if (($theme = $this->getElement('theme')) !== null
+            && ($theme = $theme->getValue()) !== $oldTheme
+        ) {
+            $this->getResponse()->setReloadCss(true);
+        }
 
         try {
             if ($this->store && $this->getElement('btn_submit_preferences')->isChecked()) {
@@ -142,6 +156,27 @@ class PreferenceForm extends Form
      */
     public function createElements(array $formData)
     {
+        if (! (bool) Config::app()->get('themes', 'disabled', false)) {
+            $themes = Icinga::app()->getThemes();
+            if (count($themes) > 1) {
+                $defaultTheme = Config::app()->get('themes', 'default', StyleSheet::DEFAULT_THEME);
+                if (isset($themes[$defaultTheme])) {
+                    $themes[$defaultTheme] .= ' (' . $this->translate('default') . ')';
+                }
+                $this->addElement(
+                    'select',
+                    'theme',
+                    array(
+                        'label'         => $this->translate('Theme', 'Form element label'),
+                        'multiOptions'  => $themes,
+                        'value'         => $this->preferences->getValue(
+                            'icingaweb', 'theme', $defaultTheme
+                        )
+                    )
+                );
+            }
+        }
+
         $languages = array();
         $languages['autodetect'] = sprintf($this->translate('Browser (%s)', 'preferences.form'), $this->getLocale());
         foreach (Translator::getAvailableLocaleCodes() as $language) {
