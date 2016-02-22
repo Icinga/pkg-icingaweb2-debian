@@ -16,10 +16,4 @@ if [ -L /etc/apache2/conf.d/icingaweb2.conf ]; then
     [ -x $(which invoke-rc.d) ] && invoke-rc.d apache2 reload || true
 fi
 
-# cleanup on purge
-if [ "$1" = "purge" ]; then
-    rm -rf /etc/icingaweb2
-    rm -rf /var/log/icingaweb2
-fi
-
 #DEBHELPER#
