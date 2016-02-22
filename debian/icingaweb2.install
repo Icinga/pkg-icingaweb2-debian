@@ -1,10 +1,6 @@
-packages/files/bin/icingacli     usr/bin
-
 public doc                       usr/share/icingaweb2
 
-application/clicommands          usr/share/icingaweb2/application
 application/controllers          usr/share/icingaweb2/application
-application/locale               usr/share/icingaweb2/application
 # TODO: embedded font here
 application/fonts                usr/share/icingaweb2/application
 application/forms                usr/share/icingaweb2/application
@@ -25,5 +21,4 @@ library/vendor/dompdf/{*.php,lib,include} usr/share/icingaweb2/library/vendor/do
 library/vendor/HTMLPurifier/{*.php,*/} usr/share/icingaweb2/library/vendor/HTMLPurifier
 library/vendor/Zend/{*.php,*/} usr/share/icingaweb2/library/vendor/Zend
 
-modules/setup  usr/share/icingaweb2/modules
-modules/iframe usr/share/icingaweb2/modules
+modules/iframe                   usr/share/icingaweb2/modules
