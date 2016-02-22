@@ -6,6 +6,8 @@ Uploaders:
  Markus Frosch <lazyfrosch@debian.org>
 Build-Depends:
  debhelper (>= 9),
+ php5-cli,
+ php-htmlpurifier (>= 4.3),
  yui-compressor
 Standards-Version: 3.9.6
 Homepage: https://www.icinga.org
@@ -16,8 +18,7 @@ Package: icingaweb2
 Architecture: all
 Depends:
  icingaweb2-common (= ${source:Version}),
-# 4.4 in wheezy - TODO: test
- php-htmlpurifier (>= 4.4),
+ php-htmlpurifier (>= 4.3),
  php-dompdf (>= 0.6.1),
 # php-parsedown,
 # php-lessphp,
