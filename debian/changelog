@@ -1,3 +1,9 @@
+icingaweb2 (2.1.2-2~debmon8+1) debmon-jessie; urgency=medium
+
+  * Rebuild for debmon-jessie.
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Mon, 22 Feb 2016 13:07:57 +0100
+
 icingaweb2 (2.1.2-2) unstable; urgency=medium
 
   * [672fcae] Split out icingacli and icingaweb2-common as packages
