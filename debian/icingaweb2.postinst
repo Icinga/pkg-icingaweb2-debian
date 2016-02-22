@@ -6,11 +6,6 @@ case "$1" in
     configure)
         COMMON_STATE=$(dpkg-query -f '${Status}' -W 'apache2.2-common' 2>/dev/null | awk '{print $3}' || true)
 
-        # allow www-data to write icingaweb2 config
-        if ! getent group icingaweb2 | grep -q www-data; then
-            adduser www-data icingaweb2
-        fi
-
         # NEW method for Apache >= 2.4
         if [ -e /usr/share/apache2/apache2-maintscript-helper ]; then
             . /usr/share/apache2/apache2-maintscript-helper
