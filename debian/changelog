@@ -1,3 +1,15 @@
+icingaweb2 (2.1.2-2) unstable; urgency=medium
+
+  * [672fcae] Split out icingacli and icingaweb2-common as packages
+  * [5927c7e] Include translation module
+  * [71eca67] Remove 10_html_purifier patch
+  * [a0ef32a] Test php-htmlpurifier loading, allow from version 4.3
+  * [a029ff6] Update VCS URLs
+  * [4de17c5] Remove duplicate adduser in postinst
+  * [0f4f2ac] Bump standards version to 3.9.7
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Mon, 22 Feb 2016 13:02:00 +0100
+
 icingaweb2 (2.1.2-1~debmon70+1) debmon-wheezy; urgency=medium
 
   * Rebuild for debmon-wheezy
