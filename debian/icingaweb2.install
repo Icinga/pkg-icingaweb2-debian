@@ -18,7 +18,6 @@ library/vendor/JShrink/*.php     usr/share/icingaweb2/library/vendor/JShrink
 library/vendor/Parsedown/*.php   usr/share/icingaweb2/library/vendor/Parsedown
 library/vendor/lessphp/*.php     usr/share/icingaweb2/library/vendor/lessphp
 library/vendor/dompdf/{*.php,lib,include} usr/share/icingaweb2/library/vendor/dompdf
-library/vendor/HTMLPurifier/{*.php,*/} usr/share/icingaweb2/library/vendor/HTMLPurifier
 library/vendor/Zend/{*.php,*/} usr/share/icingaweb2/library/vendor/Zend
 
 modules/iframe                   usr/share/icingaweb2/modules
