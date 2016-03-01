@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Application;
 
@@ -472,11 +472,18 @@ class Config implements Countable, Iterator, Selectable
             $filename = $type . 's.ini';
         }
 
-        return static::resolvePath(
-            ($username ? 'preferences' . DIRECTORY_SEPARATOR . $username : 'navigation')
-            . DIRECTORY_SEPARATOR
-            . $filename
-        );
+        if ($username) {
+            $path = static::resolvePath(implode(DIRECTORY_SEPARATOR, array('preferences', $username, $filename)));
+            if (realpath($path) === false) {
+                $path = static::resolvePath(implode(
+                    DIRECTORY_SEPARATOR,
+                    array('preferences', strtolower($username), $filename)
+                ));
+            }
+        } else {
+            $path = static::resolvePath('navigation' . DIRECTORY_SEPARATOR . $filename);
+        }
+        return $path;
     }
 
     /**

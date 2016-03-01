@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Application;
 
@@ -515,25 +515,6 @@ abstract class ApplicationBootstrap
                     Logger::getInstance()->registerConfigError($e->getMessage());
                 }
             }
-        }
-
-        return $this;
-    }
-
-    /**
-     * Set up the resource factory
-     *
-     * @return $this
-     */
-    protected function setupResourceFactory()
-    {
-        try {
-            $config = Config::app('resources');
-            ResourceFactory::setConfig($config);
-        } catch (NotReadableError $e) {
-            Logger::error(
-                new IcingaException('Cannot load resource configuration. An exception was thrown:', $e)
-            );
         }
 
         return $this;

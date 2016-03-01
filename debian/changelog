@@ -1,9 +1,21 @@
-icingaweb2 (2.1.2-2~ppa1) UNRELEASED; urgency=medium
+icingaweb2 (2.1.2-2~ppa1) precise; urgency=medium
 
-  [ Markus Frosch ]
-  * [c9f43e4] Use php-htmlpurifier from distribution
+  * Updated for my ppa
 
  -- Alexander Wirt <formorer@debian.org>  Mon, 22 Feb 2016 13:21:45 +0100
+
+icingaweb2 (2.2.0-1) unstable; urgency=medium
+
+  * [1d4af5c] Imported Upstream version 2.2.0
+  * [fc7c95e] iframe module is now included in icingaweb2 base
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Tue, 01 Mar 2016 09:58:40 +0100
+
+icingaweb2 (2.1.2-3) unstable; urgency=medium
+
+  * [a95a3f5] Update copyright for php dompdf shipped fonts
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Tue, 23 Feb 2016 11:32:40 +0100
 
 icingaweb2 (2.1.2-2) unstable; urgency=medium
 

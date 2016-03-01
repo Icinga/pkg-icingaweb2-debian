@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Authentication\UserGroup;
 
@@ -22,8 +22,7 @@ class UserGroupBackend
     protected static $defaultBackends = array(
         'db',
         'ldap',
-        'msldap',
-        //'ini'
+        'msldap'
     );
 
     /**
@@ -154,9 +153,6 @@ class UserGroupBackend
         switch ($backendType) {
             case 'db':
                 $backend = new DbUserGroupBackend($resource);
-                break;
-            case 'ini':
-                $backend = new IniUserGroupBackend($resource);
                 break;
             case 'ldap':
             case 'msldap':

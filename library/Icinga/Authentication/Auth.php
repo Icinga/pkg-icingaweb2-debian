@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Authentication;
 
@@ -135,6 +135,8 @@ class Auth
         } else {
             $preferences = new Preferences();
         }
+        // TODO(el): Quick-fix for #10957. Only reload CSS if the theme changed.
+        $this->getResponse()->setReloadCss(true);
         $user->setPreferences($preferences);
         $groups = $user->getGroups();
         foreach (Config::app('groups') as $name => $config) {
@@ -268,7 +270,7 @@ class Auth
     }
 
     /**
-     * Attempt to authenticate a user using HTTP authentication
+     * Attempt to authenticate a user using HTTP authentication on API requests only
      *
      * Supports only the Basic HTTP authentication scheme. XHR will be ignored.
      *
@@ -276,18 +278,17 @@ class Auth
      */
     protected function authHttp()
     {
-        if ($this->getRequest()->isXmlHttpRequest()) {
+        $request = $this->getRequest();
+        if ($request->isXmlHttpRequest() || ! $request->isApiRequest()) {
             return false;
         }
-        if (($header = $this->getRequest()->getHeader('Authorization')) === false) {
-            return false;
-        }
+        $header = $request->getHeader('Authorization');
         if (empty($header)) {
             $this->challengeHttp();
         }
         list($scheme) = explode(' ', $header, 2);
         if ($scheme !== 'Basic') {
-            $this->challengeHttp();
+            return false;
         }
         $authorization = substr($header, strlen('Basic '));
         $credentials = base64_decode($authorization);

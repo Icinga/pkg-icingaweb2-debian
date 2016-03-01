@@ -1,10 +1,11 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web\Session;
 
 use Icinga\Application\Logger;
 use Icinga\Exception\ConfigurationError;
+use Icinga\Web\Cookie;
 
 /**
  * Session implementation in PHP
@@ -102,11 +103,21 @@ class PhpSession extends Session
             ini_set('session.cache_limiter', null);
         }
 
+        $cookie = new Cookie('bogus');
+        session_set_cookie_params(
+            0,
+            $cookie->getPath(),
+            $cookie->getDomain(),
+            $cookie->isSecure(),
+            true
+        );
+
         session_start();
 
         if ($this->hasBeenTouched) {
             ini_set('session.use_cookies', true);
             ini_set('session.use_only_cookies', true);
+            /** @noinspection PhpUndefinedVariableInspection */
             ini_set('session.cache_limiter', $cacheLimiter);
         }
     }
@@ -213,7 +224,9 @@ class PhpSession extends Session
     public function refreshId()
     {
         $this->open();
-        session_regenerate_id();
+        if ($this->exists()) {
+            session_regenerate_id();
+        }
         session_write_close();
         $this->hasBeenTouched = true;
     }

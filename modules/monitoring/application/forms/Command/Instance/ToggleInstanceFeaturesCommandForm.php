@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Forms\Command\Instance;
 
@@ -26,9 +26,7 @@ class ToggleInstanceFeaturesCommandForm extends CommandForm
     public function init()
     {
         $this->setUseFormAutosubmit();
-        $this->setTitle($this->translate('Feature Commands'));
         $this->setAttrib('class', 'inline instance-features');
-        $this->loadDefaultDecorators()->getDecorator('description')->setTag('h2');
     }
 
     /**
@@ -140,7 +138,7 @@ class ToggleInstanceFeaturesCommandForm extends CommandForm
             )
         );
 
-        if (! preg_match('~^v2\.\d+\.\d+.*$~', $this->status->program_version)) {
+        if (! $this->getBackend()->isIcinga2($this->status->program_version)) {
             $this->addElement(
                 'checkbox',
                 ToggleInstanceFeatureCommand::FEATURE_HOST_OBSESSING,

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Application\Modules;
 
@@ -1289,7 +1289,7 @@ class Module
             $class = $implementation;
         }
 
-        Hook::register($name, $implementation, $class);
+        Hook::register($name, $class, $class);
         return $this;
     }
 

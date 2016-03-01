@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\DataView;
 
@@ -95,7 +95,9 @@ abstract class DataView implements QueryInterface, SortRules, FilterColumns, Ite
 
     public function dump()
     {
-        $this->order();
+        if (! $this->isSorted) {
+            $this->order();
+        }
         return $this->query->dump();
     }
 

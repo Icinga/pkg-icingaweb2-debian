@@ -1,14 +1,15 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Hook;
 
 use Icinga\Module\Monitoring\Object\Host;
+use Icinga\Module\Monitoring\Object\MonitoredObject;
 
 /**
  * Base class for host action hooks
  */
-abstract class HostActionsHook
+abstract class HostActionsHook extends ObjectActionsHook
 {
     /**
      * Implementors of this method should return an array containing
@@ -43,4 +44,9 @@ abstract class HostActionsHook
      * @return  array  An array containing a list of host action links
      */
     abstract public function getActionsForHost(Host $host);
+
+    public function getActionsForObject(MonitoredObject $object)
+    {
+        return $this->getActionsForHost($object);
+    }
 }

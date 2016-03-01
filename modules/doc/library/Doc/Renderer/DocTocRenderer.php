@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Doc\Renderer;
 
@@ -16,6 +16,20 @@ use RecursiveIteratorIterator;
  */
 class DocTocRenderer extends DocRenderer
 {
+    /**
+     * CSS class for the HTML list element
+     *
+     * @var string
+     */
+    const CSS_CLASS = 'toc';
+
+    /**
+     * Tag for the HTML list element
+     *
+     * @var string
+     */
+    const HTML_LIST_TAG = 'ol';
+
     /**
      * Content to render
      *
@@ -38,7 +52,7 @@ class DocTocRenderer extends DocRenderer
      */
     public function beginIteration()
     {
-        $this->content[] = '<nav role="navigation"><ul class="toc">';
+        $this->content[] = sprintf('<nav role="navigation"><%s class="%s">', static::HTML_LIST_TAG, static::CSS_CLASS);
     }
 
     /**
@@ -46,7 +60,7 @@ class DocTocRenderer extends DocRenderer
      */
     public function endIteration()
     {
-        $this->content[] = '</ul></nav>';
+        $this->content[] = sprintf('</%s></nav>', static::HTML_LIST_TAG);
     }
 
     /**
@@ -54,7 +68,7 @@ class DocTocRenderer extends DocRenderer
      */
     public function beginChildren()
     {
-        $this->content[] = '<ul class="toc">';
+        $this->content[] = sprintf('<%s class="%s">', static::HTML_LIST_TAG, static::CSS_CLASS);
     }
 
     /**
@@ -62,7 +76,7 @@ class DocTocRenderer extends DocRenderer
      */
     public function endChildren()
     {
-        $this->content[] = '</ul>';
+        $this->content[] = sprintf('</%s>', static::HTML_LIST_TAG);
     }
 
     /**
