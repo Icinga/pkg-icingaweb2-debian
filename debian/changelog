@@ -1,3 +1,9 @@
+icingaweb2 (2.2.0-1~debmon8+1) debmon-jessie; urgency=medium
+
+  * Rebuild for debmon-jessie.
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Tue, 01 Mar 2016 10:04:26 +0100
+
 icingaweb2 (2.2.0-1) unstable; urgency=medium
 
   * [1d4af5c] Imported Upstream version 2.2.0
