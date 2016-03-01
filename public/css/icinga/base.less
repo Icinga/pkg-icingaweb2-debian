@@ -1,4 +1,7 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/*! Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
+
+// Black colors
+@black: #535353;
 
 // Gray colors
 @gray: #7F7F7F;
@@ -8,7 +11,6 @@
 
 // Icinga colors
 @icinga-blue: #0095BF;
-@icinga-blue-dark: #AA95BF;
 @color-ok: #44bb77;
 @color-warning: #ffaa44;
 @color-warning-handled: #ffcc66;
@@ -20,13 +22,20 @@
 @color-unreachable-handled: #cc77ff;
 @color-pending: #77aaff;
 
+// Notification colors
+@color-notification-error: @color-critical;
+@color-notification-info: @color-pending;
+@color-notification-success: #fe6;
+@color-notification-warning: @color-warning-handled;
+
 // Background color for <body>
 @body-bg-color: #fff;
 
 // Text colors
-@text-color: #535353;
+@text-color: @black;
 @text-color-inverted: @body-bg-color;
 @text-color-light: @gray;
+@text-color-on-icinga-blue: @body-bg-color;
 
 // Text color on <a>
 @link-color: @text-color;
@@ -154,10 +163,11 @@ td, th {
 
 // Styles for when containers are loading. JS will remove this once the containers are ready
 .impact {
-  .active > a, // Remove > a once .tabs layout has been fixed
-  .controls,
-  .content {
     .transition(background-color 2s 1s linear !important);
     background-color: @gray-lighter !important;
-  }
+}
+
+.impact > .controls, .impact li.active a {
+    .transition(background-color 2s 1s linear !important);
+    background-color: @gray-lighter !important;
 }

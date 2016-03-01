@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web;
 
@@ -155,18 +155,16 @@ class LessCompiler
             $moduleCss .= '}';
         }
 
-        $moduleCss = preg_replace(
-            '/(\.icinga-module\.module-[^\s]+) (#layout\.[^\s]+)/m',
-            '\2 \1',
-            $moduleCss
-        );
-
         $this->source .= $moduleCss;
 
         if ($this->theme !== null) {
             $this->source .= file_get_contents($this->theme);
         }
 
-        return $this->lessc->compile($this->source);
+        return preg_replace(
+            '/(\.icinga-module\.module-[^\s]+) (#layout\.[^\s]+)/m',
+            '\2 \1',
+            $this->lessc->compile($this->source)
+        );
     }
 }

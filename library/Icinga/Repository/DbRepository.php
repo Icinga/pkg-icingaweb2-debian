@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Repository;
 
@@ -13,7 +13,7 @@ use Icinga\Data\Updatable;
 use Icinga\Exception\IcingaException;
 use Icinga\Exception\ProgrammingError;
 use Icinga\Exception\StatementException;
-use Icinga\Util\String;
+use Icinga\Util\StringHelper;
 
 /**
  * Abstract base class for concrete database repository implementations
@@ -904,7 +904,7 @@ abstract class DbRepository extends Repository implements Extensible, Updatable,
             return $column;
         }
 
-        $joinMethod = 'join' . String::cname($tableName);
+        $joinMethod = 'join' . StringHelper::cname($tableName);
         if (! method_exists($this, $joinMethod)) {
             throw new ProgrammingError(
                 'Unable to join table "%s" into "%s". Method "%s" not found',

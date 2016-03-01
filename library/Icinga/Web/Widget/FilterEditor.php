@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web\Widget;
 
@@ -54,6 +54,13 @@ class FilterEditor extends AbstractWidget
      * @var string
      */
     private $selectedIdx;
+
+    /**
+     * Whether the filter control is visible
+     *
+     * @var bool
+     */
+    protected $visible = true;
 
     /**
      * Create a new FilterWidget
@@ -141,6 +148,30 @@ class FilterEditor extends AbstractWidget
     public function preserveParams()
     {
         $this->preserveParams = func_get_args();
+        return $this;
+    }
+
+    /**
+     * Get whether the filter control is visible
+     *
+     * @return  bool
+     */
+    public function isVisible()
+    {
+        return $this->visible;
+    }
+
+    /**
+     * Set whether the filter control is visible
+     *
+     * @param   bool    $visible
+     *
+     * @return  $this
+     */
+    public function setVisible($visible)
+    {
+        $this->visible = (bool) $visible;
+
         return $this;
     }
 
@@ -714,7 +745,7 @@ class FilterEditor extends AbstractWidget
         } else {
             $title = t('Modify this filter');
             if (! $this->filter->isEmpty()) {
-                $title .= ': ' . $this->filter;
+                $title .= ': ' . $this->view()->escape($this->filter);
             }
         }
         return $html
@@ -731,8 +762,11 @@ class FilterEditor extends AbstractWidget
 
     public function render()
     {
+        if (! $this->visible) {
+            return '';
+        }
         if (! $this->preservedUrl()->getParam('modifyFilter')) {
-            return '<div class="filter">' . $this->renderSearch() . $this->shorten($this->filter, 50) . '</div>';
+            return '<div class="filter">' . $this->renderSearch() . $this->view()->escape($this->shorten($this->filter, 50)) . '</div>';
         }
         return  '<div class="filter">'
             . $this->renderSearch()

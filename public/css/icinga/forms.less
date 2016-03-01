@@ -1,18 +1,38 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/*! Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
-input {
+input:not([type]),
+input[type=text],
+input[type=date],
+input[type=datetime-local],
+input[type=email],
+input[type=number],
+input[type=password],
+input[type=search],
+input[type=tel],
+input[type=time],
+input[type=url] {
+  .box-shadow(0 1px 0 0 @gray-light);
   .transition(border 0.3s ease);
 
   border: none;
   border-bottom: 1px solid @gray-light;
-  color: inherit;
-  display: inline-block;
+  outline: none;
   padding: @vertical-padding / 2 @horizontal-padding / 2;
 
-  &:focus {
+  &:focus:not([readonly]) {
     border-color: @icinga-blue;
-    outline: none;
   }
+
+  width: 20em;
+}
+
+select, textarea {
+  width: 20em;
+}
+
+.control-button,
+input[type="submit"] {
+  .button();
 }
 
 input:-moz-placeholder { // FF 18-
@@ -38,24 +58,14 @@ input[placeholder] {
 }
 
 input.search {
-  background: transparent url('../img/icons/search.png') no-repeat 2px;
-  background-size: 12px 12px;
-  padding-left: 20px;
+  background: transparent url("../img/icons/search.png") no-repeat scroll 0.1em center;
+  background-size: 1em 1em;
+  padding-left: 1.5em;
 
   &:focus {
     background-color: @body-bg-color;
     background-image: url('../img/icons/search_icinga_blue.png') !important;
   }
-}
-
-input, select, textarea {
-  width: 320px;
-}
-
-input[type="checkbox"],
-input[type="radio"],
-input[type="submit"] {
-  width: initial;
 }
 
 // TODO(el): .form-inline control-group { display: inline-block; }
@@ -70,13 +80,7 @@ form.inline {
 }
 
 .form-controls {
-  margin-left: 160px;
-}
-
-
-.control-button,
-input[type="submit"] {
-  .button();
+  margin-left: 10em;
 }
 
 button:hover .icon-cancel {
@@ -105,7 +109,7 @@ label {
   display: inline-block;
   padding-right: @horizontal-padding;
   text-align: right;
-  width: 160px;
+  width: 10em;
 }
 
 .control-group {
@@ -122,6 +126,8 @@ label {
   background: none;
   border: none;
   padding: 0;
+
+  text-align: left;
 
   &:hover {
     text-decoration: underline;

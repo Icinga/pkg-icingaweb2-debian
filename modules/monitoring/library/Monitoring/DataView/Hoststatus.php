@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\DataView;
 
@@ -89,7 +89,11 @@ class HostStatus extends DataView
         ) {
             return array('host', 'host_address', 'host_address6');
         } else {
-            return array('host', 'host_display_name');
+            if ($this->connection->isIcinga2()) {
+                return array('host', 'host_display_name');
+            } else {
+                return array('host', 'host_display_name', 'host_alias');
+            }
         }
     }
 

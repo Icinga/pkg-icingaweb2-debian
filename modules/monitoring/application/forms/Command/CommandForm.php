@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Forms\Command;
 
@@ -71,5 +71,22 @@ abstract class CommandForm extends Form
         }
 
         return $transport;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getRedirectUrl()
+    {
+        $redirectUrl = parent::getRedirectUrl();
+        // TODO(el): Forms should provide event handling. This is quite hackish
+        $formData = $this->getRequestData();
+        if ($this->wasSent($formData)
+            && (! $this->getSubmitLabel() || $this->isSubmitted())
+            && $this->isValid($formData)
+        ) {
+            $this->getResponse()->setAutoRefreshInterval(1);
+        }
+        return $redirectUrl;
     }
 }

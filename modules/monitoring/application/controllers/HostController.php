@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Controllers;
 
@@ -12,6 +12,7 @@ use Icinga\Module\Monitoring\Forms\Command\Object\SendCustomNotificationCommandF
 use Icinga\Module\Monitoring\Object\Host;
 use Icinga\Module\Monitoring\Web\Controller\MonitoredObjectController;
 use Icinga\Web\Hook;
+use Icinga\Web\Navigation\Navigation;
 
 class HostController extends MonitoredObjectController
 {
@@ -39,19 +40,16 @@ class HostController extends MonitoredObjectController
     /**
      * Get host actions from hook
      *
-     * @return array
+     * @return  Navigation
      */
     protected function getHostActions()
     {
-        $urls = array();
-
+        $navigation = new Navigation();
         foreach (Hook::all('Monitoring\\HostActions') as $hook) {
-            foreach ($hook->getActionsForHost($this->object) as $id => $url) {
-                $urls[$id] = $url;
-            }
+            $navigation->merge($hook->getNavigation($this->object));
         }
 
-        return $urls;
+        return $navigation;
     }
 
     /**
@@ -153,7 +151,6 @@ class HostController extends MonitoredObjectController
         $this->assertPermission('monitoring/command/downtime/schedule');
 
         $form = new ScheduleHostDowntimeCommandForm();
-        $form->setBackend($this->backend);
         $form->setTitle($this->translate('Schedule Host Downtime'));
         $this->handleCommandForm($form);
     }
@@ -166,7 +163,6 @@ class HostController extends MonitoredObjectController
         $this->assertPermission('monitoring/command/process-check-result');
 
         $form = new ProcessCheckResultCommandForm();
-        $form->setBackend($this->backend);
         $form->setTitle($this->translate('Submit Passive Host Check Result'));
         $this->handleCommandForm($form);
     }

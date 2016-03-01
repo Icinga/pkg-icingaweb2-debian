@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Application;
 
@@ -82,22 +82,21 @@ class Web extends EmbeddedWeb
             ->setupLogging()
             ->setupErrorHandling()
             ->loadConfig()
-            ->setupResourceFactory()
+            ->setupRequest()
             ->setupSession()
             ->setupNotifications()
-            ->setupRequest()
             ->setupResponse()
-            ->setupUserBackendFactory()
-            ->setupUser()
-            ->setupTimezone()
-            ->setupLogger()
-            ->setupInternationalization()
             ->setupZendMvc()
             ->setupModuleManager()
             ->loadSetupModuleIfNecessary()
             ->loadEnabledModules()
             ->setupRoute()
-            ->setupPagination();
+            ->setupPagination()
+            ->setupUserBackendFactory()
+            ->setupUser()
+            ->setupTimezone()
+            ->setupLogger()
+            ->setupInternationalization();
     }
 
     /**
@@ -172,7 +171,7 @@ class Web extends EmbeddedWeb
     {
         // TODO: Provide a more sophisticated solution
 
-        if (isset($config['owner']) && $config['owner'] === $this->user->getUsername()) {
+        if (isset($config['owner']) && strtolower($config['owner']) === strtolower($this->user->getUsername())) {
             unset($config['owner']);
             unset($config['users']);
             unset($config['groups']);
@@ -195,7 +194,7 @@ class Web extends EmbeddedWeb
 
         if (isset($config['users'])) {
             $users = array_map('trim', explode(',', strtolower($config['users'])));
-            if (in_array('*', $users, true) || in_array($this->user->getUsername(), $users, true)) {
+            if (in_array('*', $users, true) || in_array(strtolower($this->user->getUsername()), $users, true)) {
                 unset($config['owner']);
                 unset($config['users']);
                 unset($config['groups']);
@@ -322,13 +321,7 @@ class Web extends EmbeddedWeb
                             'priority'      => 810
                         ),
                         'authentication' => array(
-                            'label'     => t('Authentication'),
-                            'url'       => 'config/userbackend',
-                            'permission'    => 'config/application/*',
-                            'priority'      => 820
-                        ),
-                        'authorization' => array(
-                            'label'         => t('Authorization'),
+                            'label'         => t('Authentication'),
                             'permission'    => 'config/authentication/*',
                             'priority'      => 830,
                             'url'           => 'role/list'

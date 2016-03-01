@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Setup;
 
@@ -640,7 +640,7 @@ class WebWizard extends Wizard implements SetupWizard
         $mysqlSet = new RequirementSet(true);
         $mysqlSet->add(new PhpModuleRequirement(array(
             'optional'      => true,
-            'condition'     => 'mysql',
+            'condition'     => 'pdo_mysql',
             'alias'         => 'PDO-MySQL',
             'description'   => mt(
                 'setup',
@@ -661,7 +661,7 @@ class WebWizard extends Wizard implements SetupWizard
         $pgsqlSet = new RequirementSet(true);
         $pgsqlSet->add(new PhpModuleRequirement(array(
             'optional'      => true,
-            'condition'     => 'pgsql',
+            'condition'     => 'pdo_pgsql',
             'alias'         => 'PDO-PostgreSQL',
             'description'   => mt(
                 'setup',

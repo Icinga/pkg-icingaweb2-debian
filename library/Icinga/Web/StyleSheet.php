@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web;
 
@@ -31,7 +31,6 @@ class StyleSheet
         'css/vendor/normalize.css',
         'css/vendor/tipsy.css',
         'css/icinga/base.less',
-        'css/icinga/colors.less',
         'css/icinga/badges.less',
         'css/icinga/mixins.less',
         'css/icinga/grid.less',
@@ -41,7 +40,6 @@ class StyleSheet
         'css/icinga/layout.less',
         'css/icinga/layout-structure.less',
         'css/icinga/menu.less',
-//        'css/icinga/main-content.less',
         'css/icinga/tabs.less',
         'css/icinga/forms.less',
         'css/icinga/setup.less',
@@ -50,10 +48,10 @@ class StyleSheet
         'css/icinga/about.less',
         'css/icinga/controls.less',
         'css/icinga/dev.less',
-//        'css/icinga/logo.less',
         'css/icinga/spinner.less',
         'css/icinga/compat.less',
-        'css/icinga/print.less'
+        'css/icinga/print.less',
+        'css/icinga/responsive.less'
     );
 
     /**
@@ -115,19 +113,16 @@ class StyleSheet
         $themingConfig = $this->app->getConfig()->getSection('themes');
         $defaultTheme = $themingConfig->get('default');
         $theme = null;
+        if ($defaultTheme !== null && $defaultTheme !== self::DEFAULT_THEME) {
+            $theme = $defaultTheme;
+        }
 
-        if ((bool) $themingConfig->get('disabled', false)) {
-            if ($defaultTheme !== null && $defaultTheme !== self::DEFAULT_THEME) {
-                $theme = $defaultTheme;
-            }
-        } else {
+        if (! (bool) $themingConfig->get('disabled', false)) {
             $auth = Auth::getInstance();
             if ($auth->isAuthenticated()) {
                 $userTheme = $auth->getUser()->getPreferences()->getValue('icingaweb', 'theme');
                 if ($userTheme !== null) {
                     $theme = $userTheme;
-                } elseif ($defaultTheme !== null && $defaultTheme !== self::DEFAULT_THEME) {
-                    $theme = $defaultTheme;
                 }
             }
         }

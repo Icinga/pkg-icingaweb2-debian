@@ -26,8 +26,7 @@ if ($this->layout()->autorefreshInterval) {
       array(
         'aria-hidden'       => 'true',
         'data-base-target'  => '_main',
-        'id'                => 'header-logo',
-        'tabindex'          => -1
+        'id'                => 'header-logo'
       )
     ); ?>
   </div>
@@ -47,7 +46,7 @@ if ($this->layout()->autorefreshInterval) {
   </div>
 </div>
 <div id="footer">
-  <ul id="notifications"><?php
+  <ul role="alert" id="notifications"><?php
 
     $notifications = Notification::getInstance();
     if ($notifications->hasMessages()) {
