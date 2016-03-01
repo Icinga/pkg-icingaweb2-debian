@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Web\Controller;
 
@@ -75,11 +75,12 @@ abstract class MonitoredObjectController extends Controller
             }
         }
         $this->object->populate();
-        $toggleFeaturesForm = new ToggleObjectFeaturesCommandForm();
+        $toggleFeaturesForm = new ToggleObjectFeaturesCommandForm(array(
+            'backend'   => $this->backend,
+            'objects'   => $this->object
+        ));
         $toggleFeaturesForm
-            ->setBackend($this->backend)
             ->load($this->object)
-            ->setObjects($this->object)
             ->handleRequest();
         $this->view->toggleFeaturesForm = $toggleFeaturesForm;
         if (! empty($this->object->comments) && $auth->hasPermission('monitoring/command/comment/delete')) {
@@ -121,6 +122,7 @@ abstract class MonitoredObjectController extends Controller
     protected function handleCommandForm(ObjectsCommandForm $form)
     {
         $form
+            ->setBackend($this->backend)
             ->setObjects($this->object)
             ->setRedirectUrl(Url::fromPath($this->commandRedirectUrl)->setParams($this->params))
             ->handleRequest();

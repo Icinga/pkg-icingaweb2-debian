@@ -1,11 +1,11 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Object;
 
 use InvalidArgumentException;
 use Traversable;
-use Icinga\Util\String;
+use Icinga\Util\StringHelper;
 
 /**
  * Acknowledgement of a host or service incident
@@ -205,7 +205,7 @@ class Acknowledgement
             throw new InvalidArgumentException('Properties must be either an array or an instance of Traversable');
         }
         foreach ($properties as $name => $value) {
-            $setter = 'set' . ucfirst(String::cname($name));
+            $setter = 'set' . ucfirst(StringHelper::cname($name));
             if (method_exists($this, $setter)) {
                 $this->$setter($value);
             }

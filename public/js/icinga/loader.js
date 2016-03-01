@@ -1,4 +1,4 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/*! Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 /**
  * Icinga.Loader
@@ -331,7 +331,10 @@
                 }
             }
 
-            this.redirectToUrl(redirect, req.$target, req.url, req.getResponseHeader('X-Icinga-Rerender-Layout'));
+            this.redirectToUrl(
+                redirect, req.$target, req.url, req.getResponseHeader('X-Icinga-Rerender-Layout'), req.forceFocus,
+                req.getResponseHeader('X-Icinga-Refresh')
+            );
             return true;
         },
 
@@ -340,10 +343,10 @@
          *
          * @param {string}  url
          * @param {object}  $target
-         * @param {string]  origin
+         * @param {string}  origin
          * @param {boolean} rerenderLayout
          */
-        redirectToUrl: function (url, $target, origin, rerenderLayout) {
+        redirectToUrl: function (url, $target, origin, rerenderLayout, forceFocus, autoRefreshInterval) {
             var icinga = this.icinga;
 
             if (typeof rerenderLayout === 'undefined') {
@@ -392,7 +395,9 @@
                         }
                     }
 
-                    this.loadUrl(url, $target);
+                    var req = this.loadUrl(url, $target);
+                    req.forceFocus = url === origin ? forceFocus : null;
+                    req.autoRefreshInterval = autoRefreshInterval;
                 }
             }
         },
@@ -495,7 +500,7 @@
                 this.icinga.ui.setTitle(decodeURIComponent(title));
             }
 
-            var refresh = req.getResponseHeader('X-Icinga-Refresh');
+            var refresh = req.autoRefreshInterval || req.getResponseHeader('X-Icinga-Refresh');
             if (refresh) {
                 req.$target.data('icingaRefresh', refresh);
             } else {
@@ -554,7 +559,7 @@
             }
 
             // .html() removes outer div we added above
-            this.renderContentToContainer($resp.html(), req.$target, req.action, req.autorefresh);
+            this.renderContentToContainer($resp.html(), req.$target, req.action, req.autorefresh, req.forceFocus);
             if (oldNotifications) {
                 oldNotifications.appendTo($('#notifications'));
             }
@@ -676,11 +681,17 @@
                     req.addToHistory = false;
                 } else {
                     if (this.failureNotice === null) {
+                        var now = new Date();
+                        var padString = this.icinga.utils.padString;
                         this.failureNotice = this.createNotice(
                             'error',
-                            'The connection to the Icinga web server was lost at ' +
-                            this.icinga.utils.timeShort() +
-                            '.',
+                            'The connection to the Icinga web server was lost at '
+                            + now.getFullYear()
+                            + '-' + padString(now.getMonth() + 1, 0, 2)
+                            + '-' + padString(now.getDate(), 0, 2)
+                            + ' ' + padString(now.getHours(), 0, 2)
+                            + ':' + padString(now.getMinutes(), 0, 2)
+                            + '.',
                             true
                         );
 
@@ -706,7 +717,7 @@
                 c += ' persist';
             }
             var $notice = $(
-                '<li class="' + c + '">' + message + '</li>'
+                '<li class="' + c + '">' + this.icinga.utils.escape(message) + '</li>'
             ).appendTo($('#notifications'));
 
             this.icinga.ui.fixControls();
@@ -721,20 +732,41 @@
         /**
          * Smoothly render given HTML to given container
          */
-        renderContentToContainer: function (content, $container, action, autorefresh) {
+        renderContentToContainer: function (content, $container, action, autorefresh, forceFocus) {
             // Container update happens here
             var scrollPos = false;
             var self = this;
             var containerId = $container.attr('id');
+
+            var activeElementPath = false;
+            var focusFallback = false;
+
+            if (forceFocus && forceFocus.length) {
+                activeElementPath = this.icinga.utils.getCSSPath($(forceFocus));
+            } else if (document.activeElement && document.activeElement.id === 'search') {
+                activeElementPath = '#search';
+            } else if (document.activeElement
+                && document.activeElement !== document.body
+                && $.contains($container[0], document.activeElement)
+            ) {
+                // Active element in container
+                var $activeElement = $(document.activeElement);
+                var $pagination = $activeElement.closest('.pagination-control');
+                if ($pagination.length) {
+                    focusFallback = {
+                        'parent': this.icinga.utils.getCSSPath($pagination),
+                        'child': '.active > a'
+                    };
+                }
+                activeElementPath = this.icinga.utils.getCSSPath($activeElement);
+            }
+
             if (typeof containerId !== 'undefined') {
                 if (autorefresh) {
                     scrollPos = $container.scrollTop();
                 } else {
                     scrollPos = 0;
                 }
-            }
-            if (autorefresh && $.contains($container[0], document.activeElement)) {
-                var origFocus = self.icinga.utils.getDomPath(document.activeElement);
             }
 
             $container.trigger('beforerender');
@@ -788,9 +820,30 @@
             }
             this.icinga.ui.assignUniqueContainerIds();
 
-            if (origFocus && origFocus.length > 0 && origFocus[0] !== '') {
+            if (! activeElementPath) {
+                // Active element was not in this container
+                if (! autorefresh) {
+                    setTimeout(function() {
+                        if (typeof $container.attr('tabindex') === 'undefined') {
+                            $container.attr('tabindex', -1);
+                        }
+                        $container.focus();
+                    }, 0);
+                }
+            } else {
                 setTimeout(function() {
-                    $(self.icinga.utils.getElementByDomPath(origFocus)).focus();
+                    var $activeElement = $(activeElementPath);
+
+                    if ($activeElement.length && $activeElement.is(':visible')) {
+                        $activeElement.focus();
+                    } else if (! autorefresh) {
+                        if (focusFallback) {
+                            $(focusFallback.parent).find(focusFallback.child).focus();
+                        } else if (typeof $container.attr('tabindex') === 'undefined') {
+                            $container.attr('tabindex', -1);
+                        }
+                        $container.focus();
+                    }
                 }, 0);
             }
 

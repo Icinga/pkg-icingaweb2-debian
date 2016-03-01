@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\File;
 
@@ -26,7 +26,7 @@ class Csv
     {
         $first = true;
         $csv = '';
-        foreach ($this->query->getQuery()->fetchAll() as $row) {
+        foreach ($this->query->fetchAll() as $row) {
             if ($first) {
                 $csv .= implode(',', array_keys((array) $row)) . "\r\n";
                 $first = false;

@@ -1,14 +1,15 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Hook;
 
 use Icinga\Module\Monitoring\Object\Service;
+use Icinga\Module\Monitoring\Object\MonitoredObject;
 
 /**
  * Base class for host action hooks
  */
-abstract class ServiceActionsHook
+abstract class ServiceActionsHook extends ObjectActionsHook
 {
     /**
      * Implementors of this method should return an array containing
@@ -43,4 +44,9 @@ abstract class ServiceActionsHook
      * @return  array   An array containing a list of service action links
      */
     abstract public function getActionsForService(Service $service);
+
+    public function getActionsForObject(MonitoredObject $object)
+    {
+        return $this->getActionsForService($object);
+    }
 }

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 /** @var $this \Icinga\Application\Modules\Module */
 
@@ -52,8 +52,28 @@ $this->providePermission(
     $this->translate('Allow processing commands for toggling features on an instance-wide basis')
 );
 $this->providePermission(
-    'monitoring/command/feature/object',
+    'monitoring/command/feature/object/*',
     $this->translate('Allow processing commands for toggling features on host and service objects')
+);
+$this->providePermission(
+    'monitoring/command/feature/object/active-checks',
+    $this->translate('Allow processing commands for toggling active checks on host and service objects')
+);
+$this->providePermission(
+    'monitoring/command/feature/object/passive-checks',
+    $this->translate('Allow processing commands for toggling passive checks on host and service objects')
+);
+$this->providePermission(
+    'monitoring/command/feature/object/notifications',
+    $this->translate('Allow processing commands for toggling notifications on host and service objects')
+);
+$this->providePermission(
+    'monitoring/command/feature/object/event-handler',
+    $this->translate('Allow processing commands for toggling event handlers on host and service objects')
+);
+$this->providePermission(
+    'monitoring/command/feature/object/flap-detection',
+    $this->translate('Allow processing commands for toggling flap detection on host and service objects')
 );
 $this->providePermission(
     'monitoring/command/send-custom-notification',

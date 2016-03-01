@@ -1,10 +1,11 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Forms\Dashboard;
 
 use Icinga\Web\Widget\Dashboard;
 use Icinga\Web\Form;
+use Icinga\Web\Form\Validator\UrlValidator;
 use Icinga\Web\Url;
 use Icinga\Web\Widget\Dashboard\Dashlet;
 
@@ -27,7 +28,7 @@ class DashletForm extends Form
         if (! $this->getSubmitLabel()) {
             $this->setSubmitLabel($this->translate('Add To Dashboard'));
         }
-        $this->setAction(URL::fromRequest());
+        $this->setAction(Url::fromRequest());
     }
 
     /**
@@ -68,7 +69,8 @@ class DashletForm extends Form
                 'label'         => $this->translate('Url'),
                 'description'   => $this->translate(
                     'Enter url being loaded in the dashlet. You can paste the full URL, including filters.'
-                )
+                ),
+                'validators'    => array(new UrlValidator())
             )
         );
         $this->addElement(
@@ -89,13 +91,23 @@ class DashletForm extends Form
                 )
             )
         );
+        $this->addElement(
+            'checkbox',
+            'create_new_pane',
+            array(
+                'autosubmit'    => true,
+                'required'      => false,
+                'label'         => $this->translate('New dashboard'),
+                'description'   => $this->translate('Check this box if you want to add the dashlet to a new dashboard')
+            )
+        );
         if (empty($panes) || ((isset($formData['create_new_pane']) && $formData['create_new_pane'] != false))) {
             $this->addElement(
                 'text',
                 'pane',
                 array(
                     'required'      => true,
-                    'label'         => $this->translate("New Dashboard Title"),
+                    'label'         => $this->translate('New Dashboard Title'),
                     'description'   => $this->translate('Enter a title for the new dashboard')
                 )
             );
@@ -111,17 +123,6 @@ class DashletForm extends Form
                 )
             );
         }
-
-        $this->addElement(
-            'checkbox',
-            'create_new_pane',
-            array(
-                'autosubmit'    => true,
-                'required'      => false,
-                'label'         => $this->translate('New dashboard'),
-                'description'   => $this->translate('Check this box if you want to add the dashlet to a new dashboard')
-            )
-        );
     }
 
     /**

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Controllers;
 
@@ -15,6 +15,7 @@ use Icinga\Module\Monitoring\Forms\Command\Object\RemoveAcknowledgementCommandFo
 use Icinga\Module\Monitoring\Forms\Command\Object\ScheduleHostCheckCommandForm;
 use Icinga\Module\Monitoring\Forms\Command\Object\ScheduleHostDowntimeCommandForm;
 use Icinga\Module\Monitoring\Forms\Command\Object\SendCustomNotificationCommandForm;
+use Icinga\Module\Monitoring\Forms\Command\Object\ToggleObjectFeaturesCommandForm;
 use Icinga\Module\Monitoring\Object\HostList;
 use Icinga\Web\Url;
 use Icinga\Web\Widget\Tabextension\DashboardAction;
@@ -33,6 +34,23 @@ class HostsController extends Controller
         $this->applyRestriction('monitoring/filter/objects', $hostList);
         $hostList->addFilter(Filter::fromQueryString((string) $this->params));
         $this->hostList = $hostList;
+        $this->hostList->setColumns(array(
+            'host_acknowledged',
+            'host_active_checks_enabled',
+            'host_display_name',
+            'host_event_handler_enabled',
+            'host_flap_detection_enabled',
+            'host_handled',
+            'host_in_downtime',
+            'host_is_flapping',
+            'host_last_state_change',
+            'host_name',
+            'host_notifications_enabled',
+            'host_obsessing',
+            'host_passive_checks_enabled',
+            'host_problem',
+            'host_state'
+        ));
         $this->view->baseFilter = $this->hostList->getFilter();
         $this->getTabs()->add(
             'show',
@@ -50,22 +68,8 @@ class HostsController extends Controller
 
     protected function handleCommandForm(ObjectsCommandForm $form)
     {
-        $this->hostList->setColumns(array(
-            'host_acknowledged',
-            'host_active_checks_enabled',
-            'host_display_name',
-            'host_handled',
-            'host_in_downtime',
-            'host_is_flapping',
-            'host_last_state_change',
-            'host_name',
-            'host_notifications_enabled',
-            'host_passive_checks_enabled',
-            'host_problem',
-            'host_state'
-        ));
-
         $form
+            ->setBackend($this->backend)
             ->setObjects($this->hostList)
             ->setRedirectUrl(Url::fromPath('monitoring/hosts/show')->setParams($this->params))
             ->handleRequest();
@@ -80,25 +84,13 @@ class HostsController extends Controller
     public function showAction()
     {
         $this->setAutorefreshInterval(15);
-        $checkNowForm = new CheckNowCommandForm();
-        $checkNowForm
-            ->setObjects($this->hostList)
-            ->handleRequest();
-        $this->view->checkNowForm = $checkNowForm;
-        $this->hostList->setColumns(array(
-            'host_acknowledged',
-            'host_active_checks_enabled',
-            'host_display_name',
-            'host_handled',
-            'host_in_downtime',
-            'host_is_flapping',
-            'host_last_state_change',
-            'host_name',
-            'host_notifications_enabled',
-            'host_passive_checks_enabled',
-            'host_problem',
-            'host_state'
-        ));
+        if ($this->Auth()->hasPermission('monitoring/command/schedule-check')) {
+            $checkNowForm = new CheckNowCommandForm();
+            $checkNowForm
+                ->setObjects($this->hostList)
+                ->handleRequest();
+            $this->view->checkNowForm = $checkNowForm;
+        }
 
         $acknowledgedObjects = $this->hostList->getAcknowledgedObjects();
         if (! empty($acknowledgedObjects)) {
@@ -108,6 +100,16 @@ class HostsController extends Controller
                 ->handleRequest();
             $this->view->removeAckForm = $removeAckForm;
         }
+
+        $featureStatus = $this->hostList->getFeatureStatus();
+        $toggleFeaturesForm = new ToggleObjectFeaturesCommandForm(array(
+            'backend'   => $this->backend,
+            'objects'   => $this->hostList
+        ));
+        $toggleFeaturesForm
+            ->load((object) $featureStatus)
+            ->handleRequest();
+        $this->view->toggleFeaturesForm = $toggleFeaturesForm;
 
         $hostStates = $this->hostList->getStateSummary();
 
@@ -193,7 +195,6 @@ class HostsController extends Controller
         $this->assertPermission('monitoring/command/downtime/schedule');
 
         $form = new ScheduleHostDowntimeCommandForm();
-        $form->setBackend($this->backend);
         $form->setTitle($this->translate('Schedule Host Downtimes'));
         $this->handleCommandForm($form);
     }
@@ -206,7 +207,6 @@ class HostsController extends Controller
         $this->assertPermission('monitoring/command/process-check-result');
 
         $form = new ProcessCheckResultCommandForm();
-        $form->setBackend($this->backend);
         $form->setTitle($this->translate('Submit Passive Host Check Results'));
         $this->handleCommandForm($form);
     }
