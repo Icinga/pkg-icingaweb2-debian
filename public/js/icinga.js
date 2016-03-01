@@ -1,4 +1,4 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/*! Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 /**
  * Icinga starts here.
@@ -217,7 +217,7 @@
                 $ = undefined;
 
                 oldjQuery.getScript(
-                    oldConfig.baseUrl + 'js/icinga.min.js'
+                    oldConfig.baseUrl.replace(/\/$/, '') + '/js/icinga.min.js'
                 ).done(function () {
                     var jQuery = window.jQuery;
                     window.icinga = new window.Icinga(oldConfig);

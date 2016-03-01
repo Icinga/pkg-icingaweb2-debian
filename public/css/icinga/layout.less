@@ -1,10 +1,10 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/*! Icinga Web 2 | (c) 2015 Icinga Development Team | GPLv2+ */
 
 #footer {
-  position: fixed;
+  bottom: 0;
   left: 0;
   right: 0;
-  bottom: 0;
+  position: fixed;
   z-index: 999;
 }
 
@@ -24,7 +24,8 @@
   font-size: 2em;
 }
 
-#header,
+#header-logo-container,
+#login,
 #main > .container,
 #menu {
   font-size: @font-size;
@@ -37,9 +38,9 @@
 
 #header-logo-container {
   height: 4em;
+  margin-bottom: 0.2em;
   margin-left: 1.5em;
   margin-top: 0.2em;
-  margin-bottom: 0.2em;
   width: 100px;
 }
 
@@ -72,50 +73,133 @@
   overflow: auto;
 }
 
+@gutter: 1em;
+
+// x-column-layout
+
+#main {
+  .clearfix();
+
+  & > .container {
+    float: left;
+    // Column width controlled by #layout
+    width: 100%;
+
+    // Container scrolling
+    height: 100%;
+    overflow: auto;
+
+    & > .content {
+      padding: @gutter;
+      z-index: 2;
+    }
+
+    & > .controls {
+      z-index: 3;
+
+      padding-left: @gutter;
+      padding-right: @gutter;
+
+      > .tabs {
+        // Remove gutter for tabs
+        margin-left: -1 * @gutter;
+        margin-right: -1 * @gutter;
+      }
+    }
+  }
+}
+
 #sidebar {
   background-color: @gray-lighter;
 }
 
+.container,
+.error-message {
+  // Don't outline containers and error messages when focused because they receive focus for accessibility only
+  // programmatically
+  outline: none;
+}
+
 .controls {
+  // Override default transparent background because scrolled content is positioned beneath controls and could be seen
+  // through otherwise
   background-color: @body-bg-color;
+
+  > .tabs {
+    height: 2.6em;
+    margin-top: -2.6em;
+    overflow: hidden;
+  }
+
+  > .tabs-spacer {
+    margin-bottom: 1em;
+  }
+}
+
+// Display tabs if JS is disabled
+html.no-js .controls > .tabs {
+  background-color: @icinga-blue;
+  margin-left: -1 * @gutter;
+  margin-right: -1 * @gutter;
+  margin-top: -1 * @gutter;
+}
+
+// Dashboard grid
+
+.dashboard {
+  letter-spacing: -0.417em;
+
+  > .container {
+    display: inline-block;
+    letter-spacing: normal;
+    vertical-align: top;
+    // Column width controlled by #layout
+    width: 100%;
+
+    &:last-of-type {
+      // See reponsive.less for gutters
+      padding-right: 0;
+    }
+  }
 }
 
 // Notification styles
 
 #notifications {
+  // Reset defaults
+  list-style-type: none;
   margin: 0;
   padding: 0;
 }
 
 #notifications > li {
-  list-style-type: none;
+  background: no-repeat 1em center;
+  border-top: 1px solid @gray-light;
+  color: @body-bg-color;
   display: block;
-  border-top: 1px solid #999;
-  color: white;
   line-height: 2.5em;
   padding-left: 3em;
-  background-repeat: no-repeat;
-  background-position: 1em center;
-}
 
-#notifications > li:hover {
-  cursor: pointer;
-}
+  &:hover {
+    cursor: pointer;
+  }
 
-#notifications > li.info {
-  background-color: @colorFormNotificationInfo;
-}
+  &.error {
+    background-color: @color-notification-error;
+    background-image: url(../img/icons/error_white.png);
+  }
 
-#notifications > li.warning {
-  background-color: @colorWarningHandled;
-}
-#notifications > li.error {
-  background-color: @colorCritical;
-  background-image: url(../img/icons/error_white.png);
-}
+  &.info {
+    background-color: @color-notification-info;
+  }
 
-#notifications > li.success {
-  background-color: #fe6;
-  background-image: url(../img/icons/success.png);
-  color: #333;
+  &.success {
+    background-color: @color-notification-success;
+    background-image: url(../img/icons/success.png);
+    color: @text-color;
+  }
+
+  &.warning {
+    background-color: @color-notification-warning;
+  }
 }

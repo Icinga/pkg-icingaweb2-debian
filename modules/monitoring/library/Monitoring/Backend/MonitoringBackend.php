@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Backend;
 
@@ -340,5 +340,23 @@ class MonitoringBackend implements Selectable, Queryable, ConnectionInterface
     public function getProgramVersion()
     {
         return $this->select()->from('programstatus', array('program_version'))->fetchOne();
+    }
+
+    /**
+     * Get whether the backend is Icinga 2
+     *
+     * @param   string  $programVersion
+     *
+     * @return  bool
+     */
+    public function isIcinga2($programVersion = null)
+    {
+        if ($programVersion === null) {
+            $programVersion = $this->select()->from('programstatus', array('program_version'))->fetchOne();
+        }
+        return (bool) preg_match(
+            '/^[vr]2\.\d+\.\d+.*$/',
+            $programVersion
+        );
     }
 }

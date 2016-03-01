@@ -1,9 +1,9 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 use Icinga\Module\Monitoring\Plugin\Perfdata;
 use Icinga\Module\Monitoring\Plugin\PerfdataSet;
-use Icinga\Util\String;
+use Icinga\Util\StringHelper;
 
 class Zend_View_Helper_Perfdata extends Zend_View_Helper_Abstract
 {
@@ -81,7 +81,7 @@ class Zend_View_Helper_Perfdata extends Zend_View_Helper_Abstract
                         $data []= sprintf(
                             '<span title="%s">%s</span>',
                             $text,
-                            String::ellipsisCenter($text, 24)
+                            StringHelper::ellipsisCenter($text, 24)
                         );
                     }
                 }
@@ -95,7 +95,7 @@ class Zend_View_Helper_Perfdata extends Zend_View_Helper_Abstract
                 if ($compact) {
                     $results = array_slice($results, 0, $limit);
                     $title = sprintf($this->view->translate('%d more ...'), $count - $limit);
-                    $results[] = '<span title="' . $title . '">...</span>';
+                    $results[] = '<span aria-hidden="true" title="' . $title . '">...</span>';
                 } else {
                     $table = array_slice($table, 0, $limit);
                 }

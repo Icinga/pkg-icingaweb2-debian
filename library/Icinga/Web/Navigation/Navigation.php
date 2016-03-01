@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2015 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web\Navigation;
 
@@ -17,7 +17,7 @@ use Icinga\Data\ConfigObject;
 use Icinga\Exception\ConfigurationError;
 use Icinga\Exception\IcingaException;
 use Icinga\Exception\ProgrammingError;
-use Icinga\Util\String;
+use Icinga\Util\StringHelper;
 use Icinga\Web\Navigation\Renderer\RecursiveNavigationRenderer;
 
 /**
@@ -134,7 +134,7 @@ class Navigation implements ArrayAccess, Countable, IteratorAggregate
             throw new InvalidArgumentException('Argument $properties must be of type array or ConfigObject');
         }
 
-        $itemType = isset($properties['type']) ? String::cname($properties['type'], '-') : 'NavigationItem';
+        $itemType = isset($properties['type']) ? StringHelper::cname($properties['type'], '-') : 'NavigationItem';
         if (! empty(static::$types) && isset(static::$types[$itemType])) {
             return new static::$types[$itemType]($name, $properties);
         }

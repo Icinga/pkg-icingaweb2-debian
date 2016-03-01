@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2015 Icinga Development Team | GPLv2+ */
 
 use Icinga\Data\Filter\Filter;
 use Icinga\Module\Monitoring\Controller;
@@ -48,6 +48,7 @@ class Monitoring_ActionsController extends Controller
         $form = new ScheduleHostDowntimeCommandForm();
         $form
             ->setIsApiTarget(true)
+            ->setBackend($this->backend)
             ->setObjects($hostList->fetch())
             ->handleRequest($this->getRequest());
     }
@@ -96,6 +97,7 @@ class Monitoring_ActionsController extends Controller
         $form = new ScheduleServiceDowntimeCommandForm();
         $form
             ->setIsApiTarget(true)
+            ->setBackend($this->backend)
             ->setObjects($serviceList->fetch())
             ->handleRequest($this->getRequest());
     }

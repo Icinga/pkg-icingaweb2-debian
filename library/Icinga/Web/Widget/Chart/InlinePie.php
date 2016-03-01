@@ -1,11 +1,11 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web\Widget\Chart;
 
 use Icinga\Chart\PieChart;
 use Icinga\Module\Monitoring\Plugin\PerfdataSet;
-use Icinga\Util\String;
+use Icinga\Util\StringHelper;
 use Icinga\Web\Widget\AbstractWidget;
 use Icinga\Web\Url;
 use Icinga\Util\Format;
@@ -74,14 +74,14 @@ class InlinePie extends AbstractWidget
      * @var string
      */
     private $template =<<<'EOD'
-<span sparkType="pie" class="sparkline {class}" {title} sparkSliceColors="[{colors}]" values="{data}">
+<span sparkType="pie" class="sparkline {class}" title="{title}" role="img" aria-label="{title}" sparkSliceColors="[{colors}]" values="{data}">
 </span>
 {noscript}
 EOD;
 
     private $noscript =<<<'EOD'
 <noscript>
-  <img width={size} height={size} class="inlinepie {class}" {title} src="{url}" data-icinga-colors="{colors}" data-icinga-values="{data}"/>
+  <img width={size} height={size} class="inlinepie {class}" title="{title}" role="img" aria-label="{title}" src="{url}" data-icinga-colors="{colors}" data-icinga-values="{data}"/>
 </noscript>
 EOD;
 
@@ -196,7 +196,7 @@ EOD;
      */
     public function setTitle($title)
     {
-        $this->title = 'title="' .  htmlspecialchars($title) . '"';
+        $this->title = $this->view()->escape($title);
         return $this;
     }
 
@@ -277,7 +277,7 @@ EOD;
     {
         $handledUnhandledStates = array();
         foreach ($states as $key => $value) {
-            if (String::endsWith($key, '_handled') || String::endsWith($key, '_unhandled')) {
+            if (StringHelper::endsWith($key, '_handled') || StringHelper::endsWith($key, '_unhandled')) {
                 $handledUnhandledStates[$key] = $value;
             }
         }

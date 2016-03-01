@@ -1,10 +1,11 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Cli;
 
 use Icinga\Application\ApplicationBootstrap as App;
 use Icinga\Exception\IcingaException;
+use Icinga\Exception\NotReadableError;
 use Icinga\Exception\ProgrammingError;
 use Icinga\Cli\Params;
 use Icinga\Cli\Screen;
@@ -278,6 +279,10 @@ class Loader
         if (false !== $match) {
             return $haystack[$match];
         }
+        if (count($this->lastSuggestions) === 1) {
+            $lastSuggestions = array_values($this->lastSuggestions);
+            return $lastSuggestions[0];
+        }
         return false;
     }
 
@@ -417,10 +422,14 @@ class Loader
     {
         if ($this->modules === null) {
             $this->modules = array();
-            $this->modules = array_unique(array_merge(
-                $this->app->getModuleManager()->listEnabledModules(),
-                $this->app->getModuleManager()->listLoadedModules()
-            ));
+            try {
+                $this->modules = array_unique(array_merge(
+                    $this->app->getModuleManager()->listEnabledModules(),
+                    $this->app->getModuleManager()->listLoadedModules()
+                ));
+            } catch (NotReadableError $e) {
+                $this->fail($e->getMessage());
+            }
         }
         return $this->modules;
     }

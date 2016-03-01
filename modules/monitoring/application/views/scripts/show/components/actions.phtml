@@ -8,8 +8,6 @@ foreach ($navigation as $item) {
     $item->setObject($object);
 }
 
-
-
 foreach ($object->getActionUrls() as $i => $link) {
     $navigation->addItem(
 
@@ -31,17 +29,15 @@ foreach ($object->getActionUrls() as $i => $link) {
 }
 
 if (isset($this->actions)) {
-    foreach ($this->actions as $id => $action) {
-        $navigation->addItem($id, array('url' => $action));
-    }
+    $navigation->merge($this->actions);
 }
 
-if ($navigation->isEmpty() || !$navigation->hasRenderableItems()) {
+if ($navigation->isEmpty() || ! $navigation->hasRenderableItems()) {
     return;
 }
 
 ?>
 <tr>
     <th><?= $this->translate('Actions'); ?></th>
-    <?= $navigation->getRenderer()->setElementTag('td')->setCssClass('actions'); ?>
+    <?= $navigation->getRenderer()->setElementTag('td')->setCssClass('actions go-ahead'); ?>
 </tr>

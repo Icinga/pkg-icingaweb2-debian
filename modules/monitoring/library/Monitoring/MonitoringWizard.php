@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring;
 
@@ -172,23 +172,11 @@ class MonitoringWizard extends Wizard implements SetupWizard
     public function getRequirements()
     {
         $set = new RequirementSet();
-
-        // TODO(8254): Add this to the $backendSet
-        $set->add(new PhpModuleRequirement(array(
-            'optional'      => true,
-            'condition'     => 'Sockets',
-            'description'   => mt(
-                'monitoring',
-                'In case it\'s desired that a TCP connection is being used by Icinga Web 2 to'
-                . ' access a Livestatus interface, the Sockets module for PHP is required.'
-            )
-        )));
-
         $backendSet = new RequirementSet(false, RequirementSet::MODE_OR);
         $mysqlSet = new RequirementSet(true);
         $mysqlSet->add(new PhpModuleRequirement(array(
             'optional'      => true,
-            'condition'     => 'mysql',
+            'condition'     => 'pdo_mysql',
             'alias'         => 'PDO-MySQL',
             'description'   => mt(
                 'monitoring',
@@ -208,7 +196,7 @@ class MonitoringWizard extends Wizard implements SetupWizard
         $pgsqlSet = new RequirementSet(true);
         $pgsqlSet->add(new PhpModuleRequirement(array(
             'optional'      => true,
-            'condition'     => 'pgsql',
+            'condition'     => 'pdo_pgsql',
             'alias'         => 'PDO-PostgreSQL',
             'description'   => mt(
                 'monitoring',

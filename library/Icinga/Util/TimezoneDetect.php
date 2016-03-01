@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Util;
 
@@ -53,7 +53,11 @@ class TimezoneDetect
         }
 
         if (Platform::isCli() === false && array_key_exists(self::$cookieName, $_COOKIE)) {
-            list($offset, $dst) = explode(',', $_COOKIE[self::$cookieName]);
+            $cookieValue = $_COOKIE[self::$cookieName];
+            list($offset, $dst) = explode(
+                strpos($cookieValue, ',') === false ? '-' : ',',
+                $cookieValue
+            );
             $timezoneName = timezone_name_from_abbr('', (int)$offset, (int)$dst);
 
             self::$success = (bool)$timezoneName;

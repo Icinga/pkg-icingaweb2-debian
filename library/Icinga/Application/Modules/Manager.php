@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Application\Modules;
 
@@ -120,7 +120,7 @@ class Manager
         }
         if (! is_readable($parent)) {
             throw new NotReadableError(
-                'Cannot read enabled modules. Module directory\'s parent directory "%s" is not readable',
+                'Cannot read enabled modules. Config directory "%s" is not readable',
                 $parent
             );
         }

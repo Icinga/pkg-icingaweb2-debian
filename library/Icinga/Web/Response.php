@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Web;
 
@@ -12,6 +12,13 @@ use Icinga\Web\Response\JsonResponse;
  */
 class Response extends Zend_Controller_Response_Http
 {
+    /**
+     * Auto-refresh interval
+     *
+     * @var int
+     */
+    protected $autoRefreshInterval;
+
     /**
      * Set of cookies which are to be sent to the client
      *
@@ -46,6 +53,29 @@ class Response extends Zend_Controller_Response_Http
      * @var bool
      */
     protected $rerenderLayout = false;
+
+    /**
+     * Get the auto-refresh interval
+     *
+     * @return int
+     */
+    public function getAutoRefreshInterval()
+    {
+        return $this->autoRefreshInterval;
+    }
+
+    /**
+     * Set the auto-refresh interval
+     *
+     * @param   int $autoRefreshInterval
+     *
+     * @return  $this
+     */
+    public function setAutoRefreshInterval($autoRefreshInterval)
+    {
+        $this->autoRefreshInterval = $autoRefreshInterval;
+        return $this;
+    }
 
     /**
      * Get the set of cookies which are to be sent to the client
@@ -203,6 +233,9 @@ class Response extends Zend_Controller_Response_Http
             }
             if ($this->isReloadCss()) {
                 $this->setHeader('X-Icinga-Reload-Css', 'now', true);
+            }
+            if (($autoRefreshInterval = $this->getAutoRefreshInterval()) !== null) {
+                $this->setHeader('X-Icinga-Refresh', $autoRefreshInterval, true);
             }
         } else {
             if ($redirectUrl !== null) {

@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 class Zend_View_Helper_PluginOutput extends Zend_View_Helper_Abstract
 {
@@ -33,7 +33,7 @@ class Zend_View_Helper_PluginOutput extends Zend_View_Helper_Abstract
             return '';
         }
         $output = preg_replace('~<br[^>]*>~', "\n", $output);
-        if (strlen($output) > strlen(strip_tags($output))) {
+        if (preg_match('~<[^>]*["/\'][^>]*>~', $output)) {
             // HTML
             $output = preg_replace(
                 '~<table~',
@@ -97,7 +97,7 @@ class Zend_View_Helper_PluginOutput extends Zend_View_Helper_Abstract
 
             $config = HTMLPurifier_Config::createDefault();
             $config->set('Core.EscapeNonASCIICharacters', true);
-            $config->set('HTML.Allowed', 'p,br,b,a[href],i,table,tr,td[colspan],div[class]');
+            $config->set('HTML.Allowed', 'p,br,b,a[href],i,table,tr,td[colspan],div,*[class]');
             // This avoids permission problems:
             // $config->set('Core.DefinitionCache', null);
             $config->set('Cache.DefinitionImpl', null);
