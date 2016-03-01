@@ -1,4 +1,4 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/*! Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 /**
  * Icinga utility functions
@@ -270,6 +270,58 @@
         },
 
         /**
+         * Get the CSS selector to the given node
+         *
+         * @param   {jQuery}    $node
+         *
+         * @returns {string}
+         */
+        getCSSPath: function($node) {
+            if (! $node.length) {
+                throw 'Requires a node';
+            }
+
+            var path = [];
+
+            while (true) {
+                var id = $node.attr('id');
+
+                // Ignore forms and form controls because id generation is unreliable :(
+                if (typeof id !== 'undefined' && ! $node.is(':input') && ! $node.is('form')) {
+                    path.push('#' + id);
+                    break;
+                }
+
+                var tagName = $node.prop('tagName').toLowerCase();
+                //var classes = $node.attr('class');
+                //
+                //if (classes) {
+                //    classes = classes.split(' ').join('.');
+                //}
+
+                var $parent = $node.parent();
+
+                if (! $parent.length) {
+                    path.push(tagName);
+                    break;
+                }
+
+                var $siblings = $parent.children(tagName);
+
+                if ($siblings.length > 1) {
+                    var index = $siblings.index($node) + 1;
+                    path.push(tagName + ':nth-of-type(' + index.toString() + ')');
+                } else {
+                    path.push(tagName);
+                }
+
+                $node = $parent;
+            }
+
+            return path.reverse().join(' > ');
+        },
+
+        /**
          * Climbs up the given dom path and returns the element
          *
          * This is the counterpart
@@ -319,6 +371,39 @@
             return encodeURIComponent(str).replace(/[()]/g, function(c) {
                 return '%' + c.charCodeAt(0).toString(16);
             });
+        },
+
+        escape: function (str) {
+            return String(str).replace(
+                /[&<>"']/gm,
+                function (c) {
+                    return {
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#039;'
+                    }[c];
+                }
+            );
+        },
+
+        /**
+         * Pad a string with another one
+         *
+         * @param   {String}    str         the string to pad
+         * @param   {String}    padding     the string to use for padding
+         * @param   {Number}    minLength   the minimum length of the result
+         *
+         * @returns {String}    the padded string
+         */
+        padString: function(str, padding, minLength) {
+            str = String(str);
+            padding = String(padding);
+            while (str.length < minLength) {
+                str = padding + str;
+            }
+            return str;
         }
     };
 

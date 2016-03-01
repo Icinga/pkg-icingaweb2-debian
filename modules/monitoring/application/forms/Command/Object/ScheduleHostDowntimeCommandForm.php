@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Module\Monitoring\Forms\Command\Object;
 
@@ -33,7 +33,7 @@ class ScheduleHostDowntimeCommandForm extends ScheduleServiceDowntimeCommandForm
             )
         );
 
-        if (substr($this->getBackend()->getProgramVersion(), 0, 2) !== 'v2') {
+        if (! $this->getBackend()->isIcinga2()) {
             $this->addElement(
                 'select',
                 'child_hosts',

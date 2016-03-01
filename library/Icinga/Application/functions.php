@@ -1,8 +1,7 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 use Icinga\Util\Translator;
-
 
 /**
  * No-op translate
@@ -19,6 +18,11 @@ function N_($messageId)
     return $messageId;
 }
 
+// Workaround for test issues, this is required unless our tests are able to
+// accomplish "real" bootstrapping
+if (function_exists('t')) {
+    return;
+}
 
 if (extension_loaded('gettext')) {
 

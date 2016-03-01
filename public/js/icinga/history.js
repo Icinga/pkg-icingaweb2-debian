@@ -1,4 +1,4 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/*! Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 /**
  * Icinga.History
@@ -211,10 +211,12 @@
                     );
                 } else {
                     if ($('#col2').data('icingaUrl') !== parts[1]) {
-                        icinga.loader.loadUrl(
+                        var req = icinga.loader.loadUrl(
                             parts[1],
                             $('#col2')
-                        ).addToHistory = false;
+                        );
+                        req.addToHistory = false;
+                        req.autorefresh = onload;
                     }
                 }
 

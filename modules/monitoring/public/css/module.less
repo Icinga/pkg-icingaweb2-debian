@@ -1,8 +1,36 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/*! Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
+
+// Styles for the icon displayed if a check source is reachable
+.check-source-reachable {
+  color: @color-ok;
+}
+
+// Styles for the icon displayed if a check source is not reachable
+.check-source-not-reachable {
+  color: @color-critical;
+}
+
+// Styles for the icon displayed if a check result is late
+.check-result-late {
+  color: @color-critical;
+
+  &:before {
+    // Remove right margin because the check now form may be displayed right next to the icon and we already have a gap
+    // because of inline-blocks
+    margin-right: 0;
+  }
+}
 
 // Show more and load more links in overviews
 .action-links {
   text-align: right;
+}
+
+.actions .nav {
+  li > a,
+  li > span {
+    display: inline-block;
+  }
 }
 
 // State summary badges
@@ -410,7 +438,8 @@ form.instance-features span.description, form.object-features span.description {
     }
   }
 
-  input[type="checkbox"] {
+  input[type="checkbox"],
+  input[type="radio"] {
     margin: @table-column-padding;
   }
 }
@@ -444,7 +473,7 @@ form.instance-features span.description, form.object-features span.description {
   }
 }
 
-.go-ahead > a {
+.go-ahead a {
    border-bottom: 1px @gray-light dotted;
 
   &:hover {

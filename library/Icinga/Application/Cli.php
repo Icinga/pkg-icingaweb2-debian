@@ -1,5 +1,5 @@
 <?php
-/* Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/* Icinga Web 2 | (c) 2013 Icinga Development Team | GPLv2+ */
 
 namespace Icinga\Application;
 
@@ -41,22 +41,49 @@ class Cli extends ApplicationBootstrap
             ->setupInternationalization()
             ->parseBasicParams()
             ->setupLogger()
-            ->setupResourceFactory()
             ->setupModuleManager()
             ->setupUserBackendFactory()
             ->loadSetupModuleIfNecessary();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function setupLogging()
     {
         Logger::create(
             new ConfigObject(
                 array(
-                    'level' => Logger::INFO,
-                    'log'   => 'stdout',
+                    'log' => 'stderr'
                 )
             )
         );
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function setupLogger()
+    {
+        $config = new ConfigObject();
+        $config->log = $this->params->shift('log', 'stderr');
+        if ($config->log === 'file') {
+            $config->file = $this->params->shiftRequired('log-path');
+        } elseif ($config->log === 'syslog') {
+            $config->application = 'icingacli';
+        }
+
+        if ($this->params->get('verbose', false)) {
+            $config->level = Logger::INFO;
+        } elseif ($this->params->get('debug', false)) {
+            $config->level = Logger::DEBUG;
+        } else {
+            $config->level = Logger::WARNING;
+        }
+
+        Logger::create($config);
         return $this;
     }
 

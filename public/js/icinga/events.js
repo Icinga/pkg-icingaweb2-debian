@@ -1,4 +1,4 @@
-/*! Icinga Web 2 | (c) 2013-2015 Icinga Development Team | GPLv2+ */
+/*! Icinga Web 2 | (c) 2014 Icinga Development Team | GPLv2+ */
 
 /**
  * Icinga.Events
@@ -35,6 +35,12 @@
             var $target = $(event.target);
             var self = event.data.self;
             var icinga = self.icinga;
+
+            if (! icinga) {
+                // Attempt to catch a rare error, race condition, whatever
+                console.log('Got no icinga in applyHandlers');
+                return;
+            }
 
             if (self.initializeModules) {
                 var loaded = false;
@@ -88,12 +94,6 @@
             // Remember initial search field value if any
             if ($searchField.length && $searchField.val().length) {
                 self.searchValue = $searchField.val();
-            }
-
-            if (icinga.ui.isOneColLayout()) {
-                icinga.ui.disableCloseButtons();
-            } else {
-                icinga.ui.enableCloseButtons();
             }
         },
 
@@ -386,7 +386,9 @@
                 }
             }
 
-            icinga.loader.loadUrl(url, $target, data, method).progressTimer = progressTimer;
+            var req = icinga.loader.loadUrl(url, $target, data, method);
+            req.forceFocus = autosubmit ? $(event.currentTarget) : $button.length ? $button : null;
+            req.progressTimer = progressTimer;
 
             event.stopPropagation();
             event.preventDefault();
@@ -441,7 +443,6 @@
             if  (href.match(remote)) {
                 return true;
             }
-
             // window.open is used as return true; didn't work reliable
             if (linkTarget === '_blank' || linkTarget === '_self') {
                 window.open(href, linkTarget);
@@ -472,7 +473,8 @@
 
             // This is an anchor only
             if (href.substr(0, 1) === '#' && href.length > 1
-                && href.substr(1, 1) !== '!') {
+                && href.substr(1, 1) !== '!'
+            ) {
                 icinga.ui.focusElement(href.substr(1), $a.closest('.container'));
                 return;
             }
@@ -485,7 +487,7 @@
             // If link has hash tag...
             if (href.match(/#/)) {
                 if (href === '#') {
-                    if ($a.hasClass('close-toggle')) {
+                    if ($a.hasClass('close-container-control')) {
                         if (! icinga.ui.isOneColLayout()) {
                             var $cont = $a.closest('.container').first();
                             if ($cont.attr('id') === 'col1') {
