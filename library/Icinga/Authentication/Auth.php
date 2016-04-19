@@ -160,9 +160,7 @@ class Auth
         }
         $user->setGroups($groups);
         $admissionLoader = new AdmissionLoader();
-        list($permissions, $restrictions) = $admissionLoader->getPermissionsAndRestrictions($user);
-        $user->setPermissions($permissions);
-        $user->setRestrictions($restrictions);
+        $admissionLoader->applyRoles($user);
         $this->user = $user;
         if ($persist) {
             $this->persistCurrentUser();
@@ -242,9 +240,10 @@ class Auth
     public function authenticateFromSession()
     {
         $this->user = Session::getSession()->get('user');
-        if ($this->user !== null && $this->user->isExternalUser() === true) {
+        if ($this->user !== null && $this->user->isExternalUser()) {
             list($originUsername, $field) = $this->user->getExternalUserInformation();
-            if (! array_key_exists($field, $_SERVER) || $_SERVER[$field] !== $originUsername) {
+            $username = ExternalBackend::getRemoteUser($field);
+            if ($username === null || $username !== $originUsername) {
                 $this->removeAuthorization();
             }
         }
