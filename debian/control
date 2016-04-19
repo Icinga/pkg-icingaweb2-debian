@@ -6,7 +6,7 @@ Uploaders:
  Markus Frosch <lazyfrosch@debian.org>
 Build-Depends:
  debhelper (>= 9),
- php-cli,
+ php5-cli,
  php-htmlpurifier (>= 4.3),
  yui-compressor
 Standards-Version: 3.9.7
@@ -26,9 +26,9 @@ Depends:
  ${misc:Depends}
 Recommends:
  apache2 | httpd,
- php,
- php-cli,
- php-ldap,
+ php5 (>= 5.3.2),
+ php5-cli (>= 5.3.2),
+ php5-ldap,
  icingacli,
  icingaweb2-module-monitoring,
  icingaweb2-module-doc
@@ -85,12 +85,12 @@ Package: php-icinga
 Section: php
 Architecture: all
 Depends:
- php,
+ php5 (>= 5.3.2),
  zendframework,
  ${misc:Depends}
 Recommends:
- php-mysql | php-pgsql,
- php-json,
+ php5-mysql | php5-mysqlnd | php5-pgsql,
+ php5-json
 Description: PHP library to communicate with and use Icinga
  Icinga is a PHP library providing a PHP API to interact with Icinga's data.
  .
@@ -105,7 +105,7 @@ Depends:
  php-icinga (= ${source:Version}),
  ${misc:Depends}
 Recommends:
- php-cli
+ php5-cli (>= 5.3.2)
 Suggests:
  icingaweb2-module-monitoring
 Replaces: icingaweb2 (<< 2.1.2-2~)
