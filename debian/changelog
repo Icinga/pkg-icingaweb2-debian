@@ -1,3 +1,11 @@
+icingaweb2 (2.3.1-1~debmon8+1) debmon-jessie; urgency=medium
+
+  * [7c18e45] Revert "Depend on php-xml for DOM handling modules"
+  * [a5dbcc2] Revert "Update dependencies for PHP 7.0"
+  * Rebuild for debmon-jessie.
+
+ -- Alexander Wirt <formorer@debian.org>  Tue, 19 Apr 2016 22:41:32 +0200
+
 icingaweb2 (2.3.1-1) unstable; urgency=medium
 
   * [3c80e44] Imported Upstream version 2.3.1
