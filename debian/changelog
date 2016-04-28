@@ -1,3 +1,17 @@
+icingaweb2 (2.3.2-1) unstable; urgency=medium
+
+  * [c1aee5d] Imported Upstream version 2.3.2
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Thu, 28 Apr 2016 18:19:00 +0200
+
+icingaweb2 (2.3.1-1) unstable; urgency=medium
+
+  * [3c80e44] Imported Upstream version 2.3.1
+  * [462f48e] Update dependencies for PHP 7.0 (Closes: #821579, #821680)
+  * [38bfc08] Depend on php-xml for DOM handling modules
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Tue, 19 Apr 2016 22:27:28 +0200
+
 icingaweb2 (2.2.0-1~debmon70+1) debmon-wheezy; urgency=medium
 
   * Rebuild for debmon-wheezy.

@@ -1,6 +1,62 @@
 # Icinga Web 2 Changelog
 
-## What's New in Version 2.2.0
+### What's New in Version 2.3.2
+
+#### Feature
+
+* Feature 11629: Simplified event-history date and time representation
+
+#### Bugfixes
+
+* Fix a privilege escalation issue in the monitoring module for authenticated users
+* Bug 10486: Menu rendering fails when no monitoring backend was configured
+* Bug 10847: Warn about illogical dates
+* Bug 10848: Can't change items per page if filter is in modify state
+* Bug 11392: Can't configure monitoring backend via the web interface when no monitoring backend was configured
+
+## What's New
+
+### What's New in Version 2.3.1
+
+#### Bugfixes
+
+* Bug 11598: Invalid SQL queries for PostgreSQL
+
+### What's New in Version 2.3.0
+
+#### Features
+
+* Feature 10887: lib: Provide User::getRoles()
+* Feature 10965: Roles: Restrict visibility of custom variables
+* Feature 11404: Add is_reachable filter column to host and service data views
+* Feature 11485: lib/LDAP: Support scopes base and one
+* Feature 11495: Support data URIs in href
+* Feature 11529: Don't offer command disable notifications /w expire time if backend is Icinga 2
+
+#### Bugfixes
+
+* Bug 9386: Improve order of documentation chapters
+* Bug 10820: Style problems with long plugin output lines
+* Bug 11078: Can't remove default dashboards
+* Bug 11099: Mobile menu icon is mispositioned
+* Bug 11128: Menu stops refreshing when there is text in the search field
+* Bug 11145: Pagination compontents should not float around
+* Bug 11171: Icinga Web 2 tries to load an ifont which results in 404
+* Bug 11245: icingacli monitoring list --problems throws an exception
+* Bug 11264: Cannot execute queries while other unbuffered queries are active
+* Bug 11277: external auth with PHP internal webserver still buggy
+* Bug 11279: Restrict access to Applicationlog
+* Bug 11299: Icon images no longer prepend img/icons
+* Bug 11391: External auth reads REMOTE_USER from process environment instead of request
+* Bug 11414: Doc module does not render images with relative path
+* Bug 11465: Stylesheet remains unchanged when module CSS/LESS files have been changed
+* Bug 11489: lib/LDAP: ordering does explicitly set fields
+* Bug 11490: lib/LDAP: LdapUtils::explodeDN replace deprecated use of eval in preg_replace
+* Bug 11516: Accessibility: Focus in Tactical Overview barely visible
+* Bug 11558: Missing ) in the documentation
+* Bug 11568: Docs: Global permissions table is broken
+
+### What's New in Version 2.2.0
 
 #### Features
 
@@ -61,7 +117,7 @@
 * Bug 11197: Menu items without url should ignore the target configuration
 * Bug 11260: Scheduling downtimes through the API not working
 
-## What's New in Version 2.1.1
+### What's New in Version 2.1.1
 
 #### Features
 
@@ -93,7 +149,7 @@
 * Bug 10886: "impacted" container is no longer fading out
 * Bug 10892: Wrong mask for FileCache's temp directory
 
-## What's New in Version 2.1.0
+### What's New in Version 2.1.0
 
 #### Features
 
@@ -134,9 +190,9 @@
 * Bug 10614: Class loader: hardcode module and Zend prefixes
 * Bug 10623: Acknowledging multiple selected objects erroneous
 
-## What's New in Version 2.0.0
+### What's New in Version 2.0.0
 
-### Changes
+#### Changes
 
 
 Upgrading to Icinga Web 2 2.0.0
@@ -338,9 +394,9 @@ The location of a user's preferences has been changed from config-dir/preference
 * Bug 10246: Use a separate configuration file for each type of navigation item
 * Bug 10263: Forms with target=_next remain unusable after first submission
 
-## What's New in Version 2.0.0-rc1
+### What's New in Version 2.0.0-rc1
 
-### Changes
+#### Changes
 
 * Improve layout and look and feel in many ways
 * Apply host, service and custom variable restrictions to all monitoring objects
