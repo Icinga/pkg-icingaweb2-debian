@@ -1,4 +1,4 @@
-icingaweb2 (2.3.2-1~ppa2) trusty; urgency=medium
+icingaweb2 (2.3.2-1~ppa2) xenial; urgency=medium
 
   * Fix php version on xenial 
 
