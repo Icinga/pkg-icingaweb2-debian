@@ -85,7 +85,7 @@ Package: php-icinga
 Section: php
 Architecture: all
 Depends:
- php5 (>= 5.3.2),
+ php | php5 (>= 5.3.2),
  ${misc:Depends}
 Recommends:
  php-mysql | php-pgsql,
