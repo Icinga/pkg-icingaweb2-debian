@@ -395,12 +395,6 @@ div.timeline {
         position: absolute;
         top: 50%;
 
-        &.extrapolated {
-          border-width: 2px;
-          border-style: dotted;
-          border-radius: 100%;
-        }
-
         a.inner-circle {
           display: block;
           position: absolute;
@@ -420,6 +414,61 @@ div.timeline {
     background-image: -ms-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.3), rgba(0,0,0,0));
     background-image: -moz-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.3), rgba(0,0,0,0));
     background-image: -webkit-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.3), rgba(0,0,0,0));
+  }
+}
+
+@timeline-notification-color: #3a71ea;
+@timeline-hard-state-color: #ff7000;
+@timeline-comment-color: #79bdba;
+@timeline-ack-color: #a2721d;
+@timeline-downtime-start-color: #8e8e8e;
+@timeline-downtime-end-color: #d5d6ad;
+
+.timeline-notification {
+  background-color: @timeline-notification-color;
+
+  &.extrapolated {
+    background-color: lighten(@timeline-notification-color, 20%);
+  }
+}
+
+.timeline-hard-state {
+  background-color: @timeline-hard-state-color;
+
+  &.extrapolated {
+    background-color: lighten(@timeline-hard-state-color, 20%);
+  }
+}
+
+.timeline-comment {
+  background-color: @timeline-comment-color;
+
+  &.extrapolated {
+    background-color: lighten(@timeline-comment-color, 20%);
+  }
+}
+
+.timeline-ack {
+  background-color: @timeline-ack-color;
+
+  &.extrapolated {
+    background-color: lighten(@timeline-ack-color, 20%);
+  }
+}
+
+.timeline-downtime-start {
+  background-color: @timeline-downtime-start-color;
+
+  &.extrapolated {
+    background-color: lighten(@timeline-downtime-start-color, 20%);
+  }
+}
+
+.timeline-downtime-end {
+  background-color: @timeline-downtime-end-color;
+
+  &.extrapolated {
+    background-color: lighten(@timeline-downtime-end-color, 20%);
   }
 }
 
