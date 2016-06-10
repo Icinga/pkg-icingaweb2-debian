@@ -87,7 +87,7 @@ Section: php
 Architecture: all
 Depends:
  php,
- zendframework,
+# zendframework,
  ${misc:Depends}
 Recommends:
  php-mysql | php-pgsql,
