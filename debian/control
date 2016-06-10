@@ -9,7 +9,7 @@ Build-Depends:
  php5-cli,
  php-htmlpurifier (>= 4.3),
  yui-compressor
-Standards-Version: 3.9.7
+Standards-Version: 3.9.8
 Homepage: https://www.icinga.org
 Vcs-Browser: https://anonscm.debian.org/cgit/pkg-nagios/pkg-icingaweb2.git
 Vcs-Git: https://anonscm.debian.org/git/pkg-nagios/pkg-icingaweb2.git
