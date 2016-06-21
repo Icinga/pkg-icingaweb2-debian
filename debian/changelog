@@ -1,3 +1,9 @@
+icingaweb2 (2.3.4-1~ppa1) xenial; urgency=medium
+
+  * Rebuild for my ppa
+
+ -- Alexander Wirt <formorer@debian.org>  Tue, 21 Jun 2016 07:00:34 +0200
+
 icingaweb2 (2.3.4-1) unstable; urgency=medium
 
   * Imported Upstream version 2.3.4
