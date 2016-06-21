@@ -6,7 +6,7 @@ Uploaders:
  Markus Frosch <lazyfrosch@debian.org>
 Build-Depends:
  debhelper (>= 9),
- php-cli,
+ php-cli | php5-cli,
  php-htmlpurifier (>= 4.3),
  yui-compressor
 Standards-Version: 3.9.8
