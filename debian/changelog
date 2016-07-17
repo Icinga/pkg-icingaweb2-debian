@@ -2,7 +2,7 @@ icingaweb2 (2.3.4-2~debmon70+1) debmon-wheezy; urgency=medium
 
   * Rebuild for debmon-wheezy.
 
- -- Markus Frosch <lazyfrosch@debian.org>  Fri, 10 Jun 2016 11:36:24 +0200
+ -- Alexander Wirt <formorer@debian.org>  Sun, 17 Jul 2016 10:21:14 +0200
 
 icingaweb2 (2.3.4-2) unstable; urgency=medium
 
