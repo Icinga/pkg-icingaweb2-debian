@@ -30,6 +30,9 @@ Recommends:
  php,
  php-cli,
  php-ldap,
+ php-json,
+ php-intl,
+ php-imagick,
  icingacli,
  icingaweb2-module-monitoring,
  icingaweb2-module-doc
