@@ -21,7 +21,10 @@ case "$1" in
             echo 'Adding system-group for icingaweb2' 1>&2
             addgroup --system icingaweb2 >/dev/null
         fi
-
+        # allow www-data to write icingaweb2 config
+        if ! getent group icingaweb2 | grep -q www-data; then
+            adduser www-data icingaweb2
+        fi
         # secure configuration directory and allow config access
         setperm root icingaweb2 2770 /etc/icingaweb2
     ;;
