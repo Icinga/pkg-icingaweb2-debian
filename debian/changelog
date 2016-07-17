@@ -1,3 +1,12 @@
+icingaweb2 (2.3.4-2) unstable; urgency=medium
+
+  * [a7f069b] Re-add www-data to icingaweb2 group (Closes: #831530)
+  * [3c63052] Recommend some optional modules (Closes: #831440)
+  * [cc5c7b5] Move bash completion to icingacli package (Closes: #830938)
+  * [5a3d014] Fix group and permissions of modules directory
+
+ -- Alexander Wirt <formorer@debian.org>  Sun, 17 Jul 2016 10:13:36 +0200
+
 icingaweb2 (2.3.4-1) unstable; urgency=medium
 
   * Imported Upstream version 2.3.4
