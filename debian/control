@@ -29,6 +29,9 @@ Recommends:
  php,
  php-cli,
  php-ldap,
+ php-json,
+ php-intl,
+ php-imagick,
  icingacli,
  icingaweb2-module-monitoring,
  icingaweb2-module-doc
@@ -107,8 +110,8 @@ Recommends:
  php-cli
 Suggests:
  icingaweb2-module-monitoring
-Replaces: icingaweb2 (<< 2.1.2-2~)
-Breaks: icingaweb2 (<< 2.1.2-2~)
+Replaces: icingaweb2 (<< 2.3.4-1~)
+Breaks: icingaweb2 (<< 2.3.4-1~)
 Description: simple CLI tool for Icingaweb2 and its modules
  Icinga Web 2 is a very modular, fast and simple web interface for your Icinga
  monitoring environment.
