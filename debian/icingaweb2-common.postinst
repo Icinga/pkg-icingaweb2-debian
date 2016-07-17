@@ -27,6 +27,7 @@ case "$1" in
         fi
         # secure configuration directory and allow config access
         setperm root icingaweb2 2770 /etc/icingaweb2
+        setperm root icingaweb2 2770 /etc/icingaweb2/modules
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
