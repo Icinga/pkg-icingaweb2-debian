@@ -1,3 +1,9 @@
+icingaweb2 (2.3.4-2~ppa2) xenial; urgency=medium
+
+  * [aff6389] Tighten the breaks
+
+ -- Alexander Wirt <formorer@debian.org>  Mon, 18 Jul 2016 10:27:52 +0200
+
 icingaweb2 (2.3.4-2~ppa1) xenial; urgency=medium
 
   * Rebuild for my ppa
