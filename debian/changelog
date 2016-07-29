@@ -1,3 +1,9 @@
+icingaweb2 (2.3.4-2~ppa3) UNRELEASED; urgency=medium
+
+  * Update the break
+
+ -- Alexander Wirt <formorer@debian.org>  Fri, 29 Jul 2016 11:48:18 +0200
+
 icingaweb2 (2.3.4-2~ppa2) xenial; urgency=medium
 
   * [aff6389] Tighten the breaks
