@@ -1,3 +1,13 @@
+icingaweb2 (2.3.4+fix-1) UNRELEASED; urgency=medium
+
+  [ Alexander Wirt ]
+  * [7fa211e] Imported Upstream version 2.3.4
+
+  [ Markus Frosch ]
+  * [f2d0189] Fix merged base for 2.3.4
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Tue, 02 Aug 2016 12:22:19 +0200
+
 icingaweb2 (2.3.4-2) unstable; urgency=medium
 
   * [a7f069b] Re-add www-data to icingaweb2 group (Closes: #831530)
