@@ -20,11 +20,6 @@ source: $(SOURCES)
 
 uglify: $(FILES)
 
-%.js:
-	$(eval min := $(patsubst %.js,%.min.js,$@))
-	grep -Pzo '/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/' $(SOURCE_PATH)/$(min) > $@.head
-	cp $(SOURCE_PATH)/$@ .
-
 %.min.js: %.js
 	$(eval map := $(patsubst %.min.js,%.min.map,$@))
 ifdef CAN_UGLIFYJS
@@ -39,3 +34,8 @@ ifdef CAN_UGLIFYJS
 else
 	yui-compressor $< -o $@
 endif
+
+%.js:
+	$(eval min := $(patsubst %.js,%.min.js,$@))
+	grep -Pzo '/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/' $(SOURCE_PATH)/$(min) > $@.head
+	cp $(SOURCE_PATH)/$@ .
