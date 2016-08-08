@@ -1,3 +1,9 @@
+icingaweb2 (2.3.4+fix-1~debmon8+1) debmon-jessie; urgency=medium
+
+  * Rebuild for debmon-jessie.
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Mon, 08 Aug 2016 14:23:12 +0200
+
 icingaweb2 (2.3.4+fix-1) unstable; urgency=medium
 
   [ Alexander Wirt ]
