@@ -8,7 +8,6 @@ application/layouts              usr/share/icingaweb2/application
 application/views                usr/share/icingaweb2/application
 
 etc/schema                       usr/share/icingaweb2/etc
-etc/bash_completion.d
 
 packages/files/public/index.php  usr/share/icingaweb2/public
 debian/icingaweb2.conf           etc/apache2/conf-available
