@@ -1,3 +1,16 @@
+icingaweb2 (2.3.4+fix-1) unstable; urgency=medium
+
+  [ Alexander Wirt ]
+  * [7fa211e] Imported Upstream version 2.3.4
+
+  [ Markus Frosch ]
+  * [f2d0189] Fix merged base for 2.3.4
+  * [4c547d8] Include test module into distribution
+  * [a9493cd] Fix icingacli breaking dependency for bash-completion update
+  * [3f6ff8a] Add proper Javascript minification with uglifyjs
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Mon, 08 Aug 2016 14:15:06 +0200
+
 icingaweb2 (2.3.4-2~debmon70+1) debmon-wheezy; urgency=medium
 
   * Rebuild for debmon-wheezy.
