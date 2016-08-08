@@ -8,7 +8,7 @@ Build-Depends:
  debhelper (>= 9),
  php-cli,
  php-htmlpurifier (>= 4.3),
- node-uglify | yui-compressor, node-source-map | yui-compressor
+ node-uglify (>= 2) | yui-compressor, node-source-map | yui-compressor
 Standards-Version: 3.9.8
 Homepage: https://www.icinga.org
 Vcs-Browser: https://anonscm.debian.org/cgit/pkg-nagios/pkg-icingaweb2.git
