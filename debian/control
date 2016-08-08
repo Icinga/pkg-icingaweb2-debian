@@ -27,7 +27,7 @@ Depends:
  ${misc:Depends}
 Recommends:
  apache2 | httpd,
- php,
+ libapache2-mod-php | php,
  php-cli,
  php-ldap,
  php-json,
