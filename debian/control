@@ -8,7 +8,7 @@ Build-Depends:
  debhelper (>= 9),
  php-cli,
  php-htmlpurifier (>= 4.3),
- yui-compressor
+ node-uglify | yui-compressor, node-source-map | yui-compressor
 Standards-Version: 3.9.8
 Homepage: https://www.icinga.org
 Vcs-Browser: https://anonscm.debian.org/cgit/pkg-nagios/pkg-icingaweb2.git
@@ -112,8 +112,8 @@ Recommends:
  php-cli
 Suggests:
  icingaweb2-module-monitoring
-Replaces: icingaweb2 (<< 2.3.4-1~)
-Breaks: icingaweb2 (<< 2.3.4-1~)
+Replaces: icingaweb2 (<< 2.3.4-2~)
+Breaks: icingaweb2 (<< 2.3.4-2~)
 Description: simple CLI tool for Icingaweb2 and its modules
  Icinga Web 2 is a very modular, fast and simple web interface for your Icinga
  monitoring environment.
