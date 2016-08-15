@@ -1,3 +1,14 @@
+icingaweb2 (2.3.4+fix-1~ppa1604+1) xenial; urgency=medium
+
+  * [22c953b] Embed zendframework on Ubuntu
+  * [d17f5af] uglify: Fix rule order for older versions of GNU make
+  * [3b616b2] Prefer libapache2-mod-php for this package
+  * [6a493bb] uglify: Don't care about a header
+  * [5cb1a81] Prefer libapache2-mod-php also for php-icinga
+  * Rebuild for Ubuntu xenial.
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Mon, 15 Aug 2016 16:09:30 +0200
+
 icingaweb2 (2.3.4+fix-1) unstable; urgency=medium
 
   [ Alexander Wirt ]
