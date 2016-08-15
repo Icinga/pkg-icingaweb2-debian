@@ -89,7 +89,7 @@ Package: php-icinga
 Section: php
 Architecture: all
 Depends:
- php,
+ libapache2-mod-php | php,
 # zendframework,
  ${misc:Depends}
 Recommends:
