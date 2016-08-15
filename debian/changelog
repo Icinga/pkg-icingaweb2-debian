@@ -1,3 +1,16 @@
+icingaweb2 (2.3.4+fix-1~ppa1204+1) precise; urgency=medium
+
+  * [7ad23c2] Revert "Depend on php-xml for DOM handling modules"
+  * [60f255d] Revert "Update dependencies for PHP 7.0"
+  * [e25ec62] Embed zendframework on Ubuntu
+  * [6ac1ee1] Embed php-dompdf
+  * [f6ac109] Embed php-htmlpurifier
+  * [d17f5af] uglify: Fix rule order for older versions of GNU make
+  * [f1cd370] uglify: Require at least version 2
+  * Rebuild for Ubuntu precise.
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Mon, 15 Aug 2016 16:29:32 +0200
+
 icingaweb2 (2.3.4+fix-1) unstable; urgency=medium
 
   [ Alexander Wirt ]
