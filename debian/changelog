@@ -1,3 +1,11 @@
+icingaweb2 (2.4.0-1~ppa1404+1) trusty; urgency=medium
+
+  * [91dcf64] ubuntu: Use Zend embedding like Debian
+  * [2b92d1b] ubuntu: Update dompdf paths
+  * Rebuild for Ubuntu trusty.
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Tue, 13 Dec 2016 16:23:26 +0100
+
 icingaweb2 (2.4.0-1) unstable; urgency=medium
 
   * [d17f5af] uglify: Fix rule order for older versions of GNU make
