@@ -17,5 +17,4 @@ library/vendor/Parsedown/*.php   usr/share/icingaweb2/library/vendor/Parsedown
 library/vendor/lessphp/*.php     usr/share/icingaweb2/library/vendor/lessphp
 
 # vendor installs for Ubuntu
-library/vendor/Zend/{*.php,*/}   usr/share/icingaweb2/library/vendor/Zend
 library/vendor/dompdf/{*.php,lib,include} usr/share/icingaweb2/library/vendor/dompdf
