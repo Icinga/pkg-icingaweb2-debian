@@ -1,3 +1,21 @@
+icingaweb2 (2.4.0-1) unstable; urgency=medium
+
+  * [d17f5af] uglify: Fix rule order for older versions of GNU make
+  * [36e1fe4] uglify: Don't care about a header
+  * [310d027] uglify: Require at least version 2
+  * [9aff116] New upstream version 2.4.0
+  * [9608ebe] Embed forked version of ZF1 (Closes: #814143)
+
+    ZF1 has been forked as a minimal base library inside Icingaweb2.
+
+    It is maintained as part of Icingaweb2. See README for reference:
+    /usr/share/doc/php-icinga/README-ZF1.md
+
+  * [1827003] Minimal icon font installation
+  * [dcdfdcf] Move bash-completion to /usr
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Tue, 13 Dec 2016 15:37:14 +0100
+
 icingaweb2 (2.3.4+fix-1~debmon8+1) debmon-jessie; urgency=medium
 
   * Rebuild for debmon-jessie.
