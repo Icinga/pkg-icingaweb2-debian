@@ -26,9 +26,9 @@ ifdef CAN_UGLIFYJS
 	uglifyjs \
 	  $(UGLIFY_OPTS) \
 	  -o $@ \
-	  --preamble "$$(cat $<.head)" \
 	  --source-map $(map) \
 	  --source-map-url $(map) -- $<
+	#  --preamble "$$(cat $<.head)" \
 	# Add explicit newline (https://dev.icinga.org/issues/12328)
 	echo >> $@
 else
@@ -37,5 +37,5 @@ endif
 
 %.js:
 	$(eval min := $(patsubst %.js,%.min.js,$@))
-	grep -Pzo '/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/' $(SOURCE_PATH)/$(min) > $@.head
+	#grep -Pzo '/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/' $(SOURCE_PATH)/$(min) > $@.head
 	cp $(SOURCE_PATH)/$@ .

@@ -10,11 +10,9 @@
         Icinga.EventListener.call(this, icinga);
         this.on('click', '#menu a', this.linkClicked, this);
         this.on('click', '#menu tr[href]', this.linkClicked, this);
-        this.on('mouseenter', 'li.dropdown', this.dropdownHover, this);
-        this.on('mouseleave', 'li.dropdown', this.dropdownLeave, this);
         this.on('mouseenter', '#menu > nav > ul > li', this.menuTitleHovered, this);
         this.on('mouseleave', '#sidebar', this.leaveSidebar, this);
-        this.on('rendered', this.onRendered, this);
+        this.on('rendered', '#menu', this.onRendered, this);
 
         /**
          * The DOM-Path of the active item
@@ -35,9 +33,11 @@
         this.hovered = null;
 
         /**
-         * @type {HTMLElement}
+         * The menu
+         *
+         * @type {jQuery}
          */
-        this.element = null;
+        this.$menu = null;
     };
     Navigation.prototype = new Icinga.EventListener();
 
@@ -49,16 +49,16 @@
     Navigation.prototype.onRendered = function(e) {
         var _this = e.data.self;
 
-        this.element = e.target;
+        _this.$menu = $(e.target);
 
         if (! _this.active) {
             // There is no stored menu item, therefore it is assumed that this is the first rendering
             // of the navigation after the page has been opened.
 
             // initialise the menu selected by the backend as active.
-            var $menus = $('#menu li.active', e.target);
-            if ($menus.length) {
-                $menus.each(function() {
+            var $active = _this.$menu.find('li.active');
+            if ($active.length) {
+                $active.each(function() {
                     _this.setActive($(this));
                 });
             } else {
@@ -108,14 +108,14 @@
         var $a = $(this);
         var href = $a.attr('href');
         var $li;
-        var self = event.data.self;
-        var icinga = self.icinga;
+        var _this = event.data.self;
+        var icinga = _this.icinga;
 
-        self.hovered = null;
+        _this.hovered = null;
         if (href.match(/#/)) {
             // ...it may be a menu section without a dedicated link.
             // Switch the active menu item:
-            self.setActive($a);
+            _this.setActive($a);
             $li = $a.closest('li');
             if ($li.hasClass('hover')) {
                 $li.removeClass('hover');
@@ -128,7 +128,7 @@
                 return;
             }
         } else {
-            self.setActive($(event.target));
+            _this.setActive($(event.target));
         }
         // update target url of the menu container to the clicked link
         var $menu = $('#menu');
@@ -147,17 +147,17 @@
     Navigation.prototype.setActiveByUrl = function(url) {
 
         // try to active the first item that has an exact URL match
-        this.setActive($('#menu [href="' + url + '"]'));
+        this.setActive(this.$menu.find('[href="' + url + '"]'));
 
         // the url may point to the search field, which must be activated too
         if (! this.active) {
-            this.setActive($('#menu form[action="' + this.icinga.utils.parseUrl(url).path + '"]'));
+            this.setActive(this.$menu.find('form[action="' + this.icinga.utils.parseUrl(url).path + '"]'));
         }
 
         // some urls may have custom filters which won't match any menu item, in that case search
         // for a menu item that points to the base action without any filters
         if (! this.active) {
-            this.setActive($('#menu [href="' + this.icinga.utils.parseUrl(url).path + '"]').first());
+            this.setActive(this.$menu.find('[href="' + this.icinga.utils.parseUrl(url).path + '"]').first());
         }
     };
 
@@ -178,11 +178,9 @@
      * Remove all active elements
      */
     Navigation.prototype.clear = function() {
-        // menu items
-        $('#menu li.active', this.element).removeClass('active');
-
-        // search fields
-        $('#menu input.active', this.element).removeClass('active');
+        if (this.$menu) {
+            this.$menu.find('.active').removeClass('active');
+        }
     };
 
     /**
@@ -276,9 +274,9 @@
 
         var $li = $(this),
             delay = 800,
-            self = event.data.self;
+            _this = event.data.self;
 
-        self.hovered = null;
+        _this.hovered = null;
         if ($li.hasClass('active')) {
             $li.siblings().removeClass('hover');
             return;
@@ -315,14 +313,14 @@
                     $sibling.removeClass('hover');
                 }
             });
-            self.hoverElement($li);
+            _this.hoverElement($li);
         }, delay);
     };
 
     Navigation.prototype.leaveSidebar = function (event) {
         var $sidebar = $(this),
             $li = $sidebar.find('li.hover'),
-            self = event.data.self;
+            _this = event.data.self;
         if (! $li.length) {
             $('#layout').removeClass('hoveredmenu');
             return;
@@ -337,7 +335,7 @@
             $li.removeClass('hover');
             $('#layout').removeClass('hoveredmenu');
         }, 500);
-        self.hovered = null;
+        _this.hovered = null;
     };
 
     Navigation.prototype.hoverElement = function ($li)  {
@@ -350,23 +348,6 @@
         }
     };
 
-    Navigation.prototype.dropdownHover = function () {
-        $(this).addClass('hover');
-    };
-
-    Navigation.prototype.dropdownLeave = function (event) {
-        var $li = $(this),
-            self = event.data.self;
-        setTimeout(function () {
-            // TODO: make this behave well together with keyboard navigation
-            try {
-                if (!$li.is('li:hover') /*&& ! $li.find('a:focus')*/) {
-                    $li.removeClass('hover');
-                }
-            } catch(e) { /* Bypass because if IE8 */ }
-        }, 300);
-        self.hovered = null;
-    };
     Icinga.Behaviors.Navigation = Navigation;
 
 }) (Icinga, jQuery);
