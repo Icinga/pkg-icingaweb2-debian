@@ -1,3 +1,10 @@
+icingaweb2 (2.4.0-1~ppa1604+1) xenial; urgency=medium
+
+  * [7481ac8] ubuntu: Use Zend embedding like Debian
+  * Rebuild for Ubuntu xenial.
+
+ -- Markus Frosch <lazyfrosch@debian.org>  Tue, 13 Dec 2016 16:10:20 +0100
+
 icingaweb2 (2.4.0-1) unstable; urgency=medium
 
   * [d17f5af] uglify: Fix rule order for older versions of GNU make
