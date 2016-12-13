@@ -185,12 +185,12 @@
                 filter.addClass('active');
                 return;
             }
-            var self = this;
+            var _this = this;
             this.rowActions()
                 .filter(
                     function (i, el) {
-                        var params = self.getRowData($(el));
-                        if (self.icinga.utils.objectKeys(params).length !== self.icinga.utils.objectKeys(filter).length) {
+                        var params = _this.getRowData($(el));
+                        if (_this.icinga.utils.objectKeys(params).length !== _this.icinga.utils.objectKeys(filter).length) {
                             return false;
                         }
                         var equal = true;
@@ -255,15 +255,36 @@
          * @param   url     {String}    The target url
          */
         selectUrl: function(url) {
+            var formerHref = this.$el.closest('.container').data('icinga-actiontable-former-href')
+
             var $row = this.rows().filter('[href="' + url + '"]');
+
             if ($row.length) {
+               this.clear();
                $row.addClass('active');
             } else {
-                // rows sometimes need to be displayed as active when related actions
-                // like command actions are being opened. Do not do this for col2, as it
-                // would always select the opened URL itself.
                 if (this.col !== 'col2') {
-                    this.rows().filter('[href$="' + icinga.utils.parseUrl(url).query + '"]').addClass('active');
+                    // rows sometimes need to be displayed as active when related actions
+                    // like command actions are being opened. Do not do this for col2, as it
+                    // would always select the opened URL itself.
+                    var $row = this.rows().filter('[href$="' + icinga.utils.parseUrl(url).query + '"]');
+                    if ($row.length) {
+                        this.clear();
+                        $row.addClass('active');
+                    } else {
+                        var $row = this.rows().filter('[href$="' + formerHref + '"]');
+                        if ($row.length) {
+                            this.clear();
+                            $row.addClass('active');
+                        } else {
+                            var tbl = this.$el;
+                            if (ActionTable.prototype.tables(
+                                tbl.closest('.dashboard').find('.container')).not(tbl).find('tr.active').length
+                            ) {
+                                this.clear();
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -274,21 +295,21 @@
          * @returns         {String}    The filter string
          */
         toQuery: function() {
-            var self = this;
+            var _this = this;
             var selections = this.selections();
             var queries = [];
             var utils = this.icinga.utils;
             if (selections.length === 1) {
                 return $(selections[0]).attr('href');
-            } else if (selections.length > 1 && self.hasMultiselection()) {
+            } else if (selections.length > 1 && _this.hasMultiselection()) {
                 selections.each(function (i, el) {
                     var parts = [];
-                    $.each(self.getRowData($(el)), function(key, value) {
+                    $.each(_this.getRowData($(el)), function(key, value) {
                         parts.push(utils.fixedEncodeURIComponent(key) + '=' + utils.fixedEncodeURIComponent(value));
                     });
                     queries.push('(' + parts.join('&') + ')');
                 });
-                return self.getMultiselectionUrl() + '?(' + queries.join('|') + ')';
+                return _this.getMultiselectionUrl() + '?(' + queries.join('|') + ')';
             } else {
                 return '';
             }
@@ -298,15 +319,15 @@
          * Refresh the displayed active columns using the current page location
          */
         refresh: function() {
-            this.clear();
             var hash = icinga.history.getCol2State().replace(/^#!/, '');
             if (this.hasMultiselection()) {
                 var query = parseSelectionQuery(hash);
                 if (query.length > 1 && this.hasMultiselectionUrl(this.icinga.utils.parseUrl(hash).path)) {
+                    this.clear();
                     // select all rows with matching filters
-                    var self = this;
+                    var _this = this;
                     $.each(query, function(i, selection) {
-                        self.select(selection);
+                        _this.select(selection);
                     });
                 }
                 if (query.length > 1) {
@@ -330,6 +351,7 @@
         this.loading = false;
 
         this.on('rendered', this.onRendered, this);
+        this.on('beforerender', this.beforeRender, this);
         this.on('click', 'table.action tr[href], table.table-row-selectable tr[href]', this.onRowClicked, this);
     };
     ActionTable.prototype = new Icinga.EventListener();
@@ -351,10 +373,10 @@
      * Handle clicks on table rows and update selection and history
      */
     ActionTable.prototype.onRowClicked = function (event) {
-        var self = event.data.self;
+        var _this = event.data.self;
         var $target = $(event.target);
         var $tr = $target.closest('tr');
-        var table = new Selection($tr.closest('table.action, table.table-row-selectable')[0], self.icinga);
+        var table = new Selection($tr.closest('table.action, table.table-row-selectable')[0], _this.icinga);
 
         // some rows may contain form actions that trigger a different action, pass those through
         if (!$target.hasClass('rowaction') && $target.closest('form').length &&
@@ -390,18 +412,18 @@
         var count = table.selections().length;
         if (count > 0) {
             var query = table.toQuery();
-            self.icinga.loader.loadUrl(query, self.icinga.events.getLinkTargetFor($tr));
+            _this.icinga.loader.loadUrl(query, _this.icinga.events.getLinkTargetFor($tr));
             state += '#!' + query;
         } else {
-            if (self.icinga.events.getLinkTargetFor($tr).attr('id') === 'col2') {
-                self.icinga.ui.layout1col();
+            if (_this.icinga.events.getLinkTargetFor($tr).attr('id') === 'col2') {
+                _this.icinga.ui.layout1col();
             }
         }
-        self.icinga.history.pushUrl(state);
+        _this.icinga.history.pushUrl(state);
 
         // redraw all table selections
-        self.tables().each(function () {
-            new Selection(this, self.icinga).refresh();
+        _this.tables().each(function () {
+            new Selection(this, _this.icinga).refresh();
         });
 
         // update selection info
@@ -414,7 +436,7 @@
      */
     ActionTable.prototype.onRendered = function(evt) {
         var container = evt.target;
-        var self = evt.data.self;
+        var _this = evt.data.self;
 
         // initialize all rows with the correct row action
         $('table.action tr, table.table-row-selectable tr', container).each(function(idx, el) {
@@ -442,20 +464,31 @@
         });
 
         // draw all active selections that have disappeared on reload
-        self.tables().each(function(i, el) {
-            new Selection(el, self.icinga).refresh();
+        _this.tables().each(function(i, el) {
+            new Selection(el, _this.icinga).refresh();
         });
 
         // update displayed selection counter
-        var table = new Selection(self.tables(container).first());
+        var table = new Selection(_this.tables(container).first());
         $(container).find('.selection-info-count').text(table.selections().size());
     };
 
+    ActionTable.prototype.beforeRender = function(evt) {
+        var container = evt.target;
+        var _this = evt.data.self;
+
+        var active = _this.tables().find('tr.active');
+        if (active.length) {
+            $(container).data('icinga-actiontable-former-href', active.attr('href'));
+        }
+    };
+
     ActionTable.prototype.clearAll = function () {
-        var self = this;
+        var _this = this;
         this.tables().each(function () {
-            new Selection(this, self.icinga).clear();
+            new Selection(this, _this.icinga).clear();
         });
+        $('.selection-info-count').text('0');
     };
 
     Icinga.Behaviors.ActionTable = ActionTable;

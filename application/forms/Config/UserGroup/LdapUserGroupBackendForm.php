@@ -89,9 +89,27 @@ class LdapUserGroupBackendForm extends Form
             $groupConfigDisabled = $userConfigDisabled = true;
         }
 
+        if ($formData['type'] === 'msldap') {
+            $this->addElement(
+                'checkbox',
+                'nested_group_search',
+                array(
+                    'description'   => $this->translate(
+                        'Check this box for nested group search in Active Directory based on the user'
+                    ),
+                    'label'         => $this->translate('Nested Group Search')
+                )
+            );
+        } else {
+            // This is required to purge already present options
+            $this->addElement('hidden', 'nested_group_search', array('disabled' => true));
+        }
+
         $this->createGroupConfigElements($defaults, $groupConfigDisabled);
         if (count($userBackends) === 1 || (isset($formData['user_backend']) && $formData['user_backend'] === 'none')) {
             $this->createUserConfigElements($defaults, $userConfigDisabled);
+        } else {
+            $this->createHiddenUserConfigElements();
         }
 
         $this->addElement(
@@ -276,6 +294,19 @@ class LdapUserGroupBackendForm extends Form
                 'value'             => $defaults->user_base_dn
             )
         );
+    }
+
+    /**
+     * Create and add all elements for the user configuration as hidden inputs
+     *
+     * This is required to purge already present options when unlinking a group backend with a user backend.
+     */
+    protected function createHiddenUserConfigElements()
+    {
+        $this->addElement('hidden', 'user_class', array('disabled' => true));
+        $this->addElement('hidden', 'user_filter', array('disabled' => true));
+        $this->addElement('hidden', 'user_name_attribute', array('disabled' => true));
+        $this->addElement('hidden', 'user_base_dn', array('disabled' => true));
     }
 
     /**
