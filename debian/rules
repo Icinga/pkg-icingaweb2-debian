@@ -2,7 +2,7 @@
 #export DH_VERBOSE=1
 
 %:
-	dh $@
+	dh $@ --with bash_completion
 
 override_dh_auto_clean:
 	dh_auto_clean
@@ -11,6 +11,8 @@ override_dh_auto_clean:
 override_dh_install:
 	dh_install -X.min.js -X.min.map -XSOURCE
 	cp -r debian/uglify/*.min.* debian/icingaweb2/usr/share/icingaweb2/public/js/vendor/
+	mkdir -p debian/php-icinga/usr/share/doc/php-icinga
+	cp library/vendor/Zend/README.md debian/php-icinga/usr/share/doc/php-icinga/README-ZF1.md
 
 override_dh_auto_test:
 	dh_auto_test

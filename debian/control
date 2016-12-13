@@ -5,10 +5,11 @@ Maintainer: Debian Nagios Maintainer Group <pkg-nagios-devel@lists.alioth.debian
 Uploaders:
  Markus Frosch <lazyfrosch@debian.org>
 Build-Depends:
+ bash-completion,
  debhelper (>= 9),
  php-cli,
  php-htmlpurifier (>= 4.3),
- node-uglify | yui-compressor, node-source-map | yui-compressor
+ node-uglify (>= 2) | yui-compressor, node-source-map | yui-compressor
 Standards-Version: 3.9.8
 Homepage: https://www.icinga.org
 Vcs-Browser: https://anonscm.debian.org/cgit/pkg-nagios/pkg-icingaweb2.git
@@ -90,15 +91,17 @@ Section: php
 Architecture: all
 Depends:
  libapache2-mod-php | php,
-# zendframework,
+ php,
  ${misc:Depends}
 Recommends:
  php-mysql | php-pgsql,
  php-json,
 Description: PHP library to communicate with and use Icinga
- Icinga is a PHP library providing a PHP API to interact with Icinga's data.
+ Icinga Web 2 is a very modular, fast and simple web interface for your Icinga
+ monitoring environment.
  .
- The main dependency here is the Zend Framework.
+ Icinga is a PHP library providing a PHP API to interact with Icinga's data
+ and other core parts of Icinga web 2 that may be used by modules.
  .
  This library is mainly used by Icinga Web 2 to get its data.
 

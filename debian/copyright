@@ -157,6 +157,7 @@ License: MIT
 
 Files: library/vendor/Zend/*
 Copyright: 2005-2014 Zend Technologies USA Inc. (http://www.zend.com)
+           2016 Icinga Development Team <info@icinga.com>
 License: New-BSD
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
