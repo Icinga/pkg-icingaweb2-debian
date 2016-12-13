@@ -5,6 +5,7 @@ Maintainer: Debian Nagios Maintainer Group <pkg-nagios-devel@lists.alioth.debian
 Uploaders:
  Markus Frosch <lazyfrosch@debian.org>
 Build-Depends:
+ bash-completion,
  debhelper (>= 9),
  php-cli,
  php-htmlpurifier (>= 4.3),
