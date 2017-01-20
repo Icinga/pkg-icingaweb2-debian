@@ -1,10 +1,10 @@
-icingaweb2 (2.4.1-1) UNRELEASED; urgency=medium
+icingaweb2 (2.4.1-1) unstable; urgency=medium
 
   * [21444ed] Add patch 10_revert_dompdf_update
               to allow use of DOMPDF 0.6.x
   * [9bd86b8] New upstream version 2.4.1
 
- -- Markus Frosch <lazyfrosch@debian.org>  Tue, 13 Dec 2016 17:09:44 +0100
+ -- Markus Frosch <lazyfrosch@debian.org>  Fri, 20 Jan 2017 14:24:33 +0100
 
 icingaweb2 (2.4.0-1) unstable; urgency=medium
 
