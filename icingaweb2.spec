@@ -3,16 +3,16 @@
 %define revision 1
 
 Name:           icingaweb2
-Version:        2.4.0
+Version:        2.4.1
 Release:        %{revision}%{?dist}
 Summary:        Icinga Web 2
 Group:          Applications/System
 License:        GPLv2+ and MIT and BSD
-URL:            https://icinga.org
+URL:            https://icinga.com
 Source0:        https://github.com/Icinga/%{name}/archive/v%{version}.tar.gz
 BuildArch:      noarch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}
-Packager:       Icinga Team <info@icinga.org>
+Packager:       Icinga Team <info@icinga.com>
 
 %if 0%{?fedora} || 0%{?rhel} || 0%{?amzn}
 %define php             php
@@ -105,7 +105,7 @@ Requires:                   php-Icinga = %{version}-%{release}
 Icinga CLI
 
 
-%if 0%{selinux}
+%if 0%{?selinux}
 %package selinux
 Summary:        SELinux policy for Icinga Web 2
 BuildRequires:  checkpolicy, selinux-policy-devel, /usr/share/selinux/devel/policyhelp, hardlink
@@ -196,13 +196,13 @@ Icinga Web 2's fork of Zend Framework 1
 
 %prep
 %setup -q
-%if 0%{selinux}
+%if 0%{?selinux}
 mkdir selinux
 cp -p packages/selinux/icingaweb2.{fc,if,te} selinux
 %endif
 
 %build
-%if 0%{selinux}
+%if 0%{?selinux}
 cd selinux
 for selinuxvariant in %{selinux_variants}
 do
@@ -227,7 +227,7 @@ cp -pv packages/files/bin/icingacli %{buildroot}/%{bindir}
 cp -pv packages/files/public/index.php %{buildroot}/%{basedir}/public
 cp -prv etc/schema %{buildroot}/%{docsdir}
 cp -prv packages/files/config/modules/{setup,translation} %{buildroot}/%{configdir}/modules
-%if 0%{selinux}
+%if 0%{?selinux}
 cd selinux
 for selinuxvariant in %{selinux_variants}
 do
@@ -295,7 +295,7 @@ exit 0
 %attr(0755,root,root) %{bindir}/icingacli
 
 
-%if 0%{selinux}
+%if 0%{?selinux}
 %post selinux
 for selinuxvariant in %{selinux_variants}
 do
